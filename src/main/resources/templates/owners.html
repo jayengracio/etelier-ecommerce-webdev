@@ -53,7 +53,7 @@
 
         <div class="profile-card">
             <div class="container">
-                <h4><b th:text="'Welcome, ' + ${user.username} + '!'"></b></h4>
+                <h4><b th:text="'Welcome, ' + ${#authentication.name} + '!'"></b></h4>
             </div>
             <div class="log-btns text-center">
                 <a href="/logout">
