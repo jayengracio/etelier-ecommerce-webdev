@@ -60,9 +60,14 @@ public class MainController {
     }
 
     @GetMapping("/register")
+    public String register() {
+        return "register.html";
+    }
+
+    @PostMapping("/register")
     public String registerUser(@RequestParam String username, @RequestParam String password) {
         username = username.trim();
-        if (username.length() < 3 || password.length() < 0) {
+        if (username.length() < 3 || password.length() < 8) {
             return "redirect:/register?invalid";
         }
         if (userRepository.existsByUsername(username)) {
