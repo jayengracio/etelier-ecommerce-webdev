@@ -13,19 +13,6 @@ function addProduct() {
     xhr.send(JSON.stringify(record));
 }
 
-function editProduct() {
-    var record = {
-        price: document.getElementById("price").value,
-        details: document.getElementById("details").value,
-        stock: document.getElementById("stock").value,
-    };
-
-    var xhr = new XMLHttpRequest();
-    xhr.open("POST", "/edit/product");
-    xhr.setRequestHeader('Content-type', 'application/json');
-    xhr.send(JSON.stringify(record));
-}
-
 function removeProduct(id) {
     var xhr = new XMLHttpRequest();
     xhr.addEventListener("load", removeProductFromCart);
