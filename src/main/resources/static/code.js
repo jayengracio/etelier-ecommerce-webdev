@@ -91,20 +91,6 @@ function filterByType() {
     }
 }
 
-function hideProduct(id) {
-    var xhr = new XMLHttpRequest();
-    xhr.addEventListener("load", hideProductFromList);
-    xhr.open("GET", "/hide/product?id=" + id);
-    xhr.send();
-}
-
-function hideProductFromList() {
-    var id = this.responseText;
-    var table = document.getElementById("productTable");
-    var row = document.getElementById("row_" + id);
-    table.deleteRow(row.rowIndex);
-}
-
 (function () {
     'use strict';
     window.addEventListener('load', function () {
