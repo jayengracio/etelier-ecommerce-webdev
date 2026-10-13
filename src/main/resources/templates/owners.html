@@ -56,9 +56,10 @@
                 <h4><b th:text="'Welcome, ' + ${#authentication.name} + '!'"></b></h4>
             </div>
             <div class="log-btns text-center">
-                <a href="/logout">
+                <form th:action="@{/logout}" method="post">
                     <button class="login-btn btn btn-success btn-block" type="submit">Log Out</button>
-                </a>
+                </form>
+
                 <a href="/view/orders">
                     <button class="login-btn btn btn-success btn-block" type="submit">View
                         Orders

@@ -19,82 +19,87 @@
 
     <!-- Font Awesome Icons -->
     <link crossorigin="anonymous" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
-          integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" rel="stylesheet">
+        integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" rel="stylesheet">
 </head>
 
 <body>
-<div class="header">
-    <nav class="navbar navbar-expand-sm bg-custom navbar-custom justify-content-center fixed-top">
-        <a class="navbar-brand" href="/">
-            <img alt="logo" src="/images/logo.svg" style="width: 40px;">
-        </a>
-        <ul class="navbar-nav mr-auto">
-            <li class="nav-item">
-                <a class="nav-link" href="/">Home</a>
-            </li>
+    <div class="header">
+        <nav class="navbar navbar-expand-sm bg-custom navbar-custom justify-content-center fixed-top">
+            <a class="navbar-brand" href="/">
+                <img alt="logo" src="/images/logo.svg" style="width: 40px;">
+            </a>
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Home</a>
+                </li>
 
-            <li class="nav-item">
-                <a class="nav-link" href="/products">Products</a>
-            </li>
-        </ul>
-        <ul class="navbar-nav">
-            <li class="nav-item">
-                <a class="nav-link" href="/login"><i class="fas fa-user"></i></a>
-            </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/products">Products</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="/login"><i class="fas fa-user"></i></a>
+                </li>
 
-            <li class="nav-item">
-                <a class="nav-link" href="/cart"><i class="fas fa-shopping-cart"></i></a>
-            </li>
-        </ul>
-    </nav>
-    <br><br><br>
-</div>
+                <li class="nav-item">
+                    <a class="nav-link" href="/cart"><i class="fas fa-shopping-cart"></i></a>
+                </li>
+            </ul>
+        </nav>
+        <br><br><br>
+    </div>
 
-<div class="searchDiv">
-    <h1>Products</h1>
-    <input id="searchType" onkeyup="filterByType()" placeholder="Search by type..." type="text">
-    <input id="searchName" onkeyup="filterByName()" placeholder="Search by name..." type="text">
-</div>
+    <div class="searchDiv">
+        <h1>Products</h1>
+        <input id="searchType" onkeyup="filterByType()" placeholder="Search by type..." type="text">
+        <input id="searchName" onkeyup="filterByName()" placeholder="Search by name..." type="text">
+    </div>
 
-<div class="products">
-    <table class="product-table" id="productTable">
-        <thead>
-        <tr>
-            <th class="prod-cell" style="width: auto">Type</th>
-            <th class="prod-cell" style="width: auto">Name</th>
-            <th class="prod-cell" style="width: auto">Price</th>
-            <th class="prod-cell" style="width: auto">Stock</th>
-            <th class="prod-cell" style="width: 130px"></th>
-            <th class="prod-cell" style="width: 170px"></th>
-            <th class="prod-cell" style="width: 130px"></th>
-            <th class="prod-cell" style="width: 130px"></th>
-        </tr>
-        </thead>
+    <div class="products">
+        <table class="product-table" id="productTable">
+            <thead>
+                <tr>
+                    <th class="prod-cell" style="width: auto">Type</th>
+                    <th class="prod-cell" style="width: auto">Name</th>
+                    <th class="prod-cell" style="width: auto">Price</th>
+                    <th class="prod-cell" style="width: auto">Stock</th>
+                    <th class="prod-cell" style="width: 130px"></th>
+                    <th class="prod-cell" style="width: 170px"></th>
+                    <th class="prod-cell" style="width: 130px"></th>
+                    <th class="prod-cell" style="width: 130px"></th>
+                </tr>
+            </thead>
 
-        <tbody>
-        <tr th:each="product : ${products}" th:id="|row_${product.id}">
-            <td class="prod-cell" th:text="${product.type}"></td>
-            <td class="prod-cell" th:text="${product.name}"></td>
-            <td class="prod-cell" th:text="'€' + ${product.price}"></td>
-            <td class="prod-cell" th:text="${product.stock}"></td>
-            <td class="prod-cell"><a th:href="@{/details/{id}(id=${product.id})}">
-                <button class="prod-button prd-btn btn btn-sm btn-success btn-block" type="button">Details</button>
-            </a></td>
-            <td class="prod-cell"><a th:href="@{/products/addtocart/{id}(id=${product.id})}">
-                <button class="prod-button prd-btn btn btn-sm btn-success btn-block" type="button">Add To Cart</button>
-            </a></td>
-            <td class="prod-cell"><a th:href="@{/edit/{id}(id=${product.id})}">
-                <button class="prod-button prd-btn btn btn-sm btn-success btn-block" type="button">Edit</button>
-            </a></td>
-            <td class="prod-cell"><a>
-                <button class="prod-button prd-btn btn btn-sm btn-success btn-block" th:onclick="|hideProduct(${product.id})|"
-                        type="button">Hide
-                </button>
-            </a></td>
-        </tr>
-        </tbody>
-    </table>
-</div>
+            <tbody>
+                <tr th:each="product : ${products}" th:id="|row_${product.id}">
+                    <td class="prod-cell" th:text="${product.type}"></td>
+                    <td class="prod-cell" th:text="${product.name}"></td>
+                    <td class="prod-cell" th:text="'€' + ${product.price}"></td>
+                    <td class="prod-cell" th:text="${product.stock}"></td>
+                    <td class="prod-cell"><a th:href="@{/details/{id}(id=${product.id})}">
+                            <button class="prod-button prd-btn btn btn-sm btn-success btn-block"
+                                type="button">Details</button>
+                        </a></td>
+                    <td class="prod-cell">
+                        <form th:action="@{/cart/add/{id}(id=${product.id})}" method="post">
+                            <button class="prod-button prd-btn btn btn-sm btn-success btn-block" type="submit">Add To
+                                Cart</button>
+                        </form>
+                    </td>
+                    <td class="prod-cell"><a th:href="@{/edit/{id}(id=${product.id})}">
+                            <button class="prod-button prd-btn btn btn-sm btn-success btn-block"
+                                type="button">Edit</button>
+                        </a></td>
+                    <td class="prod-cell"><a>
+                            <button class="prod-button prd-btn btn btn-sm btn-success btn-block"
+                                th:onclick="|hideProduct(${product.id})|" type="button">Hide
+                            </button>
+                        </a></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 
 </body>
 

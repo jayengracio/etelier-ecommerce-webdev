@@ -53,7 +53,7 @@
     <div class="row">
         <div class="col-75">
             <div class="ckout-container">
-                <form class="needs-validation" novalidate>
+                <form th:action="@{/purchase}" method="post" class="needs-validation" novalidate>
                     <div class="row">
                         <div class="col-50">
                             <h3>Billing Address</h3>
@@ -104,53 +104,8 @@
                                 </div>
                             </div>
                         </div>
-
-                        <div class="col-50">
-                            <h3>Payment</h3>
-                            <div class="form-group">
-                                <label for="cname">Name on Card</label>
-                                <input id="cname" name="cardname" required type="text">
-                                <div class="valid-feedback">Valid.</div>
-                                <div class="invalid-feedback">Please fill out this field.</div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="ccnum">Credit card number</label>
-                                <input id="ccnum" name="cardnumber" required type="text">
-                                <div class="valid-feedback">Valid.</div>
-                                <div class="invalid-feedback">Please fill out this field.</div>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="expmonth">Exp Month</label>
-                                <input id="expmonth" name="expmonth" required type="text">
-                                <div class="valid-feedback">Valid.</div>
-                                <div class="invalid-feedback">Please fill out this field.</div>
-                            </div>
-
-                            <div class="row">
-                                <div class="col-50">
-                                    <div class="form-group">
-                                        <label for="expyear">Exp Year</label>
-                                        <input id="expyear" name="expyear" required type="text">
-                                        <div class="valid-feedback">Valid.</div>
-                                        <div class="invalid-feedback">Please fill out this field.</div>
-                                    </div>
-                                </div>
-                                <div class="col-50">
-                                    <div class="form-group">
-                                        <label for="cvv">CVV</label>
-                                        <input id="cvv" name="cvv" required type="text">
-                                        <div class="valid-feedback">Valid.</div>
-                                        <div class="invalid-feedback">Please fill out this field.</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                     </div>
-                    <input class="ckout-btn btn btn-success btn-block" formaction="/purchase" type="submit"
-                           value="Confirm Purchase">
+                    <input class="ckout-btn btn btn-success btn-block" type="submit" value="Confirm Purchase">
                 </form>
             </div>
         </div>

@@ -56,6 +56,7 @@
         <br>
         <div class="alert alert-danger" th:if="${param.error}">Wrong username or password.</div>
         <div class="alert alert-info" th:if="${param.logout}">You've been logged out.</div>
+        <div class="alert alert-success" th:if="${param.registered}">Account created, please log in.</div>
         <form th:action="@{/login}" method="POST">
             <div class="form-group">
                 <input class="form-control" id="username" name="username" placeholder="Username" type="text">

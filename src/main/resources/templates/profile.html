@@ -18,75 +18,76 @@
 
     <!-- Font Awesome Icons -->
     <link crossorigin="anonymous" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
-          integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" rel="stylesheet">
+        integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" rel="stylesheet">
 </head>
 
 <body>
-<div class="header">
-    <nav class="navbar navbar-expand-sm bg-custom navbar-custom justify-content-center fixed-top">
-        <a class="navbar-brand" href="/">
-            <img alt="logo" src="/images/logo.svg" style="width: 40px;">
-        </a>
-        <ul class="navbar-nav mr-auto">
-            <li class="nav-item">
-                <a class="nav-link" href="/">Home</a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link" href="/products">Products</a>
-            </li>
-        </ul>
-        <ul class="navbar-nav">
-            <li class="nav-item">
-                <a class="nav-link" href="/login"><i class="fas fa-user"></i></a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link" href="/cart"><i class="fas fa-shopping-cart"></i></a>
-            </li>
-        </ul>
-    </nav>
-    <br><br><br>
-</div>
-
-<div class="main-container" style="width: 75%; margin: auto;">
-    <div class="profile-card">
-        <img alt="Avatar" src="/images/img_avatar.png" style="width:100%">
-        <div class="container">
-            <h4><b th:text="'Welcome, ' + ${user.username} + '!'"></b></h4>
-        </div>
-        <div class="log-btns text-center">
-            <a href="/logout">
-                <button class="login-btn btn btn-success btn-block" type="submit">Log Out</button>
+    <div class="header">
+        <nav class="navbar navbar-expand-sm bg-custom navbar-custom justify-content-center fixed-top">
+            <a class="navbar-brand" href="/">
+                <img alt="logo" src="/images/logo.svg" style="width: 40px;">
             </a>
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Home</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/products">Products</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="/login"><i class="fas fa-user"></i></a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="/cart"><i class="fas fa-shopping-cart"></i></a>
+                </li>
+            </ul>
+        </nav>
+        <br><br><br>
+    </div>
+
+    <div class="main-container" style="width: 75%; margin: auto;">
+        <div class="profile-card">
+            <img alt="Avatar" src="/images/img_avatar.png" style="width:100%">
+            <div class="container">
+                <h4><b th:text="'Welcome, ' + ${user.username} + '!'"></b></h4>
+            </div>
+            <div class="log-btns text-center">
+                <form th:action="@{/logout}" method="post">
+                    <button class="login-btn btn btn-success btn-block" type="submit">Log Out</button>
+                </form>
+
+            </div>
         </div>
-    </div>
-    <div class="order-history">
-        <h1>Your order history: </h1>
-    </div>
-    <div class="products">
-        <table class="product-table" id="productTable">
-            <thead>
-            <tr>
-                <th class="prod-cell">Type</th>
-                <th class="prod-cell">Name</th>
-                <th class="prod-cell">Price</th>
-            </tr>
-            </thead>
+        <div class="order-history">
+            <h1>Your order history: </h1>
+        </div>
+        <div class="products">
+            <table class="product-table" id="productTable">
+                <thead>
+                    <tr>
+                        <th class="prod-cell">Type</th>
+                        <th class="prod-cell">Name</th>
+                        <th class="prod-cell">Price</th>
+                    </tr>
+                </thead>
 
-            <tbody>
-            <tr th:each="product : ${user.orders}" th:id="|row_${product.id}">
-                <td class="prod-cell" th:text="${product.type}"></td>
-                <td class="prod-cell" th:text="${product.name}"></td>
-                <td class="prod-cell"
-                    th:text="'€' + ${#numbers.formatDecimal(product.price, 0, 'COMMA', 2, 'POINT')}"></td>
-            </tr>
-            </tbody>
-        </table>
+                <tbody>
+                    <tr th:each="product : ${user.orders}" th:id="|row_${product.id}">
+                        <td class="prod-cell" th:text="${product.type}"></td>
+                        <td class="prod-cell" th:text="${product.name}"></td>
+                        <td class="prod-cell"
+                            th:text="'€' + ${#numbers.formatDecimal(product.price, 0, 'COMMA', 2, 'POINT')}"></td>
+                    </tr>
+                </tbody>
+            </table>
+
+        </div>
 
     </div>
-
-</div>
 </body>
 
 </html>
