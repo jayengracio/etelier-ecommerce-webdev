@@ -99,7 +99,7 @@ public class MainController {
         return user.getCart().isEmpty() ? "empty.html" : "cart.html";
     }
 
-    @GetMapping("/cart/add/{id}")
+    @PostMapping("/cart/add/{id}")
     public String addToCart(@PathVariable int id, Principal principal) {
         return cartService.addToCart(principal.getName(), id) ? "redirect:/products" : "redirect:/stock";
     }
@@ -148,7 +148,18 @@ public class MainController {
         return "edit.html";
     }
 
-    @PostMapping("/view/orders")
+    @PostMapping("/edit/product")
+    public String editProduct(@RequestParam int id, @RequestParam String details,
+            @RequestParam double price, @RequestParam int stock) {
+        Product product = productRepository.findById(id).orElseThrow();
+        product.setDetails(details);
+        product.setPrice(price);
+        product.setStock(stock);
+        productRepository.save(product);
+        return "redirect:/products";
+    }
+
+    @GetMapping("/view/orders")
     public String viewOrders(Model model) {
         model.addAttribute("users", userRepository.findAll());
         return "view_order.html";
