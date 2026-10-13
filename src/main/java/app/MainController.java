@@ -120,6 +120,12 @@ public class MainController {
     }
 
     @PostMapping("/purchase")
+    public String purchase(Principal principal) {
+        cartService.purchase(principal.getName());
+        return "redirect:/purchase";
+    }
+
+    @GetMapping("/purchase")
     public String purchaseComplete() {
         return "purchase.html";
     }
