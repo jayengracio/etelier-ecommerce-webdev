@@ -34,11 +34,6 @@ public class User {
     @Column(nullable = false)
     private String role = "USER";
 
-    // temporary
-    public boolean isOwner() {
-        return "ADMIN".equals(role);
-    }
-
     public User(String username, String password) {
         this.username = username;
         this.password = password;
