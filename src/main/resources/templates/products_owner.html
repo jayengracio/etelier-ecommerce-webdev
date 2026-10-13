@@ -67,7 +67,6 @@
                     <th class="prod-cell" style="width: 130px"></th>
                     <th class="prod-cell" style="width: 170px"></th>
                     <th class="prod-cell" style="width: 130px"></th>
-                    <th class="prod-cell" style="width: 130px"></th>
                 </tr>
             </thead>
 
@@ -90,11 +89,6 @@
                     <td class="prod-cell"><a th:href="@{/edit/{id}(id=${product.id})}">
                             <button class="prod-button prd-btn btn btn-sm btn-success btn-block"
                                 type="button">Edit</button>
-                        </a></td>
-                    <td class="prod-cell"><a>
-                            <button class="prod-button prd-btn btn btn-sm btn-success btn-block"
-                                th:onclick="|hideProduct(${product.id})|" type="button">Hide
-                            </button>
                         </a></td>
                 </tr>
             </tbody>
