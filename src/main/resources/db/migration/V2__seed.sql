@@ -3,7 +3,7 @@
 INSERT INTO product (type, name, stock, details, price) VALUES
     ('food',        'Apple',                 10,  'A red apple',                      10.00),
     ('electronics', 'Laptop',                10,  'A white laptop',                   500.00),
-    ('food',        'Banana',                 10,  'A banana',                         3.00),
+    ('food',        'Banana',                10,  'A banana',                         3.00),
     ('food',        'Grapes',                20,  'Some grapes',                      3.00),
     ('electronics', 'Computer',              13,  'A computer',                       899.99),
     ('book',        'Harry Potter',          9,   'A Harry Potter Book',              40.00),
