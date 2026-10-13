@@ -1,26 +1,50 @@
-function addProduct() {
+function setCsrfHeader(xhr) {
+    var token = document.querySelector('meta[name="_csrf"]');
+    var header = document.querySelector('meta[name="_csrf_header"]');
+    if (token && header) {
+        xhr.setRequestHeader(header.content, token.content);
+    }
+}
+
+function addProduct(event) {
+    event.preventDefault();
+    var form = event.target;
     var record = {
         type: document.getElementById("type").value,
         name: document.getElementById("name").value,
-        price: document.getElementById("price").value,
+        price: Number(document.getElementById("price").value),
         details: document.getElementById("details").value,
-        stock: document.getElementById("stock").value,
+        stock: Number(document.getElementById("stock").value),
     };
 
     var xhr = new XMLHttpRequest();
+    xhr.addEventListener("load", function () {
+        if (xhr.status === 200) {
+            alert("Product added!");
+            form.reset();
+        } else {
+            alert("Could not add product (error " + xhr.status + ")");
+        }
+    });
     xhr.open("POST", "/product/add");
     xhr.setRequestHeader('Content-type', 'application/json');
+    setCsrfHeader(xhr);
     xhr.send(JSON.stringify(record));
 }
 
 function removeProduct(id) {
     var xhr = new XMLHttpRequest();
     xhr.addEventListener("load", removeProductFromCart);
-    xhr.open("GET", "/cart/remove?id=" + id);
+    xhr.open("POST", "/cart/remove?id=" + id);
+    setCsrfHeader(xhr);
     xhr.send();
 }
 
 function removeProductFromCart() {
+    if (this.status !== 200) {
+        alert("Could not remove item (error " + this.status + ")");
+        return;
+    }
     var id = this.responseText;
     var table = document.getElementById("cartTable");
     var row = document.getElementById("row_" + id);
