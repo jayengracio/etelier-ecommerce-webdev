@@ -12,7 +12,7 @@ import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 
 @Entity
-@Table(name="users")
+@Table(name = "users")
 public class User {
 
     @ManyToMany(cascade = {CascadeType.ALL})
@@ -31,8 +31,13 @@ public class User {
     @Column
     private String password;
 
-    @Column
-    private boolean owner;
+    @Column(nullable = false)
+    private String role = "USER";
+
+    // temporary
+    public boolean isOwner() {
+        return "ADMIN".equals(role);
+    }
 
     public User(String username, String password) {
         this.username = username;
@@ -71,12 +76,12 @@ public class User {
         this.password = password;
     }
 
-    public boolean isOwner() {
-        return owner;
+    public String getRole() {
+        return role;
     }
 
-    public void setOwner(boolean owner) {
-        this.owner = owner;
+    public void setRole(String role) {
+        this.role = role;
     }
 
     public List<Product> getCart() {

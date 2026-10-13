@@ -57,37 +57,6 @@ public class MainController {
         }
     }
 
-    @PostMapping("/login")
-    public String loggedIn(HttpServletResponse response, @RequestParam String username, @RequestParam String password,
-            Model model) {
-        if (loggedIn) {
-            model.addAttribute("user", loggedUser); 
-        }else {
-            model.addAttribute("user", userRepository.findById(1).get());
-        }
-
-        List<User> users = userRepository.findAll();
-
-        for (User user : users) {
-            if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
-                loggedUser = userRepository.findById(user.getId()).get();
-                loggedIn = true;
-
-                if (loggedUser == userRepository.findById(1).get()) {
-                    loggedIn = false;
-                }
-
-                try {
-                    response.sendRedirect("/");
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        return "loginfailure.html";
-    }
-
     @GetMapping("/logout")
     public void logout(HttpServletResponse response) {
         loggedUser = new User();
