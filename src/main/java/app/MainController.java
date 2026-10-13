@@ -1,17 +1,24 @@
 package app;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
-
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import jakarta.servlet.http.HttpServletResponse;
+
 @Controller
 public class MainController {
+
     @Autowired
     private ProductRepository productRepository;
 
@@ -26,10 +33,11 @@ public class MainController {
 
     @GetMapping("/")
     public String index(Model model) {
-        if (loggedIn)
-            model.addAttribute("user", loggedUser);
-        else
+        if (loggedIn) {
+            model.addAttribute("user", loggedUser); 
+        }else {
             model.addAttribute("user", userRepository.findById(1).get());
+        }
 
         return "index.html";
     }
@@ -38,10 +46,11 @@ public class MainController {
     public String login(Model model) {
         if (loggedIn) {
             model.addAttribute("user", userRepository.findById(loggedUser.getId()).get());
-            if (loggedUser.isOwner())
-                return "/owners";
-            else
+            if (loggedUser.isOwner()) {
+                return "/owners"; 
+            }else {
                 return "profile.html";
+            }
         } else {
             model.addAttribute("user", userRepository.findById(1).get());
             return "login.html";
@@ -50,11 +59,12 @@ public class MainController {
 
     @PostMapping("/login")
     public String loggedIn(HttpServletResponse response, @RequestParam String username, @RequestParam String password,
-                           Model model) {
-        if (loggedIn)
-            model.addAttribute("user", loggedUser);
-        else
+            Model model) {
+        if (loggedIn) {
+            model.addAttribute("user", loggedUser); 
+        }else {
             model.addAttribute("user", userRepository.findById(1).get());
+        }
 
         List<User> users = userRepository.findAll();
 
@@ -63,8 +73,9 @@ public class MainController {
                 loggedUser = userRepository.findById(user.getId()).get();
                 loggedIn = true;
 
-                if (loggedUser == userRepository.findById(1).get())
+                if (loggedUser == userRepository.findById(1).get()) {
                     loggedIn = false;
+                }
 
                 try {
                     response.sendRedirect("/");
@@ -90,17 +101,18 @@ public class MainController {
 
     @GetMapping("/register")
     public String register(Model model) {
-        if (loggedIn)
-            model.addAttribute("user", loggedUser);
-        else
+        if (loggedIn) {
+            model.addAttribute("user", loggedUser); 
+        }else {
             model.addAttribute("user", userRepository.findById(1).get());
+        }
 
         return "register.html";
     }
 
     @PostMapping("/register")
     public void registerUser(HttpServletResponse response, @RequestParam String username,
-                             @RequestParam String password) {
+            @RequestParam String password) {
         User newUser = new User();
         newUser.setUsername(username);
         newUser.setPassword(password);
@@ -123,12 +135,14 @@ public class MainController {
     public String products(Model productModel, Model userModel) {
         productModel.addAttribute("products", productRepository.findAll());
 
-        if (loggedIn)
+        if (loggedIn) {
             userModel.addAttribute("user", userRepository.findById(loggedUser.getId()).get());
-        if (loggedUser.isOwner())
-            return "products_owner.html";
-        else
+        }
+        if (loggedUser.isOwner()) {
+            return "products_owner.html"; 
+        }else {
             userModel.addAttribute("user", userRepository.findById(1).get());
+        }
         return "products.html";
     }
 
@@ -155,8 +169,9 @@ public class MainController {
                 userRepository.save(user);
                 productRepository.save(product);
                 response.sendRedirect("/products");
-            } else
+            } else {
                 response.sendRedirect("/forbid");
+            }
         }
     }
 
@@ -183,8 +198,9 @@ public class MainController {
                 return "empty.html";
             }
 
-        } else
+        } else {
             return "/forbid";
+        }
     }
 
     @GetMapping("/details/{id}")
@@ -223,16 +239,17 @@ public class MainController {
     public String edit(@PathVariable("id") int id, Model model) {
         model.addAttribute("product", productRepository.findById(id).get());
 
-        if (!loggedUser.isOwner())
-            return "forbid.html";
-        else
+        if (!loggedUser.isOwner()) {
+            return "forbid.html"; 
+        }else {
             tempProduct = productRepository.findById(id).get();
+        }
         return "edit.html";
     }
 
     @PostMapping("/edit/product")
     public void editProduct(HttpServletResponse response, @RequestParam(required = false) String details,
-                            @RequestParam(required = false) Double price, @RequestParam(required = false) int stock) {
+            @RequestParam(required = false) Double price, @RequestParam(required = false) int stock) {
         Product product = tempProduct;
         product.setDetails(details);
         product.setPrice(price);
@@ -271,8 +288,9 @@ public class MainController {
     public String orders(@PathVariable("id") int id, Model model) {
         model.addAttribute("user", userRepository.findById(id).get());
 
-        if (!loggedUser.isOwner())
+        if (!loggedUser.isOwner()) {
             return "forbid.html";
+        }
 
         return "orders.html";
     }
