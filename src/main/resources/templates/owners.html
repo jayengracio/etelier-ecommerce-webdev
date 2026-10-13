@@ -96,7 +96,7 @@
         <!--            </div>-->
 
         <div class="owners-form">
-            <form class="was-validated">
+            <form class="was-validated" onsubmit="addProduct(event)">
                 <div class="form-group">
                     <label class="owner-label" for="name">Type:</label>
                     <input class="form-control" id="type" name="type" type="text" required><br><br>
@@ -109,7 +109,8 @@
 
                 <div class="form-group">
                     <label class="owner-label" for="price">Price:</label>
-                    <input class="form-control" id="price" name="price" type="text" required><br><br>
+                    <input class="form-control" id="price" name="price" type="number" step="0.01" min="0"
+                        required><br><br>
                 </div>
 
                 <div class="form-group">
@@ -119,12 +120,11 @@
 
                 <div class="form-group">
                     <label class="owner-label" for="stock">Stock:</label>
-                    <input class="form-control" id="stock" name="stock" type="text" required><br><br>
+                    <input class="form-control" id="stock" name="stock" type="number" min="0" required><br><br>
                 </div>
 
                 <div class="log-btns text-center">
-                    <button class="owner-btn btn btn-success btn-block" onclick="addProduct()">Add Product
-                    </button>
+                    <button class="owner-btn btn btn-success btn-block" type="submit">Add Product</button>
                 </div>
             </form>
         </div>
