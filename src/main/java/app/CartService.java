@@ -37,7 +37,7 @@ public class CartService {
         User user = userRepository.findByUsername(username).orElseThrow();
         Product product = productRepository.findById(productId).orElseThrow();
         if (user.getCart().remove(product)) {
-            product.setStock(product.getStock() - 1);
+            product.setStock(product.getStock() + 1);
         }
     }
 
