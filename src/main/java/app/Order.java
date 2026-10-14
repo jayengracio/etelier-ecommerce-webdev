@@ -45,7 +45,7 @@ public class Order {
     private List<OrderItem> items = new ArrayList<>();
 
     protected Order(User user) {
-        this.user = user;
+        
     }
 
     public void addItem(OrderItem item) {

@@ -2,6 +2,7 @@ package app;
 
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.List;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -21,13 +22,15 @@ public class MainController {
 
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
+    private final CartItemRepository cartItemRepository;
     private final CartService cartService;
     private final PasswordEncoder passwordEncoder;
 
-    public MainController(ProductRepository productRepository, UserRepository userRepository, CartService cartService,
-            PasswordEncoder passwordEncoder) {
+    public MainController(ProductRepository productRepository, UserRepository userRepository,
+            CartItemRepository cartItemRepository, CartService cartService, PasswordEncoder passwordEncoder) {
         this.productRepository = productRepository;
         this.userRepository = userRepository;
+        this.cartItemRepository = cartItemRepository;
         this.cartService = cartService;
         this.passwordEncoder = passwordEncoder;
     }
@@ -96,9 +99,12 @@ public class MainController {
     // -- Cart & Checkout (logged-in users)
     @GetMapping("/cart")
     public String cart(Model model, Principal principal) {
-        User user = userRepository.findWithCartByUsername(principal.getName()).orElseThrow();
-        model.addAttribute("user", user);
-        return user.getCart().isEmpty() ? "empty.html" : "cart.html";
+        List<CartItem> items = cartItemRepository.findByUserUsernameOrderById(principal.getName());
+        if (items.isEmpty()) {
+            return "empty.html";
+        }
+        model.addAttribute("items", items);
+        return "cart.html";
     }
 
     @PostMapping("/cart/add/{id}")
@@ -115,16 +121,23 @@ public class MainController {
 
     @GetMapping("/checkout")
     public String checkout(Model model, Principal principal) {
-        User user = userRepository.findWithCartByUsername(principal.getName()).orElseThrow();
-        model.addAttribute("user", user);
-        model.addAttribute("total", user.getCart().stream().map(Product::getPrice).reduce(BigDecimal.ZERO, BigDecimal::add));
+        List<CartItem> items = cartItemRepository.findByUserUsernameOrderById(principal.getName());
+        if (items.isEmpty()) {
+            return "redirect:/cart";
+        }
+        model.addAttribute("items", items);
+        model.addAttribute("total",
+                items.stream().map(CartItem::getLineTotal).reduce(BigDecimal.ZERO, BigDecimal::add));
         return "checkout.html";
     }
 
     @PostMapping("/purchase")
     public String purchase(Principal principal) {
-        cartService.purchase(principal.getName());
-        return "redirect:/purchase";
+        try {
+            return cartService.purchase(principal.getName()).isPresent() ? "redirect:/purchase" : "redirect:/cart";
+        } catch (OutOfStockException e) {
+            return "redirect:/cart?outOfStock";
+        }
     }
 
     @GetMapping("/purchase")
