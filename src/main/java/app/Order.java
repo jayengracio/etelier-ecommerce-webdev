@@ -44,8 +44,12 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
 
-    protected Order(User user) {
-        
+    protected Order() {
+
+    }
+
+    public Order(User user) {
+        this.user = user;
     }
 
     public void addItem(OrderItem item) {
@@ -101,5 +105,4 @@ public class Order {
         this.items = items;
     }
 
-    
 }

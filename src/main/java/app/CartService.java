@@ -1,7 +1,6 @@
 package app;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -27,8 +26,8 @@ public class CartService {
     }
 
     /**
-     * Compares the quantity in the cart with the stock (wanted > stock), not just stack > 0.
-     * Without it, you could put 50 apples in the cart when only 10 exists.
+     * Compares the quantity in the cart with the stock (wanted > stock), not just "stack > 0".
+     * Without it, you could put 50 apples in the cart when only 10 apples exists in the db.
      */
     @Transactional
     public boolean addToCart(String username, int productId) {
@@ -83,7 +82,7 @@ public class CartService {
         }
         order.setTotal(total);
 
-        // No payment step yet, so a purchase count as paid.
+        // No payment step yet, so a purchase is count as paid.
         order.setStatus(OrderStatus.PAID);
         orderRepository.save(order);
         cartItemRepository.deleteAll(cartList);
