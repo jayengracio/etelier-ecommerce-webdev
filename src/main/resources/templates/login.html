@@ -19,60 +19,38 @@
 
     <!-- Font Awesome Icons -->
     <link crossorigin="anonymous" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
-          integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" rel="stylesheet">
+        integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" rel="stylesheet">
 </head>
 
 <body>
-<div class="header">
-    <nav class="navbar navbar-expand-sm bg-custom navbar-custom justify-content-center fixed-top">
-        <a class="navbar-brand" href="/">
-            <img alt="logo" src="/images/logo.svg" style="width: 40px;">
-        </a>
-        <ul class="navbar-nav mr-auto">
-            <li class="nav-item">
-                <a class="nav-link" href="/">Home</a>
-            </li>
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-            <li class="nav-item">
-                <a class="nav-link" href="/products">Products</a>
-            </li>
-        </ul>
-        <ul class="navbar-nav">
-            <li class="nav-item">
-                <a class="nav-link" href="/login"><i class="fas fa-user"></i></a>
-            </li>
+    <div class="container-sm">
+        <div class="login">
+            <h2>Login</h2>
+            <br>
+            <div class="alert alert-danger" th:if="${param.error}">Wrong username or password.</div>
+            <div class="alert alert-info" th:if="${param.logout}">You've been logged out.</div>
+            <div class="alert alert-success" th:if="${param.registered}">Account created, please log in.</div>
+            <form th:action="@{/login}" method="POST">
+                <div class="form-group">
+                    <input class="form-control" id="username" name="username" placeholder="Username" type="text">
+                </div>
 
-            <li class="nav-item">
-                <a class="nav-link" href="/cart"><i class="fas fa-shopping-cart"></i></a>
-            </li>
-        </ul>
-    </nav>
-    <br><br><br>
-</div>
+                <div class="form-group">
+                    <input class="form-control" id="pass" name="password" placeholder="Password" type="password">
+                    <br>
+                </div>
 
-<div class="container-sm">
-    <div class="login">
-        <h2>Login</h2>
-        <br>
-        <form action="/login" method="POST">
-            <div class="form-group">
-                <input class="form-control" id="username" name="username" placeholder="Username" type="text">
-            </div>
-
-            <div class="form-group">
-                <input class="form-control" id="pass" name="password" placeholder="Password" type="password">
-                <br>
-            </div>
-
-            <div class="log-btns text-center">
-                <button class="login-btn btn btn-success btn-block" type="submit">Log In</button>
-                <a href="/register">
-                    <button class="btn btn-secondary btn-block btn-sm" type="button">Register</button>
-                </a>
-            </div>
-        </form>
+                <div class="log-btns text-center">
+                    <button class="login-btn btn btn-success btn-block" type="submit">Log In</button>
+                    <a href="/register">
+                        <button class="btn btn-secondary btn-block btn-sm" type="button">Register</button>
+                    </a>
+                </div>
+            </form>
+        </div>
     </div>
-</div>
 
 </body>
 
