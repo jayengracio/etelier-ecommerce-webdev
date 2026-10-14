@@ -1,5 +1,7 @@
 package app;
 
+import java.math.BigDecimal;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -25,8 +27,8 @@ public class Product {
     @Column
     private String details;
 
-    @Column
-    private Double price;
+    @Column(precision = 10, scale = 2)
+    private BigDecimal price;
 
     public int getId() {
         return id;
@@ -60,11 +62,11 @@ public class Product {
         this.details = details;
     }
 
-    public Double getPrice() {
+    public BigDecimal getPrice() {
         return price;
     }
 
-    public void setPrice(Double price) {
+    public void setPrice(BigDecimal price) {
         this.price = price;
     }
 

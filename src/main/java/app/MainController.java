@@ -1,5 +1,6 @@
 package app;
 
+import java.math.BigDecimal;
 import java.security.Principal;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -116,7 +117,7 @@ public class MainController {
     public String checkout(Model model, Principal principal) {
         User user = userRepository.findWithCartByUsername(principal.getName()).orElseThrow();
         model.addAttribute("user", user);
-        model.addAttribute("total", user.getCart().stream().mapToDouble(Product::getPrice).sum());
+        model.addAttribute("total", user.getCart().stream().map(Product::getPrice).reduce(BigDecimal.ZERO, BigDecimal::add));
         return "checkout.html";
     }
 
@@ -151,7 +152,7 @@ public class MainController {
 
     @PostMapping("/edit/product")
     public String editProduct(@RequestParam int id, @RequestParam String details,
-            @RequestParam double price, @RequestParam int stock) {
+            @RequestParam BigDecimal price, @RequestParam int stock) {
         Product product = productRepository.findById(id).orElseThrow();
         product.setDetails(details);
         product.setPrice(price);
