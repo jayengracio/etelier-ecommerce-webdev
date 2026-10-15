@@ -1,5 +1,6 @@
 package app;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
@@ -12,4 +13,8 @@ public interface CartItemRepository extends JpaRepository<CartItem, Integer> {
     List<CartItem> findByUserUsernameOrderById(String username);
 
     Optional<CartItem> findByUserUsernameAndProductId(String username, int productId);
+
+    // Webhook: remove the products that were just paid for.
+    // Anything added since stays in the cart
+    void deleteByUserIdAndProductIdIn(int userId, Collection<Integer> productIds);
 }

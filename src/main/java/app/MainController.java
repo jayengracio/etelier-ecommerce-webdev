@@ -3,6 +3,7 @@ package app;
 import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -17,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.server.ResponseStatusException;
 
+import com.stripe.exception.StripeException;
+
 import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
@@ -28,16 +31,18 @@ public class MainController {
     private final CartItemRepository cartItemRepository;
     private final CartService cartService;
     private final PasswordEncoder passwordEncoder;
+    private final PaymentService paymentService;
 
     public MainController(ProductRepository productRepository, UserRepository userRepository,
             CartItemRepository cartItemRepository, CartService cartService, PasswordEncoder passwordEncoder,
-            OrderRepository orderRepository) {
+            OrderRepository orderRepository, PaymentService paymentService) {
         this.productRepository = productRepository;
         this.userRepository = userRepository;
         this.cartItemRepository = cartItemRepository;
         this.cartService = cartService;
         this.passwordEncoder = passwordEncoder;
         this.orderRepository = orderRepository;
+        this.paymentService = paymentService;
     }
 
     // ------ PUBLIC PAGES ------
@@ -96,7 +101,7 @@ public class MainController {
         if (request.isUserInRole("ADMIN")) {
             return "redirect:/owners";
         }
-        
+
         model.addAttribute("orders", orderRepository.findByUserUsernameOrderByCreatedAtDesc(principal.getName()));
         return "profile.html";
     }
@@ -138,10 +143,21 @@ public class MainController {
 
     @PostMapping("/purchase")
     public String purchase(Principal principal) {
+        Optional<Order> order;
         try {
-            return cartService.purchase(principal.getName()).isPresent() ? "redirect:/purchase" : "redirect:/cart";
+            order = cartService.createPendingOrder(principal.getName());
         } catch (OutOfStockException e) {
             return "redirect:/cart?outOfStock";
+        }
+
+        if (order.isEmpty()) {
+            return "redirect:/cart";
+        }
+
+        try {
+            return "redirect:" + paymentService.startCheckout(order.get());
+        } catch (StripeException e) {
+            return "redirect:/checkout?paymentError";
         }
     }
 

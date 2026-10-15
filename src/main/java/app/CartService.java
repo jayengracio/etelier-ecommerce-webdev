@@ -1,6 +1,7 @@
 package app;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -26,8 +27,10 @@ public class CartService {
     }
 
     /**
-     * Compares the quantity in the cart with the stock (wanted > stock), not just "stack > 0".
-     * Without it, you could put 50 apples in the cart when only 10 apples exists in the db.
+     * Compares the quantity in the cart with the stock (wanted > stock), not just
+     * "stack > 0".
+     * Without it, you could put 50 apples in the cart when only 10 apples exists in
+     * the db.
      */
     @Transactional
     public boolean addToCart(String username, int productId) {
@@ -54,27 +57,26 @@ public class CartService {
     }
 
     /**
-     * Turn the cart into an order and take the stock
-     * Empty if the cart was empty, throws OutOfStockException (which rolls
-     * everything back) if any line can't be filled.
+     * Turn the cart into a PENDING order with today's prices. Takes no stock and
+     * keeps the cart:
+     * both happen in the Stripe webhook once payment succeeds.
+     * Empty if the cart was empty -> throws OutOfStockException if a line already
+     * can't be filled,
+     * so nobody is sent to pay for something we know is gone.
      */
     @Transactional
-    public Optional<Order> purchase(String username) {
+    public Optional<Order> createPendingOrder(String username) {
         List<CartItem> cartList = cartItemRepository.findByUserUsernameOrderById(username);
         if (cartList.isEmpty()) {
             return Optional.empty();
         }
-
-        // always lock products in the same order, so two purchases can't deadlock each
-        // other
-        cartList.sort(Comparator.comparingInt(item -> item.getProduct().getId()));
 
         Order order = new Order(userRepository.findByUsername(username).orElseThrow());
         BigDecimal total = BigDecimal.ZERO;
 
         for (CartItem item : cartList) {
             Product product = item.getProduct();
-            if (productRepository.decrementStock(product.getId(), item.getQuantity()) == 0) {
+            if (item.getQuantity() > product.getStock()) {
                 throw new OutOfStockException(product.getName());
             }
             order.addItem(new OrderItem(product, item.getQuantity(), product.getPrice()));
@@ -82,10 +84,49 @@ public class CartService {
         }
         order.setTotal(total);
 
-        // No payment step yet, so a purchase is count as paid.
-        order.setStatus(OrderStatus.PAID);
-        orderRepository.save(order);
-        cartItemRepository.deleteAll(cartList);
-        return Optional.of(order);
+        return Optional.of(orderRepository.save(order));
+    }
+
+    /**
+     * Payment succeeded: take the stock, mark the order PAID and remove its
+     * products from the cart.
+     * Does nothing for an unknown order or one that isn't PENDING any more (Stripe
+     * can deliver an event twice).
+     * Throws OutOfStockException, rolling everything back, if stock ran out after
+     * the customer paid.
+     */
+    @Transactional
+    public void completePayment(int orderId) {
+        Optional<Order> found = orderRepository.findLockedById(orderId);
+        if (found.isEmpty() || found.get().getStatus() != OrderStatus.PENDING) {
+            return;
+        }
+        Order order = found.get();
+
+        // always lock products in the same order,
+        // so two payments can't deadlock each other
+        List<OrderItem> items = new ArrayList<>(order.getItems());
+        items.sort(Comparator.comparingInt(item -> item.getProduct().getId()));
+
+        for (OrderItem item : items) {
+            if (productRepository.decrementStock(item.getProduct().getId(), item.getQuantity()) == 0) {
+                throw new OutOfStockException(item.getProduct().getName());
+            }
+        }
+
+        order.markPaid();
+        List<Integer> productIds = items.stream().map(item -> item.getProduct().getId()).toList();
+        cartItemRepository.deleteByUserIdAndProductIdIn(order.getUser().getId(), productIds);
+    }
+
+    /**
+     * Session expired or payment refunded.
+     * Does nothing unless the order is still PENDING
+     */
+    @Transactional
+    public void cancelIfPending(int orderId) {
+        orderRepository.findLockedById(orderId)
+                .filter(order -> order.getStatus() == OrderStatus.PENDING)
+                .ifPresent(Order::cancel);
     }
 }

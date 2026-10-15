@@ -1,5 +1,5 @@
 package app;
 
 public enum OrderStatus {
-    PENDING, PAID, SHIPPED
+    PENDING, PAID, SHIPPED, CANCELLED
 }

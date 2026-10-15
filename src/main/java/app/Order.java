@@ -44,6 +44,8 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();
 
+    private String stripeSessionId;
+
     protected Order() {
 
     }
@@ -58,8 +60,8 @@ public class Order {
     }
 
     /**
-     *  Only a paid order can be shipped
-     *  Payment itself is confirmed elsewhere (Stripe if/when implemented)
+     * Only a paid order can be shipped
+     * Payment itself is confirmed by the Stripe webhook (CartService.completePayment)
      */
     public boolean isShippable() {
         return status == OrderStatus.PAID;
@@ -67,9 +69,23 @@ public class Order {
 
     public void markShipped() {
         if (!isShippable()) {
-            throw new IllegalStateException("Order " + id + " is " + status +". Only PAID orders can be shipped");
+            throw new IllegalStateException("Order " + id + " is " + status + ". Only PAID orders can be shipped");
         }
         status = OrderStatus.SHIPPED;
+    }
+
+    public void markPaid() {
+        if (status != OrderStatus.PENDING) {
+            throw new IllegalStateException("Order " + id + " is " + status + ". Only PENDING orders can be paid");
+        }
+        status = OrderStatus.PAID;
+    }
+
+    public void cancel() {
+        if (status != OrderStatus.PENDING) {
+            throw new IllegalStateException("Order " + id + " is " + status + ". Only PENDING orders can be cancelled");
+        }
+        status = OrderStatus.CANCELLED;
     }
 
     public int getId() {
@@ -120,4 +136,11 @@ public class Order {
         this.items = items;
     }
 
+    public String getStripeSessionId() {
+        return stripeSessionId;
+    }
+
+    public void setStripeSessionId(String stripeSessionId) {
+        this.stripeSessionId = stripeSessionId;
+    }
 }
