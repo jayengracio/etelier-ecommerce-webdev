@@ -29,59 +29,16 @@
         <div class="row">
             <div class="col-75">
                 <div class="ckout-container">
-                    <form th:action="@{/purchase}" method="post" class="needs-validation" novalidate>
-                        <div class="row">
-                            <div class="col-50">
-                                <h3>Billing Address</h3>
-                                <div class="form-group">
-                                    <label for="fname"></i> Full Name</label>
-                                    <input id="fname" name="firstname" required type="text">
-                                    <div class="valid-feedback">Valid.</div>
-                                    <div class="invalid-feedback">Please fill out this field.</div>
-                                </div>
+                    <div th:if="${param.cancelled}" class="alert alert-warning">
+                        Payment cancelled. Your cart is still here
+                    </div>
+                    <div th:if="${param.paymentError}" class="alert alert-danger">
+                        We couldn't reach the payment provider. Please try again
+                    </div>
 
-                                <div class="form-group">
-                                    <label for="email"></i> Email</label>
-                                    <input id="email" name="email" required type="text">
-                                    <div class="valid-feedback">Valid.</div>
-                                    <div class="invalid-feedback">Please fill out this field.</div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="adr"></i> Address</label>
-                                    <input id="adr" name="address" required type="text">
-                                    <div class="valid-feedback">Valid.</div>
-                                    <div class="invalid-feedback">Please fill out this field.</div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label for="city"></i> City</label>
-                                    <input id="city" name="city" required type="text">
-                                    <div class="valid-feedback">Valid.</div>
-                                    <div class="invalid-feedback">Please fill out this field.</div>
-                                </div>
-
-                                <div class="row">
-                                    <div class="col-50">
-                                        <div class="form-group">
-                                            <label for="state">State</label>
-                                            <input id="state" name="state" required type="text">
-                                            <div class="valid-feedback">Valid.</div>
-                                            <div class="invalid-feedback">Please fill out this field.</div>
-                                        </div>
-                                    </div>
-                                    <div class="col-50">
-                                        <div class="form-group">
-                                            <label for="zip">Zip</label>
-                                            <input id="zip" name="zip" required type="text">
-                                            <div class="valid-feedback">Valid.</div>
-                                            <div class="invalid-feedback">Please fill out this field.</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <input class="ckout-btn btn btn-success btn-block" type="submit" value="Confirm Purchase">
+                    <form th:action="@{/purchase}" method="post">
+                        <p> You will be taken to Stripe's secure checkout</p>
+                        <input class="ckout-btn btn btn-success btn-block" type="submit" value="Pay with Stripe">
                     </form>
                 </div>
             </div>
