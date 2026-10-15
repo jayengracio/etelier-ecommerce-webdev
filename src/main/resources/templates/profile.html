@@ -45,8 +45,8 @@
         <div class="products" th:each="order : ${orders}">
             <h4>
                 Order #<span th:text="${order.id}"></span>
-                -> <span th:text="${#temporals.format(order.createdAt, 'dd MM yyyy, HH:mm')}"></span>
-                -> <span th:text="${order.status}"></span>
+                · <span th:text="${#temporals.format(order.createdAt, 'dd MM yyyy, HH:mm')}"></span>
+                · <span th:text="${order.status}"></span>
             </h4>
             <table class="product-table">
                 <thead>
