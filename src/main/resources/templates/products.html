@@ -45,7 +45,7 @@
             </thead>
 
             <tbody>
-                <tr th:each="product : ${products}" th:id="|row_${product.id}">
+                <tr th:each="product : ${products}" th:id="|row_${product.id}|">
                     <td class="prod-cell" th:text="${product.type}"></td>
                     <td class="prod-cell" th:text="${product.name}"></td>
                     <td class="prod-cell"
