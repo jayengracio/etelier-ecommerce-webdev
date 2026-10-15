@@ -45,10 +45,8 @@ function removeProductFromCart() {
         alert("Could not remove item (error " + this.status + ")");
         return;
     }
-    var id = this.responseText;
-    var table = document.getElementById("cartTable");
-    var row = document.getElementById("row_" + id);
-    table.deleteRow(row.rowIndex);
+    // Reload so the server recomputes totals, stock warnings and the empty cart page.
+    location.reload();
 }
 
 function filterByName() {

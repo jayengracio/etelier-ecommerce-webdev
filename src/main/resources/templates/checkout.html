@@ -91,34 +91,28 @@
                     <table class="cart-table" id="cartTable">
                         <thead>
                             <tr>
-                                <th class="cart-cell" style="width: 30px">ID</th>
                                 <th class="cart-cell" style="width: auto">Name</th>
-                                <th class="cart-cell" style="width: auto">Price</th>
-                                <th class="cart-cell" style="width: 80px"></th>
+                                <th class="cart-cell" style="width: 50px">Qty</th>
+                                <th class="cart-cell" style="width: auto">Subtotal</th>
                                 <th class="cart-cell" style="width: 80px"></th>
                             </tr>
                         </thead>
 
                         <tbody>
-                            <tr th:each="product : ${user.cart}" th:id="|row_${product.id}|">
-                                <td class="cart-cell" th:text="${product.id}"></td>
-                                <td class="cart-cell" th:text="${product.name}"></td>
+                            <tr th:each="item : ${items}">
+                                <td class="cart-cell" th:text="${item.product.name}"></td>
+                                <td class="cart-cell" th:text="${item.quantity}"></td>
                                 <td class="cart-cell"
-                                    th:text="'€' + ${#numbers.formatDecimal(product.price, 0, 'COMMA', 2, 'POINT')}">
+                                    th:text="'€' + ${#numbers.formatDecimal(item.lineTotal, 0, 'COMMA', 2, 'POINT')}">
                                 </td>
-                                <td class="cart-cell"><a th:href="@{/details/{id}(id=${product.id})}">
-                                        <button class="btn btn-sm btn-success btn-block ckout-btn" type="button">Details
-                                        </button>
-                                    </a></td>
                                 <td class="cart-cell">
                                     <button class="btn btn-sm btn-success btn-block ckout-btn"
-                                        th:onclick="|removeProduct(${product.id})|" type="button">Remove
-                                    </button>
+                                        th:onclick="|removeProduct(${item.product.id})|" type="button">Remove</button>
                                 </td>
                             </tr>
 
                             <tr>
-                                <td class="total-cell" colspan="5"
+                                <td class="total-cell" colspan="4"
                                     th:text="'Total: €' + ${#numbers.formatDecimal(total, 0, 'COMMA', 2, 'POINT')}">
                                 </td>
                             </tr>

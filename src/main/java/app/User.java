@@ -1,25 +1,15 @@
 package app;
 
-import java.util.List;
-
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
 
 @Entity
 @Table(name = "users")
 public class User {
-
-    @ManyToMany(cascade = {CascadeType.ALL})
-    List<Product> cart;
-
-    @ManyToMany(cascade = {CascadeType.ALL})
-    List<Product> orders;
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -78,21 +68,4 @@ public class User {
     public void setRole(String role) {
         this.role = role;
     }
-
-    public List<Product> getCart() {
-        return cart;
-    }
-
-    public void setCart(List<Product> cart) {
-        this.cart = cart;
-    }
-
-    public List<Product> getOrders() {
-        return orders;
-    }
-
-    public void setOrders(List<Product> orders) {
-        this.orders = orders;
-    }
-
 }

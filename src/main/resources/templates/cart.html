@@ -27,7 +27,11 @@
     <div th:replace="~{fragments/navbar :: navbar}"></div>
 
     <div class="main-container">
-        <h1 th:text="'Checkout Cart: ' + ${user.username}">Cart for: </h1>
+        <h1 th:text="'Checkout Cart: ' + ${#authentication.name}">Cart for: </h1>
+
+        <div th:if="${param.outOfStock}" class="alert alert-danger">
+            Some items are currently out of stock. Remove them or try again later.
+        </div>
 
         <div class="cart">
             <table class="cart-table" id="cartTable">
@@ -36,28 +40,36 @@
                         <th class="cart-cell">ID</th>
                         <th class="cart-cell">Name</th>
                         <th class="cart-cell">Price</th>
+                        <th class="cart-cell">Qty</th>
+                        <th class="cart-cell">Subtotal</th>
                         <th class="cart-cell" style="width: 130px"></th>
                         <th class="cart-cell" style="width: 170px"></th>
                     </tr>
                 </thead>
 
                 <tbody>
-                    <tr th:each="product : ${user.cart}" th:id="|row_${product.id}|">
-                        <td class="cart-cell" th:text="${product.id}"></td>
-                        <td class="cart-cell" th:text="${product.name}"></td>
+                    <tr th:each="item : ${items}">
+                        <td class="cart-cell" th:text="${item.product.id}"></td>
+                        <td class="cart-cell" th:text="${item.product.name}"></td>
                         <td class="cart-cell"
-                            th:text="'€' + ${#numbers.formatDecimal(product.price, 0, 'COMMA', 2, 'POINT')}"></td>
-                        <td class="cart-cell"><a th:href="@{/details/{id}(id=${product.id})}">
+                            th:text="'€' + ${#numbers.formatDecimal(item.product.price, 0, 'COMMA', 2, 'POINT')}"></td>
+                        <td class="cart-cell">
+                            <span th:text="${item.quantity}"></span>
+                            <small class="text-danger d-block" th:if="${item.quantity > item.product.stock}"
+                                th:text="|Only ${item.product.stock} left|"></small>
+                        </td>
+                        <td class="cart-cell"
+                            th:text="'€' + ${#numbers.formatDecimal(item.lineTotal, 0, 'COMMA', 2, 'POINT')}"></td>
+                        <td class="cart-cell"><a th:href="@{/details/{id}(id=${item.product.id})}">
                                 <button class="prod-button prd-btn btn btn-sm btn-success btn-block"
-                                    type="button">Details
-                                </button>
+                                    type="button">Details</button>
                             </a></td>
                         <td class="cart-cell">
                             <button class="prod-button prd-btn btn btn-sm btn-success btn-block"
-                                th:onclick="|removeProduct(${product.id})|" type="button">Remove
-                            </button>
+                                th:onclick="|removeProduct(${item.product.id})|" type="button">Remove</button>
                         </td>
                     </tr>
+
                 </tbody>
             </table>
             <a href="/checkout">

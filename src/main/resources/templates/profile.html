@@ -28,7 +28,7 @@
         <div class="profile-card">
             <img alt="Avatar" src="/images/img_avatar.png" style="width:100%">
             <div class="container">
-                <h4><b th:text="'Welcome, ' + ${user.username} + '!'"></b></h4>
+                <h4><b th:text="'Welcome, ' + ${#authentication.name} + '!'"></b></h4>
             </div>
             <div class="log-btns text-center">
                 <form th:action="@{/logout}" method="post">
@@ -39,27 +39,39 @@
         </div>
         <div class="order-history">
             <h1>Your order history: </h1>
+            <p th:if="${orders.isEmpty()}">You haven't ordered anything yet.</p>
         </div>
-        <div class="products">
-            <table class="product-table" id="productTable">
+
+        <div class="products" th:each="order : ${orders}">
+            <h4>
+                Order #<span th:text="${order.id}"></span>
+                · <span th:text="${#temporals.format(order.createdAt, 'dd MM yyyy, HH:mm')}"></span>
+                · <span th:text="${order.status}"></span>
+            </h4>
+            <table class="product-table">
                 <thead>
                     <tr>
-                        <th class="prod-cell">Type</th>
                         <th class="prod-cell">Name</th>
+                        <th class="prod-cell">Qty</th>
                         <th class="prod-cell">Price</th>
+                        <th class="prod-cell">Subtotal</th>
                     </tr>
                 </thead>
-
                 <tbody>
-                    <tr th:each="product : ${user.orders}" th:id="|row_${product.id}">
-                        <td class="prod-cell" th:text="${product.type}"></td>
-                        <td class="prod-cell" th:text="${product.name}"></td>
+                    <tr th:each="item : ${order.items}">
+                        <td class="prod-cell" th:text="${item.product.name}"></td>
+                        <td class="prod-cell" th:text="${item.quantity}"></td>
                         <td class="prod-cell"
-                            th:text="'€' + ${#numbers.formatDecimal(product.price, 0, 'COMMA', 2, 'POINT')}"></td>
+                            th:text="'€' + ${#numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 2, 'POINT')}"></td>
+                        <td class="prod-cell"
+                            th:text="'€' + ${#numbers.formatDecimal(item.lineTotal, 0, 'COMMA', 2, 'POINT')}"></td>
+                    </tr>
+                    <tr>
+                        <td class="total-cell" colspan="4"
+                            th:text="'Total: €' + ${#numbers.formatDecimal(order.total, 0, 'COMMA', 2, 'POINT')}"></td>
                     </tr>
                 </tbody>
             </table>
-
         </div>
 
     </div>
