@@ -200,7 +200,6 @@ public class MainController {
 
     @GetMapping("/view/orders")
     public String viewOrders(Model model) {
-        // model.addAttribute("users", userRepository.findAll());
         model.addAttribute("orders", orderRepository.findAllByOrderByCreatedAtDesc());
         return "view_order.html";
     }
