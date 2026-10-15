@@ -29,24 +29,30 @@
         <table class="user-table" id="userTable">
             <thead>
                 <tr>
-                    <th class="user-cell">ID</th>
+                    <th class="user-cell">Order</th>
                     <th class="user-cell">Customer</th>
+                    <th class="user-cell">Date</th>
+                    <th class="user-cell">Total</th>
+                    <th class="user-cell">Status</th>
                     <th class="user-cell"></th>
                 </tr>
             </thead>
-
             <tbody>
-                <tr th:each="user : ${users}" th:id="|row_${user.id}">
-                    <td class="user-cell" th:text="${user.id}"></td>
-                    <td class="user-cell" th:text="${user.username}"></td>
-                    <td class="user-cell"><a th:href="@{/orders/{id}(id=${user.id})}">
-                            <button class="user-button prd-btn btn btn-sm btn-success view-btn" type="button">View
-                                Orders
-                            </button>
+                <tr th:each="order : ${orders}">
+                    <td class="user-cell" th:text="${order.id}"></td>
+                    <td class="user-cell" th:text="${order.user.username}"></td>
+                    <td class="user-cell" th:text="${#temporals.format(order.createdAt, 'dd MMM yyyy, HH:mm')}"></td>
+                    <td class="user-cell"
+                        th:text="'€' + ${#numbers.formatDecimal(order.total, 0, 'COMMA', 2, 'POINT')}"></td>
+                    <td class="user-cell" th:text="${order.status}"></td>
+                    <td class="user-cell"><a th:href="@{/orders/{id}(id=${order.id})}">
+                            <button class="user-button prd-btn btn btn-sm btn-success view-btn"
+                                type="button">View</button>
                         </a></td>
                 </tr>
             </tbody>
         </table>
+
     </div>
 
 </body>

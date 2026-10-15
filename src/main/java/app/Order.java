@@ -57,6 +57,21 @@ public class Order {
         item.setOrder(this);
     }
 
+    /**
+     *  Only a paid order can be shipped
+     *  Payment itself is confirmed elsewhere (Stripe if/when implemented)
+     */
+    public boolean isShippable() {
+        return status == OrderStatus.PAID;
+    }
+
+    public void markShipped() {
+        if (!isShippable()) {
+            throw new IllegalStateException("Order " + id + " is " + status +". Only PAID orders can be shipped");
+        }
+        status = OrderStatus.SHIPPED;
+    }
+
     public int getId() {
         return id;
     }

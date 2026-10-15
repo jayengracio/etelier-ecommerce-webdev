@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,12 +15,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.server.ResponseStatusException;
 
 import jakarta.servlet.http.HttpServletRequest;
 
 @Controller
 public class MainController {
 
+    private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final CartItemRepository cartItemRepository;
@@ -27,15 +30,17 @@ public class MainController {
     private final PasswordEncoder passwordEncoder;
 
     public MainController(ProductRepository productRepository, UserRepository userRepository,
-            CartItemRepository cartItemRepository, CartService cartService, PasswordEncoder passwordEncoder) {
+            CartItemRepository cartItemRepository, CartService cartService, PasswordEncoder passwordEncoder,
+            OrderRepository orderRepository) {
         this.productRepository = productRepository;
         this.userRepository = userRepository;
         this.cartItemRepository = cartItemRepository;
         this.cartService = cartService;
         this.passwordEncoder = passwordEncoder;
+        this.orderRepository = orderRepository;
     }
 
-    // -- Public Pages Start --
+    // ------ PUBLIC PAGES ------
     @GetMapping("/products")
     public String products(Model model, HttpServletRequest request) {
         model.addAttribute("products", productRepository.findAll());
@@ -58,7 +63,7 @@ public class MainController {
         return "forbid.html";
     }
 
-    // -- Accounts --
+    // ------ USER ACCOUNTS ------
     @GetMapping("/login")
     public String login(Principal principal) {
         return principal != null ? "redirect:/profile" : "login.html";
@@ -91,12 +96,12 @@ public class MainController {
         if (request.isUserInRole("ADMIN")) {
             return "redirect:/owners";
         }
-
-        model.addAttribute("user", userRepository.findWithOrdersByUsername(principal.getName()).orElseThrow());
+        
+        model.addAttribute("orders", orderRepository.findByUserUsernameOrderByCreatedAtDesc(principal.getName()));
         return "profile.html";
     }
 
-    // -- Cart & Checkout (logged-in users)
+    // ------ CART & CHECKOUT (logged-in users) ------
     @GetMapping("/cart")
     public String cart(Model model, Principal principal) {
         List<CartItem> items = cartItemRepository.findByUserUsernameOrderById(principal.getName());
@@ -145,7 +150,26 @@ public class MainController {
         return "purchase.html";
     }
 
-    // -- Admin (locked to ROLE_ADMIN in SecurityConfig)
+    /**
+     * ResponseStatusException gives a proper 404 (no such order) or
+     * 409 (order is in the wrong state), instead of a generic 500
+     */
+    @PostMapping("/orders/{id}/ship")
+    public String shipOrder(@PathVariable int id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+
+        try {
+            order.markShipped();
+        } catch (IllegalStateException e) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, e.getMessage());
+        }
+
+        orderRepository.save(order);
+        return "redirect:/orders/" + id;
+    }
+
+    // ------ ADMINS (locked to ROLE_ADMIN in SecurityConfig) ------
     @GetMapping("/owners")
     public String owners() {
         return "owners.html";
@@ -176,13 +200,15 @@ public class MainController {
 
     @GetMapping("/view/orders")
     public String viewOrders(Model model) {
-        model.addAttribute("users", userRepository.findAll());
+        // model.addAttribute("users", userRepository.findAll());
+        model.addAttribute("orders", orderRepository.findAllByOrderByCreatedAtDesc());
         return "view_order.html";
     }
 
     @GetMapping("/orders/{id}")
     public String orders(@PathVariable int id, Model model) {
-        model.addAttribute("user", userRepository.findWithOrdersById(id).orElseThrow());
+        model.addAttribute("order", orderRepository.findWithItemsById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND)));
         return "orders.html";
     }
 }
