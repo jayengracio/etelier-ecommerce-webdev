@@ -1,11 +1,14 @@
 package app.order;
 
+import java.time.Instant;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
+import org.springframework.data.jpa.repository.Query;
 
 import jakarta.persistence.LockModeType;
 
@@ -27,4 +30,23 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     // after the other
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     Optional<Order> findLockedById(int id);
+
+    // Dashboard: one row per status that has at least one order
+    @Query("SELECT new app.order.StatusCount(o.status, COUNT(o)) FROM Order o GROUP BY o.status")
+    List<StatusCount> countByStatus();
+
+    // Dashboard: order count and money for the given statuses, placed since a
+    // moment
+    @Query("""
+            SELECT new app.order.SalesTotals(COUNT(o), SUM(o.total))
+            FROM Order o
+            WHERE o.status IN :statuses AND o.createdAt >= :since
+            """)
+    SalesTotals salesSince(Collection<OrderStatus> statuses, Instant since);
+
+    // Dashboard: latest orders with their customer (the template shows the
+    // username)
+    @EntityGraph(attributePaths = "user")
+    List<Order> findTop10ByOrderByCreatedAtDesc();
+
 }

@@ -38,37 +38,85 @@
                 </form>
 
                 <a href="/view/orders">
-                    <button class="login-btn btn btn-success btn-block" type="submit">View
+                    <button class="login-btn btn btn-success btn-block" type="button">View
                         Orders
                     </button>
-                </a>
-                <a href="/">
-                    <button class="login-btn btn btn-success btn-block" type="submit">Change Orders</button>
                 </a>
             </div>
         </div>
 
-        <!--            <div class="new-products-added">-->
-        <!--                <table id="productTable" class="new-product-table">-->
-        <!--                    <thead>-->
-        <!--                    <tr>-->
-        <!--                        <th class="prod-cell">Type</th>-->
-        <!--                        <th class="prod-cell">Name</th>-->
-        <!--                        <th class="prod-cell">Price</th>-->
-        <!--                        <th class="prod-cell">Stock</th>-->
-        <!--                    </tr>-->
-        <!--                    </thead>-->
+        <div class="dashboard my-4">
+            <h2>Dashboard</h2>
 
-        <!--                    <tbody>-->
-        <!--                    <tr th:each="product : ${newProduct}" th:id="|row_${product.value.id}">-->
-        <!--                        <td class="prod-cell" th:text="${product.value.type}"></td>-->
-        <!--                        <td class="prod-cell" th:text="${product.value.name}"></td>-->
-        <!--                        <td class="prod-cell" th:text="'€' + ${product.value.price}"></td>-->
-        <!--                        <td class="prod-cell" th:text="${product.value.stock}"></td>-->
-        <!--                    </tr>-->
-        <!--                    </tbody>-->
-        <!--                </table>-->
-        <!--            </div>-->
+            <div class="row text-center">
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="card-subtitle text-muted mb-2">Revenue, all time</h6>
+                            <h3
+                                th:text="'€' + ${#numbers.formatDecimal(stats.allTime.revenue, 1, 'COMMA', 2, 'POINT')}">
+                                €0.00</h3>
+                            <small th:text="${stats.allTime.orders} + ' paid or shipped orders'"></small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="card-subtitle text-muted mb-2">Revenue, last 7 days</h6>
+                            <h3
+                                th:text="'€' + ${#numbers.formatDecimal(stats.lastSevenDays.revenue, 1, 'COMMA', 2, 'POINT')}">
+                                €0.00</h3>
+                            <small th:text="${stats.lastSevenDays.orders} + ' paid or shipped orders'"></small>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h6 class="card-subtitle text-muted mb-2">Orders by status</h6>
+                            <ul class="list-unstyled mb-0">
+                                <li th:each="entry : ${stats.ordersByStatus}">
+                                    <span th:text="${entry.key}"></span>:
+                                    <b th:text="${entry.value}"></b>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h4 class="mt-3">Recent orders</h4>
+            <p th:if="${#lists.isEmpty(stats.recentOrders)}">No orders yet.</p>
+            <table class="user-table" th:unless="${#lists.isEmpty(stats.recentOrders)}">
+                <thead>
+                    <tr>
+                        <th class="user-cell">Order</th>
+                        <th class="user-cell">Customer</th>
+                        <th class="user-cell">Date</th>
+                        <th class="user-cell">Total</th>
+                        <th class="user-cell">Status</th>
+                        <th class="user-cell"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="order : ${stats.recentOrders}">
+                        <td class="user-cell" th:text="${order.id}"></td>
+                        <td class="user-cell" th:text="${order.user.username}"></td>
+                        <td class="user-cell" th:text="${#temporals.format(order.createdAt, 'dd MMM yyyy, HH:mm')}">
+                        </td>
+                        <td class="user-cell"
+                            th:text="'€' + ${#numbers.formatDecimal(order.total, 1, 'COMMA', 2, 'POINT')}"></td>
+                        <td class="user-cell" th:text="${order.status}"></td>
+                        <td class="user-cell"><a th:href="@{/orders/{id}(id=${order.id})}">
+                                <button class="prd-btn btn btn-sm btn-success" type="button">View</button>
+                            </a></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
 
         <div class="owners-form">
             <form class="was-validated" onsubmit="addProduct(event)">

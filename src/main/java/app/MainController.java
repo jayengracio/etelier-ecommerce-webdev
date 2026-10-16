@@ -22,6 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.stripe.exception.StripeException;
 
+import app.admin.DashboardService;
 import app.cart.CartItem;
 import app.cart.CartItemRepository;
 import app.cart.CartService;
@@ -42,6 +43,7 @@ import jakarta.validation.Valid;
 @Controller
 public class MainController {
 
+    private final DashboardService dashboardService;
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
@@ -52,7 +54,7 @@ public class MainController {
 
     public MainController(ProductRepository productRepository, UserRepository userRepository,
             CartItemRepository cartItemRepository, CartService cartService, PasswordEncoder passwordEncoder,
-            OrderRepository orderRepository, PaymentService paymentService) {
+            OrderRepository orderRepository, PaymentService paymentService, DashboardService dashboardService) {
         this.productRepository = productRepository;
         this.userRepository = userRepository;
         this.cartItemRepository = cartItemRepository;
@@ -60,6 +62,7 @@ public class MainController {
         this.passwordEncoder = passwordEncoder;
         this.orderRepository = orderRepository;
         this.paymentService = paymentService;
+        this.dashboardService = dashboardService;
     }
 
     // ------ PUBLIC PAGES ------
@@ -205,7 +208,8 @@ public class MainController {
 
     // ------ ADMINS (locked to ROLE_ADMIN in SecurityConfig) ------
     @GetMapping("/owners")
-    public String owners() {
+    public String owners(Model model) {
+        model.addAttribute("stats", dashboardService.stats());
         return "owners.html";
     }
 
