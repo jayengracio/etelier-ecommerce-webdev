@@ -1,4 +1,4 @@
-package app;
+package app.product;
 
 import java.math.BigDecimal;
 

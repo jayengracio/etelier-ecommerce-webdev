@@ -1,4 +1,4 @@
-package app;
+package app.payment;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +14,12 @@ import com.stripe.param.checkout.SessionCreateParams;
 import com.stripe.param.checkout.SessionCreateParams.LineItem;
 import com.stripe.param.checkout.SessionCreateParams.LineItem.PriceData;
 import com.stripe.param.checkout.SessionCreateParams.LineItem.PriceData.ProductData;
+
+import app.cart.CartService;
+import app.cart.OutOfStockException;
+import app.order.Order;
+import app.order.OrderItem;
+import app.order.OrderRepository;
 
 @Service
 public class PaymentService {

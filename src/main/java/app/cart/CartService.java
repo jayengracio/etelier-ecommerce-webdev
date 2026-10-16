@@ -1,4 +1,4 @@
-package app;
+package app.cart;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -8,6 +8,15 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import app.order.Order;
+import app.order.OrderItem;
+import app.order.OrderRepository;
+import app.order.OrderStatus;
+import app.product.Product;
+import app.product.ProductNotFoundException;
+import app.product.ProductRepository;
+import app.user.User;
+import app.user.UserRepository;
 import jakarta.transaction.Transactional;
 
 @Service

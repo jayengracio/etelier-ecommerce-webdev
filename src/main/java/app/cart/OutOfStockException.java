@@ -1,4 +1,4 @@
-package app;
+package app.cart;
 
 public class OutOfStockException extends RuntimeException {
 
