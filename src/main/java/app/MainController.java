@@ -74,7 +74,11 @@ public class MainController {
     @GetMapping("/products")
     public String products(Model model, HttpServletRequest request) {
         model.addAttribute("products", productRepository.findAll());
-        return request.isUserInRole("ADMIN") ? "products_owner.html" : "products.html";
+        if (request.isUserInRole("ADMIN")) {
+            model.addAttribute("lowStockThreshold", dashboardService.lowStockThreshold());
+            return "products_owner.html";
+        }
+        return "products.html";
     }
 
     @GetMapping("/details/{id}")

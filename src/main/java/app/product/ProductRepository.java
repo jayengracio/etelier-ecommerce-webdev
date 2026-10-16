@@ -1,5 +1,7 @@
 package app.product;
 
+import java.util.List;
+
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -13,4 +15,7 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     @Modifying
     @Query("UPDATE Product p SET p.stock = p.stock + :qty WHERE p.id = :id")
     int incrementStock(int id, int qty);
+
+    // Dashboard: products at or below the low-stock threshold, emptiest first
+    List<Product> findByStockLessThanEqualOrderByStockAscNameAsc(int threshold);
 }

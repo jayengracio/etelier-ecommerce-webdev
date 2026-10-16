@@ -50,7 +50,12 @@
                     <td class="prod-cell" th:text="${product.type}"></td>
                     <td class="prod-cell" th:text="${product.name}"></td>
                     <td class="prod-cell" th:text="'€' + ${product.price}"></td>
-                    <td class="prod-cell" th:text="${product.stock}"></td>
+                    <td class="prod-cell">
+                        <span th:text="${product.stock}"></span>
+                        <span th:if="${product.stock == 0}" class="badge badge-danger">Out</span>
+                        <span th:if="${product.stock > 0 and product.stock <= lowStockThreshold}"
+                            class="badge badge-warning">Low</span>
+                    </td>
                     <td class="prod-cell"><a th:href="@{/details/{id}(id=${product.id})}">
                             <button class="prod-button prd-btn btn btn-sm btn-success btn-block"
                                 type="button">Details</button>
