@@ -97,7 +97,7 @@ public class PaymentService {
         }
 
         try {
-            cartService.completePayment(orderId);
+            cartService.completePayment(orderId, session.getPaymentIntent());
         } catch (OutOfStockException e) {
             log.warn("Order {} was paid but: {}. Refunding.", orderId, e.getMessage());
             stripe.v1().refunds().create(

@@ -47,6 +47,8 @@ public class Order {
 
     private String stripeSessionId;
 
+    private String stripePaymentIntentId;
+    
     protected Order() {
 
     }
@@ -75,11 +77,16 @@ public class Order {
         status = OrderStatus.SHIPPED;
     }
 
-    public void markPaid() {
+    /**
+     * Called by the webhook once Stripe confirms the charge.
+     * Saves the PaymentIntent, because refunds and the Dashboard link need it.
+     */
+    public void markPaid(String paymentIntentId) {
         if (status != OrderStatus.PENDING) {
             throw new IllegalStateException("Order " + id + " is " + status + ". Only PENDING orders can be paid");
         }
         status = OrderStatus.PAID;
+        stripePaymentIntentId = paymentIntentId;
     }
 
     public void cancel() {
@@ -143,5 +150,9 @@ public class Order {
 
     public void setStripeSessionId(String stripeSessionId) {
         this.stripeSessionId = stripeSessionId;
+    }
+
+    public String getStripePaymentIntentId() {
+        return stripePaymentIntentId;
     }
 }

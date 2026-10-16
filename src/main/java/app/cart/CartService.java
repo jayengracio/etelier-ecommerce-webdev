@@ -106,7 +106,7 @@ public class CartService {
      * the customer paid.
      */
     @Transactional
-    public void completePayment(int orderId) {
+    public void completePayment(int orderId, String paymentIntentId) {
         Optional<Order> found = orderRepository.findLockedById(orderId);
         if (found.isEmpty() || found.get().getStatus() != OrderStatus.PENDING) {
             return;
@@ -124,7 +124,7 @@ public class CartService {
             }
         }
 
-        order.markPaid();
+        order.markPaid(paymentIntentId);
         List<Integer> productIds = items.stream().map(item -> item.getProduct().getId()).toList();
         cartItemRepository.deleteByUserIdAndProductIdIn(order.getUser().getId(), productIds);
     }
