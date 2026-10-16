@@ -16,6 +16,9 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     @Query("UPDATE Product p SET p.stock = p.stock + :qty WHERE p.id = :id")
     int incrementStock(int id, int qty);
 
-    // Dashboard: products at or below the low-stock threshold, emptiest first
-    List<Product> findByStockLessThanEqualOrderByStockAscNameAsc(int threshold);
+    // Shop: only products that are for sale, in a stable order
+    List<Product> findByActiveTrueOrderById();
+
+    // Dashboard: hidden products don't need restocking
+    List<Product> findByActiveTrueAndStockLessThanEqualOrderByStockAscNameAsc(int threshold);
 }

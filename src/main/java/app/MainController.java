@@ -73,17 +73,19 @@ public class MainController {
     // ------ PUBLIC PAGES ------
     @GetMapping("/products")
     public String products(Model model, HttpServletRequest request) {
-        model.addAttribute("products", productRepository.findAll());
         if (request.isUserInRole("ADMIN")) {
+            model.addAttribute("products", productRepository.findAll(Sort.by("id")));
             model.addAttribute("lowStockThreshold", dashboardService.lowStockThreshold());
             return "products_owner.html";
         }
+        model.addAttribute("products", productRepository.findByActiveTrueOrderById());
         return "products.html";
     }
 
     @GetMapping("/details/{id}")
-    public String details(@PathVariable int id, Model model) {
+    public String details(@PathVariable int id, Model model, HttpServletRequest request) {
         model.addAttribute("product", productRepository.findById(id)
+                .filter(product -> product.isActive() || request.isUserInRole("ADMIN"))
                 .orElseThrow(() -> new ProductNotFoundException(id)));
         return "details.html";
     }
@@ -249,6 +251,14 @@ public class MainController {
         model.addAttribute("product", productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException(id)));
         return "edit.html";
+    }
+
+    @PostMapping("/edit/{id}/active")
+    public String setProductActive(@PathVariable int id, @RequestParam boolean active) {
+        Product product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
+        product.setActive(active);
+        productRepository.save(product);
+        return "redirect:/products";
     }
 
     @PostMapping("/edit/product")

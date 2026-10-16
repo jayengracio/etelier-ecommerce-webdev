@@ -30,6 +30,9 @@ public class Product {
     @Column(precision = 10, scale = 2)
     private BigDecimal price;
 
+    @Column(nullable = false)
+    private boolean active = true;
+
     public int getId() {
         return id;
     }
@@ -76,5 +79,13 @@ public class Product {
 
     public void setStock(int stock) {
         this.stock = stock;
+    }
+
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
     }
 }

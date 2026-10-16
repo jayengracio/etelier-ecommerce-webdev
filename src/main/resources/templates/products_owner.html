@@ -42,34 +42,56 @@
                     <th class="prod-cell" style="width: 130px"></th>
                     <th class="prod-cell" style="width: 170px"></th>
                     <th class="prod-cell" style="width: 130px"></th>
+                    <th class="prod-cell" style="width: 130px"></th>
                 </tr>
             </thead>
 
             <tbody>
-                <tr th:each="product : ${products}" th:id="|row_${product.id}|">
+                <tr th:each="product : ${products}" th:id="|row_${product.id}|"
+                    th:classappend="${!product.active} ? 'text-muted'">
                     <td class="prod-cell" th:text="${product.type}"></td>
-                    <td class="prod-cell" th:text="${product.name}"></td>
-                    <td class="prod-cell" th:text="'€' + ${product.price}"></td>
+
+                    <td class="prod-cell">
+                        <span th:text="${product.name}"></span>
+                        <span th:unless="${product.active}" class="badge badge-secondary">Hidden</span>
+                    </td>
+
+                    <td class="prod-cell"
+                        th:text="'€' + ${#numbers.formatDecimal(product.price, 1, 'COMMA', 2, 'POINT')}"></td>
+
                     <td class="prod-cell">
                         <span th:text="${product.stock}"></span>
                         <span th:if="${product.stock == 0}" class="badge badge-danger">Out</span>
-                        <span th:if="${product.stock > 0 and product.stock <= lowStockThreshold}"
+                        <span th:if="${product.active and product.stock > 0 and product.stock <= lowStockThreshold}"
                             class="badge badge-warning">Low</span>
                     </td>
+
                     <td class="prod-cell"><a th:href="@{/details/{id}(id=${product.id})}">
                             <button class="prod-button prd-btn btn btn-sm btn-success btn-block"
                                 type="button">Details</button>
                         </a></td>
+
                     <td class="prod-cell">
-                        <form th:action="@{/cart/add/{id}(id=${product.id})}" method="post">
+                        <form th:if="${product.active}" th:action="@{/cart/add/{id}(id=${product.id})}" method="post">
                             <button class="prod-button prd-btn btn btn-sm btn-success btn-block" type="submit">Add To
                                 Cart</button>
                         </form>
                     </td>
+
                     <td class="prod-cell"><a th:href="@{/edit/{id}(id=${product.id})}">
                             <button class="prod-button prd-btn btn btn-sm btn-success btn-block"
                                 type="button">Edit</button>
                         </a></td>
+
+                    <td class="prod-cell">
+                        <form th:action="@{/edit/{id}/active(id=${product.id})}" method="post">
+                            <input type="hidden" name="active" th:value="${!product.active}">
+                            <button class="prod-button prd-btn btn btn-sm btn-block" type="submit"
+                                th:classappend="${product.active} ? 'btn-outline-danger' : 'btn-success'"
+                                th:text="${product.active} ? 'Hide' : 'Show'"></button>
+                        </form>
+                    </td>
+
                 </tr>
             </tbody>
         </table>

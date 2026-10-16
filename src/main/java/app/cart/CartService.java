@@ -44,6 +44,7 @@ public class CartService {
     @Transactional
     public boolean addToCart(String username, int productId) {
         Product product = productRepository.findById(productId)
+                .filter(Product::isActive)
                 .orElseThrow(() -> new ProductNotFoundException(productId));
         Optional<CartItem> existing = cartItemRepository.findByUserUsernameAndProductId(username, productId);
         int wanted = existing.map(CartItem::getQuantity).orElse(0) + 1;
@@ -86,7 +87,7 @@ public class CartService {
 
         for (CartItem item : cartList) {
             Product product = item.getProduct();
-            if (item.getQuantity() > product.getStock()) {
+            if (!product.isActive() || item.getQuantity() > product.getStock()) {
                 throw new OutOfStockException(product.getName());
             }
             order.addItem(new OrderItem(product, item.getQuantity(), product.getPrice()));

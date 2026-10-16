@@ -62,7 +62,7 @@ public class DashboardService {
                 orderRepository.salesSince(REVENUE_STATUSES, Instant.now().minus(7, ChronoUnit.DAYS)),
                 byStatus,
                 orderRepository.findTop10ByOrderByCreatedAtDesc(),
-                productRepository.findByStockLessThanEqualOrderByStockAscNameAsc(lowStockThreshold),
+                productRepository.findByActiveTrueAndStockLessThanEqualOrderByStockAscNameAsc(lowStockThreshold),
                 lowStockThreshold);
     }
 }
