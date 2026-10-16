@@ -1,6 +1,6 @@
 # Web Dev E-commerce Shop
 
-A small online shop built with Spring Boot and Thymeleaf. Customers can browse products, keep a cart, pay through Stripe and see their order history. An admin can add and edit products, see every order and mark paid orders as shipped.
+A small online shop built with Spring Boot and Thymeleaf. Customers can browse products, keep a cart, pay through Stripe and see their order history. An admin gets a sales dashboard with low-stock alerts, can filter and page through every order, ship or refund paid orders, and add, edit or hide products.
 
 The project started as a web development group project for University ([report](docs/report.pdf), [wireframe design](docs/wireframe_design.pdf)). I decided to see if I could update, further refine and implement features as practice. The framework was upgraded, the security, database and order model were rebuilt, and real payments were added. The [Then vs now](#then-vs-now) section explains each change.
 
@@ -13,6 +13,7 @@ The project started as a web development group project for University ([report](
 | Views | Thymeleaf server-side templates, plain CSS and JavaScript |
 | Security | Spring Security: form login, BCrypt password hashing, `USER`/`ADMIN` roles, CSRF protection |
 | Persistence | Spring Data JPA (Hibernate) |
+| Validation | Bean Validation (Hibernate Validator) on request records |
 | Database | PostgreSQL 17, run in Docker |
 | Schema migrations | Flyway (versioned SQL scripts) |
 | Build | Maven 3.9 |
@@ -100,12 +101,14 @@ java -jar target/johne-0.0.1.jar
 
 ## Features
 
-- **Catalogue:** product list and product detail pages, open to everyone.
+- **Catalogue:** product list and product detail pages, open to everyone. Products an admin has hidden don't appear, and their pages return 404.
 - **Accounts:** registration (username of 3+ characters, password of 8+, unique usernames), login and logout.
-- **Cart:** one row per product with a quantity. Shows "Only N left" warnings and blocks adding more than is in stock.
+- **Cart:** one row per product with a quantity. Shows "Only N left" and "No longer sold" warnings, and blocks adding more than is in stock.
 - **Checkout and payment:** "Pay with Stripe" creates a PENDING order with each item's current price and sends the customer to Stripe's hosted payment page. When Stripe's webhook confirms the payment, the stock is taken, the order becomes PAID and those products leave the cart. If the customer never pays, the order is CANCELLED when the session expires. If stock ran out while they were paying, the payment is refunded automatically.
-- **Order history:** customers see their past orders with dates, items and status (PENDING, PAID, SHIPPED, CANCELLED) on their profile.
-- **Admin:** add and edit products, view all orders, open an order and mark it as shipped (only allowed for PAID orders).
+- **Order history:** customers see their past orders with dates, items and status (PENDING, PAID, SHIPPED, CANCELLED, REFUNDED) on their profile.
+- **Admin dashboard** (`/owners`): revenue all time and for the last 7 days, order counts by status (each links to the filtered list), low-stock products, and the 10 most recent orders.
+- **Order management:** every order, 20 per page, filterable by status. An order's page links to its payment in the Stripe Dashboard. PAID orders can be marked as shipped, or refunded: the money goes back through Stripe and the stock returns to the shelf.
+- **Product management:** add and edit products, with server-side validation. Products can be hidden from the shop and shown again; they're never deleted, so old orders keep showing what was bought.
 
 ## Then vs now
 
@@ -118,6 +121,8 @@ The original version worked as a demo but had problems that would break a real s
 | Spring Boot 2.2.4, Java 13 | Spring Boot 4.1.1, Java 25 | Boot 2.x stopped getting fixes years ago. Moving up also meant switching `javax.*` imports to `jakarta.*`. |
 | H2 in-memory database, `ddl-auto=create`, `data.sql` | PostgreSQL in Docker, Flyway migrations, `ddl-auto=validate` | H2 data disappeared on every restart. Now the schema lives in versioned SQL files, and the app refuses to start if the Java entities and the tables disagree. |
 | `@Autowired` fields | Constructor injection | Dependencies are explicit and `final`, and the class is easier to test. |
+| Every class in one flat package | Feature packages: `admin`, `cart`, `order`, `payment`, `product`, `security`, `user` | Everything about one feature sits together. |
+
 
 ### Security
 
@@ -147,25 +152,54 @@ The original version worked as a demo but had problems that would break a real s
 | "Confirm Purchase" just moved the cart into orders; the billing form was never saved | Stripe Checkout's hosted page takes the payment; the app never sees card details | Real payments without handling card data, which stays with Stripe. |
 | An order counted as done as soon as the button was clicked | The order stays PENDING until a **signed webhook** from Stripe confirms payment | A browser landing on the "thank you" page proves nothing, because anyone can open that URL. Only Stripe's signed event can be trusted. |
 
+### Admin
+
+| Before | Now | Why |
+| --- | --- | --- |
+| The admin page had Log Out, View Orders and a "Change Orders" button that only went to `/` | A dashboard: revenue, orders by status, low-stock products, recent orders | The numbers come from `COUNT`/`SUM ... GROUP BY` queries mapped straight into records, so the page costs four small queries however many orders exist. |
+| `/view/orders` loaded every order on every visit | 20 per page (`Pageable`), filterable by `?status=` | One page is a `LIMIT/OFFSET` query plus a count, so the page stays fast as orders grow. |
+| No refunds; an admin could only ship | Refund for PAID orders: a Stripe refund, then status REFUNDED and the stock goes back (V9) | Stripe is called first, with an idempotency key, so clicking again after a failure can never refund twice. CANCELLED still means "never paid", so revenue leaves out both. |
+| A product couldn't be removed at all | Products can be hidden and shown again (`active` flag, V10) | `order_items` references products, so deleting one would break order history. Hidden products leave the shop, the cart's checkout and the low-stock list. |
+| Bad product input (negative price, empty name) hit a database `CHECK` and showed a 500; a price of `1.999` was silently rounded | Bean Validation on request records; the edit form shows a message | The browser's `min`/`step` checks are easy to remove, so the server checks too. |
+| "Add product" bound the JSON straight to the `Product` entity | A `NewProductRequest` record with no `id` field | A request containing `"id": 3` overwrote product 3 instead of adding a new one. |
+| A missing product (`/details/999`) showed a 500 | A 404 page | `ProductNotFoundException` carries `@ResponseStatus(NOT_FOUND)`. |
+
 ## Project tree
 
 ```text
 src/main/java/app/
-  SecurityConfig.java          URL rules, login/logout, BCrypt encoder
-  AppUserDetailsService.java   loads users from the database for Spring Security
+  MyApplication.java           Spring Boot entry point
   MainController.java          all page and form handlers
-  CartService.java             cart items; create PENDING orders, complete or cancel them (transactional)
-  PaymentService.java          creates Stripe Checkout Sessions; handles paid/expired sessions, refunds
-  StripeWebhookController.java POST /stripe/webhook: verifies the signature, dispatches events
-  StripeConfig.java,           the StripeClient bean and the stripe.* settings
-  StripeProperties.java          (startup fails if the keys are missing)
-  Product, User, CartItem,     JPA entities
-  Order, OrderItem, OrderStatus
-  *Repository.java             Spring Data repositories (queries, entity graphs, stock decrement)
+  admin/
+    DashboardService.java      dashboard numbers in one read-only transaction; owns the low-stock threshold
+  cart/
+    CartService.java           cart items; create PENDING orders, complete, cancel or refund them (transactional)
+    CartItem.java, CartItemRepository.java, OutOfStockException.java
+  order/
+    Order.java                 status changes (markPaid, markShipped, cancel, refund) guard their own rules
+    OrderItem.java, OrderStatus.java
+    OrderRepository.java       entity graphs, row lock, paging, dashboard aggregates
+    StatusCount.java,          records the dashboard queries map into
+    SalesTotals.java
+  payment/
+    PaymentService.java        Stripe Checkout Sessions; paid/expired sessions; automatic and admin refunds
+    StripeWebhookController.java  POST /stripe/webhook: verifies the signature, dispatches events
+    StripeConfig.java,         the StripeClient bean and the stripe.* settings
+    StripeProperties.java        (startup fails if the keys are missing)
+  product/
+    Product.java, ProductRepository.java   entity; stock decrement/increment in SQL
+    NewProductRequest.java,    validated request records (add / edit)
+    ProductEditForm.java
+    ProductNotFoundException.java          answers 404
+  security/
+    SecurityConfig.java        URL rules, login/logout, BCrypt encoder
+    AppUserDetailsService.java loads users from the database for Spring Security
+  user/
+    User.java, UserRepository.java
 src/main/resources/
-  application.properties       port, datasource, JPA, Flyway and Stripe settings
+  application.properties       port, datasource, JPA, Flyway, Stripe and low-stock settings
   db/migration/V*.sql          Flyway migrations (see below)
-  templates/                   Thymeleaf pages (+ fragments/navbar.html)
+  templates/                   Thymeleaf pages (+ fragments/navbar.html, error/404.html)
   static/                      style.css, code.js, product images
 compose.yaml                   the PostgreSQL container
 ```
@@ -178,6 +212,9 @@ Design notes:
 - **Stripe can deliver the same event twice, even at the same time.** `CartService.completePayment` locks the order row (`SELECT ... FOR UPDATE`) and only acts on a PENDING order, so a repeated event never takes stock twice.
 - **No database transaction stays open during a Stripe call.** The order is saved first, then the Checkout Session is created, then its id is saved. Refunds run after the stock transaction has rolled back.
 - **Amounts go to Stripe in cents** with `movePointRight(2).longValueExact()`, with no floating-point step in between.
+- **Admin refunds call Stripe first, then the database.** If the database step fails, the order still says PAID, and clicking Refund again is safe: the same idempotency key makes Stripe return the existing refund. The other order would risk an order marked REFUNDED whose customer never got their money.
+- **Paging only fetches to-one relations.** The order list's `@EntityGraph` loads `user` but not `items`. Fetching a collection would make Hibernate page in memory, which loads every row again.
+- **Admin endpoints live under paths `SecurityConfig` already locks** (for example `POST /edit/{id}/active`). A new path would fall through to "any logged-in user".
 
 ### Migrations
 
@@ -191,6 +228,8 @@ Design notes:
 | V6 | `orders`, `order_items`, `cart_items`; copy over the old cart and order data |
 | V7 | Drop the old join tables |
 | V8 | `orders.stripe_session_id`; add `CANCELLED` to the status check |
+| V9 | `orders.stripe_payment_intent_id`; add `REFUNDED` to the status check |
+| V10 | `product.active` for hiding products (existing rows stay visible) |
 
 Never edit a migration that has already run. Add a new `V<n>__description.sql` instead.
 
@@ -200,13 +239,19 @@ Never edit a migration that has already run. Add a new `V<n>__description.sql` i
 2. ✅ Spring Security with roles
 3. ✅ Cart and order model, `BigDecimal` money
 4. ✅ Stripe Checkout (hosted) and a webhook that marks orders PAID; stock taken when payment succeeds
-5. ⏭️ Admin dashboard, order management, low-stock alerts
+5. ✅ Admin dashboard, order management (filter, paging, refunds), low-stock alerts, hidden products
+6. ⏭️ Automated tests: Spring Boot tests against a Testcontainers PostgreSQL, including the webhook's signature check and duplicate events
 
 ## Known limitations
 
-- A missing product id on `/details/{id}` or `/edit/{id}` shows a 500 error instead of a 404.
+- There are no automated tests yet.
 - The cart has no +/− controls; items are added one at a time from the products page.
+- Clicking "Pay with Stripe" twice, or in two tabs, creates two PENDING orders, and each could be paid.
 - Stock isn't reserved while the customer is on Stripe's page. If it sells out in that window, the payment is refunded automatically and the order is cancelled.
 - An unpaid order stays PENDING until Stripe expires its session (24 hours by default).
 - Card payments only. Delayed methods such as bank debits (`checkout.session.async_payment_succeeded`) aren't handled.
+- A refund made in the Stripe Dashboard doesn't update the order, because `charge.refunded` isn't handled. Refund from the app instead.
+- SHIPPED orders can't be refunded; returns aren't modelled.
+- "Last 7 days" on the dashboard counts orders by when they were placed, not when they were paid (there's no `paid_at` column).
+- The "View payment in Stripe" link points at the test-mode Dashboard.
 - Locally, webhooks only arrive while `stripe listen` is running. Events missed while it's off aren't replayed.
