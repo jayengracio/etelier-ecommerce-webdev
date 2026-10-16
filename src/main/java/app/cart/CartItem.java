@@ -1,7 +1,9 @@
-package app;
+package app.cart;
 
 import java.math.BigDecimal;
 
+import app.product.Product;
+import app.user.User;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

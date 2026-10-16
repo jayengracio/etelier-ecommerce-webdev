@@ -1,4 +1,4 @@
-package app;
+package app.payment;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

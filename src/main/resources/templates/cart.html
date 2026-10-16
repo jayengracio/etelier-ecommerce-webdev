@@ -30,7 +30,7 @@
         <h1 th:text="'Checkout Cart: ' + ${#authentication.name}">Cart for: </h1>
 
         <div th:if="${param.outOfStock}" class="alert alert-danger">
-            Some items are currently out of stock. Remove them or try again later.
+            Some items in your cart are out of stock or no longer being sold. Remove them from your cart or try again later.
         </div>
 
         <div class="cart">
@@ -57,6 +57,7 @@
                             <span th:text="${item.quantity}"></span>
                             <small class="text-danger d-block" th:if="${item.quantity > item.product.stock}"
                                 th:text="|Only ${item.product.stock} left|"></small>
+                            <small class="text-danger d-block" th:unless="${item.product.active}">No longer sold. Please remove from your cart.</small>
                         </td>
                         <td class="cart-cell"
                             th:text="'€' + ${#numbers.formatDecimal(item.lineTotal, 0, 'COMMA', 2, 'POINT')}"></td>

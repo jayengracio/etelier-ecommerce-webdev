@@ -1,4 +1,4 @@
-package app;
+package app.user;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

@@ -1,7 +1,8 @@
-package app;
+package app.order;
 
 import java.math.BigDecimal;
 
+import app.product.Product;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;

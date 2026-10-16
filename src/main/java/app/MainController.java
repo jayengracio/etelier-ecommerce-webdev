@@ -5,11 +5,17 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -20,11 +26,29 @@ import org.springframework.web.server.ResponseStatusException;
 
 import com.stripe.exception.StripeException;
 
+import app.admin.DashboardService;
+import app.cart.CartItem;
+import app.cart.CartItemRepository;
+import app.cart.CartService;
+import app.cart.OutOfStockException;
+import app.order.Order;
+import app.order.OrderRepository;
+import app.order.OrderStatus;
+import app.payment.PaymentService;
+import app.product.NewProductRequest;
+import app.product.Product;
+import app.product.ProductEditForm;
+import app.product.ProductNotFoundException;
+import app.product.ProductRepository;
+import app.user.User;
+import app.user.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 
 @Controller
 public class MainController {
 
+    private final DashboardService dashboardService;
     private final OrderRepository orderRepository;
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
@@ -35,7 +59,7 @@ public class MainController {
 
     public MainController(ProductRepository productRepository, UserRepository userRepository,
             CartItemRepository cartItemRepository, CartService cartService, PasswordEncoder passwordEncoder,
-            OrderRepository orderRepository, PaymentService paymentService) {
+            OrderRepository orderRepository, PaymentService paymentService, DashboardService dashboardService) {
         this.productRepository = productRepository;
         this.userRepository = userRepository;
         this.cartItemRepository = cartItemRepository;
@@ -43,18 +67,26 @@ public class MainController {
         this.passwordEncoder = passwordEncoder;
         this.orderRepository = orderRepository;
         this.paymentService = paymentService;
+        this.dashboardService = dashboardService;
     }
 
     // ------ PUBLIC PAGES ------
     @GetMapping("/products")
     public String products(Model model, HttpServletRequest request) {
-        model.addAttribute("products", productRepository.findAll());
-        return request.isUserInRole("ADMIN") ? "products_owner.html" : "products.html";
+        if (request.isUserInRole("ADMIN")) {
+            model.addAttribute("products", productRepository.findAll(Sort.by("id")));
+            model.addAttribute("lowStockThreshold", dashboardService.lowStockThreshold());
+            return "products_owner.html";
+        }
+        model.addAttribute("products", productRepository.findByActiveTrueOrderById());
+        return "products.html";
     }
 
     @GetMapping("/details/{id}")
-    public String details(@PathVariable int id, Model model) {
-        model.addAttribute("product", productRepository.findById(id).orElseThrow());
+    public String details(@PathVariable int id, Model model, HttpServletRequest request) {
+        model.addAttribute("product", productRepository.findById(id)
+                .filter(product -> product.isActive() || request.isUserInRole("ADMIN"))
+                .orElseThrow(() -> new ProductNotFoundException(id)));
         return "details.html";
     }
 
@@ -185,38 +217,76 @@ public class MainController {
         return "redirect:/orders/" + id;
     }
 
+    @PostMapping("/orders/{id}/refund")
+    public String refundOrder(@PathVariable int id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        if (!order.isRefundable()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Order " + id + " is " + order.getStatus());
+        }
+
+        try {
+            paymentService.refund(order);
+        } catch (StripeException e) {
+            return "redirect:/orders/" + id + "?refundError";
+        }
+        return "redirect:/orders/" + id + "?refunded";
+    }
+
     // ------ ADMINS (locked to ROLE_ADMIN in SecurityConfig) ------
     @GetMapping("/owners")
-    public String owners() {
+    public String owners(Model model) {
+        model.addAttribute("stats", dashboardService.stats());
         return "owners.html";
     }
 
     @PostMapping("/product/add")
     @ResponseBody
-    public Product addProduct(@RequestBody Product product) {
-        return productRepository.save(product);
+    public Product addProduct(@Valid @RequestBody NewProductRequest request) {
+        return productRepository.save(request.toProduct());
     }
 
     @GetMapping("/edit/{id}")
     public String edit(@PathVariable int id, Model model) {
-        model.addAttribute("product", productRepository.findById(id).orElseThrow());
+        model.addAttribute("product", productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException(id)));
         return "edit.html";
     }
 
+    @PostMapping("/edit/{id}/active")
+    public String setProductActive(@PathVariable int id, @RequestParam boolean active) {
+        Product product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
+        product.setActive(active);
+        productRepository.save(product);
+        return "redirect:/products";
+    }
+
     @PostMapping("/edit/product")
-    public String editProduct(@RequestParam int id, @RequestParam String details,
-            @RequestParam BigDecimal price, @RequestParam int stock) {
-        Product product = productRepository.findById(id).orElseThrow();
-        product.setDetails(details);
-        product.setPrice(price);
-        product.setStock(stock);
+    public String editProduct(@RequestParam int id, @Valid @ModelAttribute ProductEditForm form, BindingResult result) {
+        Product product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
+
+        if (result.hasErrors()) {
+            return "redirect:/edit/" + id + "?invalid";
+        }
+
+        product.setDetails(form.details());
+        product.setPrice(form.price());
+        product.setStock(form.stock());
         productRepository.save(product);
         return "redirect:/products";
     }
 
     @GetMapping("/view/orders")
-    public String viewOrders(Model model) {
-        model.addAttribute("orders", orderRepository.findAllByOrderByCreatedAtDesc());
+    public String viewOrders(@RequestParam(required = false) OrderStatus status,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            Model model) {
+        Page<Order> orders = status == null
+                ? orderRepository.findAllBy(pageable)
+                : orderRepository.findByStatus(status, pageable);
+
+        model.addAttribute("orders", orders);
+        model.addAttribute("status", status);
+        model.addAttribute("statuses", OrderStatus.values());
         return "view_order.html";
     }
 

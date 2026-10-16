@@ -1,4 +1,4 @@
-package app;
+package app.cart;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -8,6 +8,15 @@ import java.util.Optional;
 
 import org.springframework.stereotype.Service;
 
+import app.order.Order;
+import app.order.OrderItem;
+import app.order.OrderRepository;
+import app.order.OrderStatus;
+import app.product.Product;
+import app.product.ProductNotFoundException;
+import app.product.ProductRepository;
+import app.user.User;
+import app.user.UserRepository;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -34,7 +43,9 @@ public class CartService {
      */
     @Transactional
     public boolean addToCart(String username, int productId) {
-        Product product = productRepository.findById(productId).orElseThrow();
+        Product product = productRepository.findById(productId)
+                .filter(Product::isActive)
+                .orElseThrow(() -> new ProductNotFoundException(productId));
         Optional<CartItem> existing = cartItemRepository.findByUserUsernameAndProductId(username, productId);
         int wanted = existing.map(CartItem::getQuantity).orElse(0) + 1;
         if (wanted > product.getStock()) {
@@ -76,7 +87,7 @@ public class CartService {
 
         for (CartItem item : cartList) {
             Product product = item.getProduct();
-            if (item.getQuantity() > product.getStock()) {
+            if (!product.isActive() || item.getQuantity() > product.getStock()) {
                 throw new OutOfStockException(product.getName());
             }
             order.addItem(new OrderItem(product, item.getQuantity(), product.getPrice()));
@@ -96,7 +107,7 @@ public class CartService {
      * the customer paid.
      */
     @Transactional
-    public void completePayment(int orderId) {
+    public void completePayment(int orderId, String paymentIntentId) {
         Optional<Order> found = orderRepository.findLockedById(orderId);
         if (found.isEmpty() || found.get().getStatus() != OrderStatus.PENDING) {
             return;
@@ -114,7 +125,7 @@ public class CartService {
             }
         }
 
-        order.markPaid();
+        order.markPaid(paymentIntentId);
         List<Integer> productIds = items.stream().map(item -> item.getProduct().getId()).toList();
         cartItemRepository.deleteByUserIdAndProductIdIn(order.getUser().getId(), productIds);
     }
@@ -128,5 +139,26 @@ public class CartService {
         orderRepository.findLockedById(orderId)
                 .filter(order -> order.getStatus() == OrderStatus.PENDING)
                 .ifPresent(Order::cancel);
+    }
+
+    /**
+     * After Stripe confirmed the refund: REFUNDED, and the stock goes back.
+     * Locks the order like completePayment, so a double click can't restore stock
+     * twice.
+     */
+    @Transactional
+    public void markRefunded(int orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow();
+        if (order.getStatus() != OrderStatus.PAID) {
+            return; // already refunded by other click (or shipped in the meantime)
+        }
+        order.refund();
+
+        // same product-id order as completePayment, so two can't deadlock
+        List<OrderItem> items = new ArrayList<>(order.getItems());
+        items.sort(Comparator.comparingInt(item -> item.getProduct().getId()));
+        for (OrderItem item : items) {
+            productRepository.incrementStock(item.getProduct().getId(), item.getQuantity());
+        }
     }
 }

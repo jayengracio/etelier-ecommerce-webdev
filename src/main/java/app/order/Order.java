@@ -1,10 +1,11 @@
-package app;
+package app.order;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
+import app.user.User;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -46,6 +47,8 @@ public class Order {
 
     private String stripeSessionId;
 
+    private String stripePaymentIntentId;
+
     protected Order() {
 
     }
@@ -61,7 +64,8 @@ public class Order {
 
     /**
      * Only a paid order can be shipped
-     * Payment itself is confirmed by the Stripe webhook (CartService.completePayment)
+     * Payment itself is confirmed by the Stripe webhook
+     * (CartService.completePayment)
      */
     public boolean isShippable() {
         return status == OrderStatus.PAID;
@@ -74,11 +78,16 @@ public class Order {
         status = OrderStatus.SHIPPED;
     }
 
-    public void markPaid() {
+    /**
+     * Called by the webhook once Stripe confirms the charge.
+     * Saves the PaymentIntent, because refunds and the Dashboard link need it.
+     */
+    public void markPaid(String paymentIntentId) {
         if (status != OrderStatus.PENDING) {
             throw new IllegalStateException("Order " + id + " is " + status + ". Only PENDING orders can be paid");
         }
         status = OrderStatus.PAID;
+        stripePaymentIntentId = paymentIntentId;
     }
 
     public void cancel() {
@@ -86,6 +95,18 @@ public class Order {
             throw new IllegalStateException("Order " + id + " is " + status + ". Only PENDING orders can be cancelled");
         }
         status = OrderStatus.CANCELLED;
+    }
+
+    public boolean isRefundable() {
+        return status == OrderStatus.PAID && stripeSessionId != null;
+    }
+
+    public void refund() {
+        if (!isRefundable()) {
+            throw new IllegalStateException(
+                    "Order " + id + " is " + status + ". Only PAID Stripe orders can be refunded");
+        }
+        status = OrderStatus.REFUNDED;
     }
 
     public int getId() {
@@ -142,5 +163,9 @@ public class Order {
 
     public void setStripeSessionId(String stripeSessionId) {
         this.stripeSessionId = stripeSessionId;
+    }
+
+    public String getStripePaymentIntentId() {
+        return stripePaymentIntentId;
     }
 }

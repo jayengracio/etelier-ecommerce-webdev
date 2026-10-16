@@ -27,13 +27,30 @@
 
     <div class="searchDiv">
         <h1 th:text="|Order ${order.id}: ${order.user.username}|"></h1>
+        <div th:if="${param.refunded}" class="alert alert-success">Refunded in Stripe. Stock added back to shelf</div>
+        <div th:if="${param.refundError}" class="alert alert-danger">
+            Refund refused by Stripe. This order is unchanged. Check this order's refund status in Dashboard.
+        </div>
         <p>
             <span th:text="${#temporals.format(order.createdAt, 'dd MM yyyy, HH:mm')}"></span>
             · Status: <b th:text="${order.status}"></b>
         </p>
+        <p th:if="${order.stripeSessionId}" class="text-muted small">
+            Stripe session: <code th:text="${order.stripeSessionId}"></code>
+            <th:block th:if="${order.stripePaymentIntentId}">
+                · <a th:href="|https://dashboard.stripe.com/test/payments/${order.stripePaymentIntentId}|"
+                    target="_blank" rel="noopener">View payment in Stripe</a>
+            </th:block>
+        </p>
+
         <form th:if="${order.shippable}" th:action="@{/orders/{id}/ship(id=${order.id})}" method="post">
             <button class="btn btn-success" type="submit">Mark as shipped</button>
         </form>
+        <form th:if="${order.refundable}" th:action="@{/orders/{id}/refund(id=${order.id})}" method="post" class="mt-2"
+            onsubmit="return confirm('Refund this order?');">
+            <button class="btn btn-danger" type="submit">Refund</button>
+        </form>
+
     </div>
 
     <div class="products">
