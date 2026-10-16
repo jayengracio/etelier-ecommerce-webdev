@@ -5,6 +5,8 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
@@ -18,9 +20,13 @@ public interface OrderRepository extends JpaRepository<Order, Integer> {
     @EntityGraph(attributePaths = { "items", "items.product" })
     List<Order> findByUserUsernameOrderByCreatedAtDesc(String username);
 
-    // Admin list: every order with its customer.
+    // Admin list: one page of orders with their customer. The pageable carries the sort
     @EntityGraph(attributePaths = "user")
-    List<Order> findAllByOrderByCreatedAtDesc();
+    Page<Order> findAllBy(Pageable pageable);
+
+    // Admin list filtered by status, e.g. everything PAID that still needs shipping
+    @EntityGraph(attributePaths = "user")
+    Page<Order> findByStatus(OrderStatus status, Pageable pageable);
 
     // Admin detail page: one order with everything.
     @EntityGraph(attributePaths = { "user", "items", "items.product" })

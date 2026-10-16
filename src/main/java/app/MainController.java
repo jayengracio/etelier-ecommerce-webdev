@@ -5,6 +5,10 @@ import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
@@ -29,6 +33,7 @@ import app.cart.CartService;
 import app.cart.OutOfStockException;
 import app.order.Order;
 import app.order.OrderRepository;
+import app.order.OrderStatus;
 import app.payment.PaymentService;
 import app.product.NewProductRequest;
 import app.product.Product;
@@ -242,8 +247,16 @@ public class MainController {
     }
 
     @GetMapping("/view/orders")
-    public String viewOrders(Model model) {
-        model.addAttribute("orders", orderRepository.findAllByOrderByCreatedAtDesc());
+    public String viewOrders(@RequestParam(required = false) OrderStatus status,
+            @PageableDefault(size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+            Model model) {
+        Page<Order> orders = status == null
+                ? orderRepository.findAllBy(pageable)
+                : orderRepository.findByStatus(status, pageable);
+
+        model.addAttribute("orders", orders);
+        model.addAttribute("status", status);
+        model.addAttribute("statuses", OrderStatus.values());
         return "view_order.html";
     }
 

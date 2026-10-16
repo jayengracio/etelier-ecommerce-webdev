@@ -31,6 +31,10 @@
             <span th:text="${#temporals.format(order.createdAt, 'dd MM yyyy, HH:mm')}"></span>
             · Status: <b th:text="${order.status}"></b>
         </p>
+        <p th:if="${order.stripeSessionId}" class="text-muted small">
+            Stripe session: <code th:text="${order.stripeSessionId}"></code>
+        </p>
+
         <form th:if="${order.shippable}" th:action="@{/orders/{id}/ship(id=${order.id})}" method="post">
             <button class="btn btn-success" type="submit">Mark as shipped</button>
         </form>

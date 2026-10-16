@@ -26,6 +26,27 @@
     <div th:replace="~{fragments/navbar :: navbar}"></div>
 
     <div class="user">
+        
+        <nav th:if="${orders.totalPages > 1}" class="mt-3">
+            <a th:if="${orders.hasPrevious()}" class="btn btn-sm btn-outline-success"
+                th:href="@{/view/orders(status=${status}, page=${orders.number - 1}, size=${orders.size})}">&laquo;
+                Previous</a>
+            <span class="mx-2"
+                th:text="|Page ${orders.number + 1} of ${orders.totalPages} · ${orders.totalElements} orders|"></span>
+            <a th:if="${orders.hasNext()}" class="btn btn-sm btn-outline-success"
+                th:href="@{/view/orders(status=${status}, page=${orders.number + 1}, size=${orders.size})}">Next
+                &raquo;</a>
+        </nav>
+
+        <div class="mb-3">
+            <a th:href="@{/view/orders}" class="btn btn-sm"
+                th:classappend="${status == null} ? 'btn-success' : 'btn-outline-success'">All</a>
+            <a th:each="s : ${statuses}" th:href="@{/view/orders(status=${s})}" th:text="${s}" class="btn btn-sm"
+                th:classappend="${s == status} ? 'btn-success' : 'btn-outline-success'"></a>
+        </div>
+
+        <p th:if="${orders.empty}">No orders here.</p>
+
         <table class="user-table" id="userTable">
             <thead>
                 <tr>

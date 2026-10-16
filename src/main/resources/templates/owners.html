@@ -79,7 +79,7 @@
                             <h6 class="card-subtitle text-muted mb-2">Orders by status</h6>
                             <ul class="list-unstyled mb-0">
                                 <li th:each="entry : ${stats.ordersByStatus}">
-                                    <span th:text="${entry.key}"></span>:
+                                    <a th:href="@{/view/orders(status=${entry.key})}" th:text="${entry.key}"></a>
                                     <b th:text="${entry.value}"></b>
                                 </li>
                             </ul>
