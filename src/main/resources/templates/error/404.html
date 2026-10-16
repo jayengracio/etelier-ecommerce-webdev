@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+    <link rel="shortcut icon" type="image/png" href="/images/logo.png">
+    <title>Not Found</title>
+    <meta charset="utf-8">
+
+    <link href="/style.css" rel="stylesheet" type="text/css">
+    <script src="/code.js" type="text/javascript"></script>
+
+    <!-- Bootstrap -->
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <!-- Font Awesome Icons -->
+    <link crossorigin="anonymous" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
+        integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" rel="stylesheet">
+</head>
+
+<body>
+    <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+    <div class="main-container">
+        <div class="forbid-box">
+            <h1>Something went wrong.</h1>
+            <p th-text="${path}"></p>
+            <a href="/products">
+                <button class="btn btn-success btn-block btn-sm forbid-btn" type="button">Go back to products</button>
+            </a>
+        </div>
+    </div>
+</body>
+
+</html>

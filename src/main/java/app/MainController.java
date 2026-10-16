@@ -54,7 +54,8 @@ public class MainController {
 
     @GetMapping("/details/{id}")
     public String details(@PathVariable int id, Model model) {
-        model.addAttribute("product", productRepository.findById(id).orElseThrow());
+        model.addAttribute("product", productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException(id)));
         return "details.html";
     }
 
@@ -199,14 +200,15 @@ public class MainController {
 
     @GetMapping("/edit/{id}")
     public String edit(@PathVariable int id, Model model) {
-        model.addAttribute("product", productRepository.findById(id).orElseThrow());
+        model.addAttribute("product", productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException(id)));
         return "edit.html";
     }
 
     @PostMapping("/edit/product")
     public String editProduct(@RequestParam int id, @RequestParam String details,
             @RequestParam BigDecimal price, @RequestParam int stock) {
-        Product product = productRepository.findById(id).orElseThrow();
+        Product product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
         product.setDetails(details);
         product.setPrice(price);
         product.setStock(stock);

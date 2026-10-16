@@ -34,7 +34,8 @@ public class CartService {
      */
     @Transactional
     public boolean addToCart(String username, int productId) {
-        Product product = productRepository.findById(productId).orElseThrow();
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new ProductNotFoundException(productId));
         Optional<CartItem> existing = cartItemRepository.findByUserUsernameAndProductId(username, productId);
         int wanted = existing.map(CartItem::getQuantity).orElse(0) + 1;
         if (wanted > product.getStock()) {
