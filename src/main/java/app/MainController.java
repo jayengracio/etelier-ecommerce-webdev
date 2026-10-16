@@ -211,6 +211,22 @@ public class MainController {
         return "redirect:/orders/" + id;
     }
 
+    @PostMapping("/orders/{id}/refund")
+    public String refundOrder(@PathVariable int id) {
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+        if (!order.isRefundable()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Order " + id + " is " + order.getStatus());
+        }
+
+        try {
+            paymentService.refund(order);
+        } catch (StripeException e) {
+            return "redirect:/orders/" + id + "?refundError";
+        }
+        return "redirect:/orders/" + id + "?refunded";
+    }
+
     // ------ ADMINS (locked to ROLE_ADMIN in SecurityConfig) ------
     @GetMapping("/owners")
     public String owners(Model model) {

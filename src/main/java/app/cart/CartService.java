@@ -139,4 +139,25 @@ public class CartService {
                 .filter(order -> order.getStatus() == OrderStatus.PENDING)
                 .ifPresent(Order::cancel);
     }
+
+    /**
+     * After Stripe confirmed the refund: REFUNDED, and the stock goes back.
+     * Locks the order like completePayment, so a double click can't restore stock
+     * twice.
+     */
+    @Transactional
+    public void markRefunded(int orderId) {
+        Order order = orderRepository.findById(orderId).orElseThrow();
+        if (order.getStatus() != OrderStatus.PAID) {
+            return; // already refunded by other click (or shipped in the meantime)
+        }
+        order.refund();
+
+        // same product-id order as completePayment, so two can't deadlock
+        List<OrderItem> items = new ArrayList<>(order.getItems());
+        items.sort(Comparator.comparingInt(item -> item.getProduct().getId()));
+        for (OrderItem item : items) {
+            productRepository.incrementStock(item.getProduct().getId(), item.getQuantity());
+        }
+    }
 }

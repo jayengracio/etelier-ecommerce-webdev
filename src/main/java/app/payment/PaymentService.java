@@ -119,6 +119,31 @@ public class PaymentService {
     }
 
     /**
+     * Admin refund of a PAID order. Stripe first, then the database:
+     * If the database step fails, refunding again is safe, because the idempotency
+     * key makes Stripe
+     * return the same refund instead of making a second one.
+     */
+    public void refund(Order order) throws StripeException {
+        stripe.v1().refunds().create(
+                RefundCreateParams.builder().setPaymentIntent(paymentIntentOf(order)).build(),
+                RequestOptions.builder().setIdempotencyKey("admin-refund-order-" + order.getId()).build());
+        cartService.markRefunded(order.getId());
+        log.info("Order {} refunded by an admin", order.getId());
+    }
+
+    /**
+     * Orders paid before V9 have no PaymentIntent saved, so ask Stripe for the
+     * session's.
+     */
+    private String paymentIntentOf(Order order) throws StripeException {
+        if (order.getStripePaymentIntentId() != null) {
+            return order.getStripePaymentIntentId();
+        }
+        return stripe.v1().checkout().sessions().retrieve(order.getStripeSessionId()).getPaymentIntent();
+    }
+
+    /**
      * The order id we put in the client_reference_id; null for sessions this dop
      * didn't create
      */

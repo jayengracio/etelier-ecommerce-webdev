@@ -48,7 +48,7 @@ public class Order {
     private String stripeSessionId;
 
     private String stripePaymentIntentId;
-    
+
     protected Order() {
 
     }
@@ -64,7 +64,8 @@ public class Order {
 
     /**
      * Only a paid order can be shipped
-     * Payment itself is confirmed by the Stripe webhook (CartService.completePayment)
+     * Payment itself is confirmed by the Stripe webhook
+     * (CartService.completePayment)
      */
     public boolean isShippable() {
         return status == OrderStatus.PAID;
@@ -94,6 +95,18 @@ public class Order {
             throw new IllegalStateException("Order " + id + " is " + status + ". Only PENDING orders can be cancelled");
         }
         status = OrderStatus.CANCELLED;
+    }
+
+    public boolean isRefundable() {
+        return status == OrderStatus.PAID && stripeSessionId != null;
+    }
+
+    public void refund() {
+        if (!isRefundable()) {
+            throw new IllegalStateException(
+                    "Order " + id + " is " + status + ". Only PAID Stripe orders can be refunded");
+        }
+        status = OrderStatus.REFUNDED;
     }
 
     public int getId() {
