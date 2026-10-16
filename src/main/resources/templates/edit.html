@@ -28,6 +28,11 @@
     <div class="main-container">
         <h1 th:text="'Details for: ' + ${product.name}">Details for: </h1>
 
+        <div th:if="${param.invalid}" class="alert alert-danger">
+            Check the values: details can't be empty (max 1000 characters), price and stock can't be negative, and price
+            has at most 2 decimals.
+        </div>
+
         <form th:action="@{/edit/product}" method="POST" class="was-validated">
             <input type="hidden" name="id" th:value="${product.id}">
             <table class="details-table">
