@@ -1,5 +1,11 @@
 package app.payment;
 
+import com.stripe.StripeClient;
+import com.stripe.exception.SignatureVerificationException;
+import com.stripe.exception.StripeException;
+import com.stripe.model.Event;
+import com.stripe.model.EventDataObjectDeserializer;
+import com.stripe.model.checkout.Session;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -7,13 +13,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.stripe.StripeClient;
-import com.stripe.exception.SignatureVerificationException;
-import com.stripe.exception.StripeException;
-import com.stripe.model.Event;
-import com.stripe.model.EventDataObjectDeserializer;
-import com.stripe.model.checkout.Session;
 
 @RestController
 public class StripeWebhookController {
@@ -24,8 +23,8 @@ public class StripeWebhookController {
     private final StripeProperties stripeProperties;
     private final PaymentService paymentService;
 
-    public StripeWebhookController(StripeClient stripe, StripeProperties stripeProperties,
-            PaymentService paymentService) {
+    public StripeWebhookController(
+            StripeClient stripe, StripeProperties stripeProperties, PaymentService paymentService) {
         this.stripe = stripe;
         this.stripeProperties = stripeProperties;
         this.paymentService = paymentService;
@@ -38,8 +37,8 @@ public class StripeWebhookController {
      * Anything else, including exception, makes it retry later.
      */
     @PostMapping("/stripe/webhook")
-    public ResponseEntity<Void> handle(@RequestBody String payload,
-            @RequestHeader("Stripe-Signature") String signature) throws StripeException {
+    public ResponseEntity<Void> handle(@RequestBody String payload, @RequestHeader("Stripe-Signature") String signature)
+            throws StripeException {
         Event event;
         try {
             event = stripe.constructEvent(payload, signature, stripeProperties.webhookSecret());
@@ -51,8 +50,7 @@ public class StripeWebhookController {
         switch (event.getType()) {
             case "checkout.session.completed" -> paymentService.handleCheckoutCompleted(sessionOf(event));
             case "checkout.session.expired" -> paymentService.handleCheckoutExpired(sessionOf(event));
-            default -> {
-            } // payment_intent.*, charge.*, ...: not needed
+            default -> {} // payment_intent.*, charge.*, ...: not needed
         }
 
         return ResponseEntity.ok().build();

@@ -1,10 +1,5 @@
 package app.order;
 
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
-
 import app.user.User;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -19,6 +14,10 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "orders")
@@ -49,9 +48,7 @@ public class Order {
 
     private String stripePaymentIntentId;
 
-    protected Order() {
-
-    }
+    protected Order() {}
 
     public Order(User user) {
         this.user = user;

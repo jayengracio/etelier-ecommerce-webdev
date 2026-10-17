@@ -1,5 +1,9 @@
 package app.order;
 
 public enum OrderStatus {
-    PENDING, PAID, SHIPPED, CANCELLED, REFUNDED
+    PENDING,
+    PAID,
+    SHIPPED,
+    CANCELLED,
+    REFUNDED
 }

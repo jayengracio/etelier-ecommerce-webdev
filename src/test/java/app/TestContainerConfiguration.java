@@ -7,7 +7,7 @@ import org.testcontainers.postgresql.PostgreSQLContainer;
 
 /**
  * A throwaway Postgres in Docker for tests.
- * 
+ *
  * @ServiceConnection points the DataSource at it,
  *                    and Flyway runs V1 and V2 on startup, so every test run
  *                    also checks the migrations against a fresh database.

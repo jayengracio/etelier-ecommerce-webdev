@@ -1,12 +1,11 @@
 package app;
 
+import com.stripe.StripeClient;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
-
-import com.stripe.StripeClient;
 
 @SpringBootTest
 @Import(TestContainerConfiguration.class)
@@ -17,7 +16,5 @@ class MyApplicationTests {
     StripeClient stripe;
 
     @Test
-    void contextLoad() {
-
-    }
+    void contextLoad() {}
 }
