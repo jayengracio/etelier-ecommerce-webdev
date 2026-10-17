@@ -1,0 +1,16 @@
+{
+  "name": "shop-frontend",
+  "private": true,
+  "description": "Builds the Tailwind stylesheet. Maven runs 'npm ci' and 'npm run build' (frontend-maven-plugin).",
+  "scripts": {
+    "build": "tailwindcss -i app.css -o ../../../target/classes/static/app.css --minify --silent",
+    "watch": "tailwindcss -i app.css -o ../../../target/classes/static/app.css --watch=always"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.0",
+    "tailwindcss": "4.3.3"
+  },
+  "allowScripts": {
+    "@parcel/watcher": false
+  }
+}

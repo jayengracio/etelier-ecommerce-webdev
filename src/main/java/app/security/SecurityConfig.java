@@ -23,6 +23,7 @@ public class SecurityConfig {
                                 "/error",
                                 "/stripe/webhook", // Stripe has no login; the signature check is the auth
                                 "/style.css",
+                                "/app.css",
                                 "/code.js",
                                 "/images/**")
                         .permitAll()

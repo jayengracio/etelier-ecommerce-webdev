@@ -1,0 +1,6 @@
+/* Tailwind's entry point. The CLI scans the files named by @source for class names
+   and writes only the CSS those classes need to target/classes/static/app.css. */
+@import "tailwindcss" source(none);
+
+@source "../resources/templates";
+@source "../resources/static/code.js";

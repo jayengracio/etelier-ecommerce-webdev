@@ -2,12 +2,14 @@ package app.security;
 
 import static app.TestData.product;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -84,6 +86,18 @@ class SecurityConfigTest {
     // ---- admin URLs ----
     // The ids don't need to exist: security refuses the request before the controller
     // looks anything up.
+
+    // ---- static files ----
+
+    @Test
+    void anonymousVisitorsGetTheTailwindStylesheet() throws Exception {
+        // Maven builds app.css before the tests run (frontend-maven-plugin). It must be
+        // public, or the login page itself would be unstyled.
+        mvc.perform(get("/app.css"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith("text/css"))
+                .andExpect(content().string(containsString("tailwindcss")));
+    }
 
     @ParameterizedTest(name = "{0} {1}")
     @CsvSource({
