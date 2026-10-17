@@ -6,33 +6,30 @@
 </head>
 
 <body>
-    <main>
-        <div class="container-sm">
-            <div class="login">
-                <h2>Register an account</h2>
-                <br>
-                <div class="alert alert-danger" th:if="${param.invalid}">Username must be 3+ characters and password 8+.
+    <main class="mx-auto max-w-sm">
+        <div class="card">
+            <h2>Register an account</h2>
+            <div class="alert alert-danger" th:if="${param.invalid}">Username must be 3+ characters and password 8+.</div>
+            <div class="alert alert-danger" th:if="${param.taken}">That username is already taken.</div>
+            <form class="space-y-4" th:action="@{/register}" method="POST">
+                <div>
+                    <input class="input peer" id="username" name="username" placeholder="Username" required
+                        minlength="3" type="text">
+                    <p class="mt-1 hidden text-sm text-red-700 peer-user-invalid:block">
+                        Username must be at least 3 characters.
+                    </p>
                 </div>
-                <div class="alert alert-danger" th:if="${param.taken}">That username is already taken.</div>
-                <form th:action="@{/register}" class="was-validated" method="POST">
-                    <div class="form-group">
-                        <input class="form-control" id="username" name="username" placeholder="Username" required
-                            minlength="3" type="text">
-                        <div class="invalid-feedback">Username must be at least 3 characters.</div>
-                    </div>
 
-                    <div class="form-group">
-                        <input class="form-control" id="pass" name="password" placeholder="Password" required minlength="8"
-                            type="password">
-                        <div class="invalid-feedback">Password must be at least 8 characters.</div>
-                        <br>
-                    </div>
+                <div>
+                    <input class="input peer" id="pass" name="password" placeholder="Password" required minlength="8"
+                        type="password">
+                    <p class="mt-1 hidden text-sm text-red-700 peer-user-invalid:block">
+                        Password must be at least 8 characters.
+                    </p>
+                </div>
 
-                    <div class="log-btns text-center">
-                        <button class="btn btn-success btn-block" type="submit">Register</button>
-                    </div>
-                </form>
-            </div>
+                <button class="btn btn-primary w-full" type="submit">Register</button>
+            </form>
         </div>
     </main>
 </body>

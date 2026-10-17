@@ -6,13 +6,12 @@
 </head>
 
 <body>
-    <main>
-        <div class="main-container">
-            <h1>Browse catalogue</h1>
-            <h2 sec:authorize="isAuthenticated()" th:text="'Welcome, ' + ${#authentication.name} + '!'"></h2>
-            <h2 sec:authorize="isAnonymous()">Welcome!</h2>
-        </div>
+    <main class="text-center">
+        <h1>Browse catalogue</h1>
+        <h2 sec:authorize="isAuthenticated()" th:text="'Welcome, ' + ${#authentication.name} + '!'"></h2>
+        <h2 sec:authorize="isAnonymous()">Welcome!</h2>
     </main>
+
 </body>
 
 </html>

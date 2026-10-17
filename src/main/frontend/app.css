@@ -4,3 +4,60 @@
 
 @source "../resources/templates";
 @source "../resources/static/code.js";
+
+/* Element defaults. Tailwind's reset makes headings plain text; this restores a
+   readable baseline, so pages only add classes where they differ. */
+@layer base {
+    h1 {
+        @apply mb-4 text-3xl font-bold;
+    }
+
+    h2 {
+        @apply mb-3 text-2xl font-semibold;
+    }
+
+    h3 {
+        @apply mb-2 text-xl font-semibold;
+    }
+}
+
+/* Components used on many pages, defined once so a later redesign edits these
+   instead of every template. A utility on the same element still wins, because
+   Tailwind's utilities layer comes after components. */
+@layer components {
+    .btn {
+        @apply inline-flex cursor-pointer items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+    }
+
+    .btn-primary {
+        @apply bg-emerald-600 text-white hover:bg-emerald-700 focus-visible:outline-emerald-600;
+    }
+
+    .btn-secondary {
+        @apply bg-stone-200 text-stone-900 hover:bg-stone-300 focus-visible:outline-stone-500;
+    }
+
+    .input {
+        @apply block w-full rounded-md border border-stone-300 bg-white px-3 py-2 focus:border-emerald-600 focus:outline-2 focus:outline-emerald-600/30 user-invalid:border-red-600;
+    }
+
+    .alert {
+        @apply mb-4 rounded-md border px-4 py-3 text-sm;
+    }
+
+    .alert-success {
+        @apply border-emerald-200 bg-emerald-50 text-emerald-800;
+    }
+
+    .alert-danger {
+        @apply border-red-200 bg-red-50 text-red-800;
+    }
+
+    .alert-info {
+        @apply border-sky-200 bg-sky-50 text-sky-800;
+    }
+
+    .card {
+        @apply rounded-lg border border-stone-200 bg-white p-6 shadow-sm;
+    }
+}

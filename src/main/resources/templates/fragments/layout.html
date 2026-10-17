@@ -14,16 +14,17 @@
     <meta name="_csrf" th:if="${_csrf}" th:content="${_csrf.token}">
     <meta name="_csrf_header" th:if="${_csrf}" th:content="${_csrf.headerName}">
 
-    <link th:href="@{/style.css}" rel="stylesheet">
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link th:href="@{/app.css}" rel="stylesheet">
     <link crossorigin="anonymous" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
         integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" rel="stylesheet">
     <script th:src="@{/code.js}"></script>
 </head>
 
-<body class="d-flex flex-column min-vh-100">
+<body class="flex min-h-screen flex-col bg-stone-50 text-stone-900 antialiased">
     <header th:replace="~{fragments/navbar :: navbar}"></header>
-    <main th:replace="${content}"></main>
+    <div class="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
+        <main th:replace="${content}"></main>
+    </div>
     <footer th:replace="~{fragments/footer :: footer}"></footer>
 </body>
 

@@ -6,15 +6,11 @@
 </head>
 
 <body>
-    <main>
-        <div class="main-container">
-            <div class="forbid-box">
-                <h1>Something went wrong.</h1>
-                <p th:text="${path}"></p>
-                <a href="/products">
-                    <button class="btn btn-success btn-block btn-sm forbid-btn" type="button">Go back to products</button>
-                </a>
-            </div>
+    <main class="mx-auto max-w-lg">
+        <div class="card text-center">
+            <h1>Something went wrong.</h1>
+            <p class="mb-6 text-stone-500" th:text="${path}"></p>
+            <a class="btn btn-primary" href="/products">Go back to shop</a>
         </div>
     </main>
 </body>
