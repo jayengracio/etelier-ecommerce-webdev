@@ -6,60 +6,49 @@
 </head>
 
 <body>
-    <main>
-        <div class="container-fluid">
-            <div class="row">
-                <div class="col-75">
-                    <div class="ckout-container">
-                        <div th:if="${param.cancelled}" class="alert alert-warning">
-                            Payment cancelled. Your cart is still here
-                        </div>
-                        <div th:if="${param.paymentError}" class="alert alert-danger">
-                            We couldn't reach the payment provider. Please try again
-                        </div>
-
-                        <form th:action="@{/purchase}" method="post">
-                            <p> You will be taken to Stripe's secure checkout</p>
-                            <input class="ckout-btn btn btn-success btn-block" type="submit" value="Pay with Stripe">
-                        </form>
-                    </div>
-                </div>
-
-                <div class="col-25">
-                    <div class="ckout-container">
-                        <table class="cart-table" id="cartTable">
-                            <thead>
-                                <tr>
-                                    <th class="cart-cell" style="width: auto">Name</th>
-                                    <th class="cart-cell" style="width: 50px">Qty</th>
-                                    <th class="cart-cell" style="width: auto">Subtotal</th>
-                                    <th class="cart-cell" style="width: 80px"></th>
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                <tr th:each="item : ${items}">
-                                    <td class="cart-cell" th:text="${item.product.name}"></td>
-                                    <td class="cart-cell" th:text="${item.quantity}"></td>
-                                    <td class="cart-cell"
-                                        th:text="'€' + ${#numbers.formatDecimal(item.lineTotal, 0, 'COMMA', 2, 'POINT')}">
-                                    </td>
-                                    <td class="cart-cell">
-                                        <button class="btn btn-sm btn-success btn-block ckout-btn"
-                                            th:onclick="|removeProduct(${item.product.id})|" type="button">Remove</button>
-                                    </td>
-                                </tr>
-
-                                <tr>
-                                    <td class="total-cell" colspan="4"
-                                        th:text="'Total: €' + ${#numbers.formatDecimal(total, 0, 'COMMA', 2, 'POINT')}">
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+    <main class="grid items-start gap-6 lg:grid-cols-3">
+        <div class="card lg:col-span-2">
+            <div th:if="${param.cancelled}" class="alert alert-warning">
+                Payment cancelled. Your cart is still here
             </div>
+            <div th:if="${param.paymentError}" class="alert alert-danger">
+                We couldn't reach the payment provider. Please try again
+            </div>
+
+            <form th:action="@{/purchase}" method="post">
+                <p class="mb-4">You will be taken to Stripe's secure checkout</p>
+                <button class="btn btn-primary w-full" type="submit">Pay with Stripe</button>
+            </form>
+        </div>
+
+        <div class="card overflow-x-auto p-0">
+            <table class="data-table" id="cartTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Qty</th>
+                        <th>Subtotal</th>
+                        <th><span class="sr-only">Actions</span></th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr th:each="item : ${items}">
+                        <td th:text="${item.product.name}"></td>
+                        <td th:text="${item.quantity}"></td>
+                        <td th:text="'€' + ${#numbers.formatDecimal(item.lineTotal, 0, 'COMMA', 2, 'POINT')}"></td>
+                        <td>
+                            <button class="btn btn-secondary btn-sm" th:onclick="|removeProduct(${item.product.id})|"
+                                type="button">Remove</button>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td class="text-right text-lg font-bold" colspan="4"
+                            th:text="'Total: €' + ${#numbers.formatDecimal(total, 0, 'COMMA', 2, 'POINT')}"></td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </main>
 </body>

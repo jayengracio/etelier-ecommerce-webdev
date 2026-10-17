@@ -6,44 +6,39 @@
 </head>
 
 <body>
-    <main>
-        <div class="main-container">
-            <h1 th:text="'Details for: ' + ${product.name}">Details for: </h1>
+    <main class="mx-auto max-w-3xl">
+        <h1 th:text="'Details for: ' + ${product.name}">Details for: </h1>
 
-            <table class="details-table">
-                <tr>
-                    <td class="detail-cell" style="width: 60px;">ID</td>
-                    <td class="detail-cell" th:text="${product.id}"></td>
-                </tr>
+        <div class="card grid gap-6 md:grid-cols-2">
+            <img class="w-full rounded-md object-contain" th:src="@{${'/images/' + product.name + '.png'}}"
+                alt="Product Image">
 
-                <tr>
-                    <td class="detail-cell" style="width: 60px;">Type</td>
-                    <td class="detail-cell" th:text="${product.type}"></td>
-                </tr>
+            <div>
+                <dl class="space-y-3 text-sm">
+                    <div>
+                        <dt class="font-medium text-stone-500">ID</dt>
+                        <dd th:text="${product.id}"></dd>
+                    </div>
+                    <div>
+                        <dt class="font-medium text-stone-500">Type</dt>
+                        <dd th:text="${product.type}"></dd>
+                    </div>
+                    <div>
+                        <dt class="font-medium text-stone-500">Price</dt>
+                        <dd th:text="'€' + ${#numbers.formatDecimal(product.price, 0, 'COMMA', 2, 'POINT')}"></dd>
+                    </div>
+                    <div>
+                        <dt class="font-medium text-stone-500">Details</dt>
+                        <dd th:text="${product.details}"></dd>
+                    </div>
+                </dl>
 
-                <tr>
-                    <td class="detail-cell" style="width: 60px;">Price</td>
-                    <td class="detail-cell"
-                        th:text="'€' + ${#numbers.formatDecimal(product.price, 0, 'COMMA', 2, 'POINT')}"></td>
-                </tr>
-
-                <tr>
-                    <td class="detail-cell" style="width: 60px;">Details</td>
-                    <td class="detail-cell" th:text="${product.details}"></td>
-                </tr>
-                <tr>
-                    <td class="detail-cell" colspan="2"><img th:src="@{${'/images/' + product.name + '.png'}}"
-                            alt="Product Image"></td>
-                </tr>
-            </table>
-
-            <div class="details-buttons">
-                <a>
-                    <button class="prd-btn btn btn-sm btn-success btn-block" type="button">Add To Cart</button>
-                </a>
-                <a href="/products">
-                    <button class="prd-btn btn btn-sm btn-success btn-block" type="button">Go Back</button>
-                </a>
+                <div class="mt-6 flex gap-2">
+                    <form th:action="@{/cart/add/{id}(id=${product.id})}" method="post">
+                        <button class="btn btn-primary" type="submit">Add To Cart</button>
+                    </form>
+                    <a class="btn btn-secondary" href="/products">Go Back</a>
+                </div>
             </div>
         </div>
     </main>

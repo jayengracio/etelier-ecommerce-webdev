@@ -7,41 +7,40 @@
 
 <body>
     <main>
-        <div class="searchDiv">
-            <h1>Products</h1>
-            <input id="searchType" onkeyup="filterByType()" placeholder="Search by type..." type="text">
-            <input id="searchName" onkeyup="filterByName()" placeholder="Search by name..." type="text">
+        <h1>Products</h1>
+        <div class="mb-4 grid gap-3 sm:grid-cols-2">
+            <input class="input" id="searchType" onkeyup="filterByType()" placeholder="Search by type..." type="text">
+            <input class="input" id="searchName" onkeyup="filterByName()" placeholder="Search by name..." type="text">
         </div>
 
-        <div class="products">
-            <table class="product-table" id="productTable">
+        <div class="card overflow-x-auto p-0">
+            <table class="data-table" id="productTable">
                 <thead>
                     <tr>
-                        <th class="prod-cell">Type</th>
-                        <th class="prod-cell">Name</th>
-                        <th class="prod-cell">Price</th>
-                        <th class="prod-cell">Stock</th>
-                        <th class="prod-cell" style="width: 130px"></th>
-                        <th class="prod-cell" style="width: 170px"></th>
+                        <th>Type</th>
+                        <th>Name</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th><span class="sr-only">Actions</span></th>
                     </tr>
                 </thead>
 
                 <tbody>
                     <tr th:each="product : ${products}" th:id="|row_${product.id}|">
-                        <td class="prod-cell" th:text="${product.type}"></td>
-                        <td class="prod-cell" th:text="${product.name}"></td>
-                        <td class="prod-cell"
-                            th:text="'€' + ${#numbers.formatDecimal(product.price, 0, 'COMMA', 2, 'POINT')}"></td>
-                        <td class="prod-cell" th:text="${product.stock}"></td>
-                        <td class="prod-cell"><a th:href="@{/details/{id}(id=${product.id})}">
-                                <button class="prod-button prd-btn btn btn-sm btn-success btn-block" type="button">Details
-                                </button>
-                            </a></td>
-                        <td class="prod-cell">
-                            <form th:action="@{/cart/add/{id}(id=${product.id})}" method="post">
-                                <button class="prod-button prd-btn btn btn-sm btn-success btn-block" type="submit">Add To
-                                    Cart</button>
-                            </form>
+                        <td th:text="${product.type}"></td>
+                        <td th:text="${product.name}"></td>
+                        <td th:text="'€' + ${#numbers.formatDecimal(product.price, 0, 'COMMA', 2, 'POINT')}"></td>
+                        <td th:text="${product.stock}"></td>
+                        <td>
+                            <div class="flex justify-end gap-2">
+                                <a class="btn btn-secondary btn-sm"
+                                    th:href="@{/details/{id}(id=${product.id})}">Details</a>
+                                <form th:action="@{/cart/add/{id}(id=${product.id})}" method="post">
+                                    <button class="btn btn-primary btn-sm whitespace-nowrap" type="submit">Add
+                                        To
+                                        Cart</button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                 </tbody>
