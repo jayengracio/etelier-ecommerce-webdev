@@ -3,15 +3,13 @@ package app.product;
 import static app.TestData.product;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import app.TestContainerConfiguration;
 import java.util.List;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.context.annotation.Import;
-
-import app.TestContainerConfiguration;
 
 @DataJpaTest
 @Import(TestContainerConfiguration.class)
@@ -90,7 +88,8 @@ class ProductRepositoryTest {
         List<Product> shop = products.findByActiveTrueOrderById();
 
         assertThat(shop).extracting(Product::isActive).containsOnly(true);
-        assertThat(shop).extracting(Product::getId)
+        assertThat(shop)
+                .extracting(Product::getId)
                 .contains(visible.getId())
                 .doesNotContain(hidden.getId())
                 .isSorted();
@@ -104,7 +103,8 @@ class ProductRepositoryTest {
 
         List<Product> lowStock = products.findByActiveTrueAndStockLessThanEqualOrderByStockAscNameAsc(5);
 
-        assertThat(lowStock).extracting(Product::getId)
+        assertThat(lowStock)
+                .extracting(Product::getId)
                 .contains(atThreshold.getId())
                 .doesNotContain(aboveThreshold.getId(), hiddenAndLow.getId());
         assertThat(lowStock).allSatisfy(product -> {
@@ -119,8 +119,9 @@ class ProductRepositoryTest {
         Product second = save("Test Bbb", 0, true);
         Product first = save("Test Aaa", 0, true);
 
-        List<Integer> ids = products.findByActiveTrueAndStockLessThanEqualOrderByStockAscNameAsc(5)
-                .stream().map(Product::getId).toList();
+        List<Integer> ids = products.findByActiveTrueAndStockLessThanEqualOrderByStockAscNameAsc(5).stream()
+                .map(Product::getId)
+                .toList();
 
         assertThat(ids.indexOf(first.getId())).isLessThan(ids.indexOf(second.getId()));
     }

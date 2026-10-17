@@ -1,9 +1,8 @@
 package app;
 
-import java.math.BigDecimal;
-
 import app.product.Product;
 import app.user.User;
+import java.math.BigDecimal;
 
 /**
  * Valid, unsaved entities for tests. Each test changes only what it is about,
@@ -11,8 +10,7 @@ import app.user.User;
  */
 public final class TestData {
 
-    private TestData() {
-    }
+    private TestData() {}
 
     public static Product product(String name, int stock) {
         Product product = new Product();

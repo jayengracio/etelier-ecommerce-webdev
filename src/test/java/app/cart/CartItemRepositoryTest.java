@@ -4,17 +4,15 @@ import static app.TestData.product;
 import static app.TestData.user;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import app.TestContainerConfiguration;
+import app.product.Product;
+import app.user.User;
 import java.util.List;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.context.annotation.Import;
-
-import app.TestContainerConfiguration;
-import app.product.Product;
-import app.user.User;
 
 @DataJpaTest
 @Import(TestContainerConfiguration.class)

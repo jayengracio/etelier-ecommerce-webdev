@@ -9,12 +9,14 @@ import static java.time.temporal.ChronoUnit.HOURS;
 import static java.time.temporal.ChronoUnit.MINUTES;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import app.TestContainerConfiguration;
+import app.TestData;
+import app.user.User;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
-
 import org.hibernate.Hibernate;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,10 +27,6 @@ import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-
-import app.TestContainerConfiguration;
-import app.TestData;
-import app.user.User;
 
 @DataJpaTest
 @Import(TestContainerConfiguration.class)
@@ -68,21 +66,20 @@ class OrderRepositoryTest {
         save(PENDING, "5.00", NOW);
         save(REFUNDED, "7.50", NOW);
 
-        assertThat(orders.countByStatus()).containsExactlyInAnyOrder(
-                new StatusCount(PAID, 2),
-                new StatusCount(PENDING, 1),
-                new StatusCount(REFUNDED, 1));
+        assertThat(orders.countByStatus())
+                .containsExactlyInAnyOrder(
+                        new StatusCount(PAID, 2), new StatusCount(PENDING, 1), new StatusCount(REFUNDED, 1));
     }
 
     @Test
     void salesSinceCountsOnlyTheGivenStatusesInsideTheWindow() {
         Instant weekAgo = NOW.minus(7, DAYS);
-        save(PAID, "10.00", NOW);                    // counted
-        save(SHIPPED, "25.50", NOW.minus(3, DAYS));  // counted
-        save(PAID, "1.00", weekAgo);                 // counted: the window includes its start
-        save(PAID, "99.00", NOW.minus(10, DAYS));    // too old
-        save(REFUNDED, "40.00", NOW);                // not revenue
-        save(PENDING, "15.00", NOW);                 // never paid
+        save(PAID, "10.00", NOW); // counted
+        save(SHIPPED, "25.50", NOW.minus(3, DAYS)); // counted
+        save(PAID, "1.00", weekAgo); // counted: the window includes its start
+        save(PAID, "99.00", NOW.minus(10, DAYS)); // too old
+        save(REFUNDED, "40.00", NOW); // not revenue
+        save(PENDING, "15.00", NOW); // never paid
 
         SalesTotals totals = orders.salesSince(List.of(PAID, SHIPPED), weekAgo);
 
@@ -132,7 +129,8 @@ class OrderRepositoryTest {
         List<Order> latest = orders.findTop10ByOrderByCreatedAtDesc();
 
         assertThat(latest).hasSize(10);
-        assertThat(latest).extracting(Order::getCreatedAt)
+        assertThat(latest)
+                .extracting(Order::getCreatedAt)
                 .isSortedAccordingTo(Comparator.reverseOrder())
                 .startsWith(NOW);
     }
