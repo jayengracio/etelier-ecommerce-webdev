@@ -17,7 +17,7 @@ public record NewProductRequest(
         @NotBlank @Size(max = 50) String type,
         @NotBlank @Size(max = 255) String name,
         @NotNull @DecimalMin("0.00") @Digits(integer = 8, fraction = 2) BigDecimal price,
-        @Size(max = 1000) String details,
+        @NotBlank @Size(max = 1000) String details,
         @NotNull @PositiveOrZero Integer stock) {
 
     public Product toProduct() {
