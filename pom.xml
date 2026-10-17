@@ -135,6 +135,38 @@
                     <argLine>-javaagent:${org.mockito:mockito-core:jar}</argLine>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>3.10.4</version>
+                <configuration>
+                    <java>
+                        <palantirJavaFormat>
+                            <version>2.102.0</version>
+                            <style>PALANTIR</style>
+                        </palantirJavaFormat>
+                        <removeUnusedImports />
+                        <trimTrailingWhitespace />
+                        <endWithNewline />
+                    </java>
+                    <formats>
+                        <format>
+                            <includes>
+                                <include>src/main/resources/**/*.html</include>
+                                <include>src/main/resources/**/*.css</include>
+                                <include>src/main/resources/**/*.js</include>
+                                <include>src/main/resources/**/*.sql</include>
+                                <include>src/main/resources/**/*.properties</include>
+                                <include>*.yaml</include>
+                            </includes>
+                            <trimTrailingWhitespace />
+                            <endWithNewline />
+                        </format>
+                    </formats>
+                </configuration>
+            </plugin>
+
         </plugins>
     </build>
 </project>
