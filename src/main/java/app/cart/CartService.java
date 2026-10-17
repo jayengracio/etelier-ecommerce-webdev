@@ -152,7 +152,7 @@ public class CartService {
      */
     @Transactional
     public void markRefunded(int orderId) {
-        Order order = orderRepository.findById(orderId).orElseThrow();
+        Order order = orderRepository.findLockedById(orderId).orElseThrow();
         if (order.getStatus() != OrderStatus.PAID) {
             return; // already refunded by other click (or shipped in the meantime)
         }
