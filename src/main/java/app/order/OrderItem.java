@@ -1,7 +1,5 @@
 package app.order;
 
-import java.math.BigDecimal;
-
 import app.product.Product;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -11,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "order_items")
@@ -32,9 +31,7 @@ public class OrderItem {
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal unitPrice;
 
-    protected OrderItem() {
-
-    }
+    protected OrderItem() {}
 
     public OrderItem(Product product, int quantity, BigDecimal unitPrice) {
         this.product = product;
@@ -85,5 +82,4 @@ public class OrderItem {
     public void setUnitPrice(BigDecimal unitPrice) {
         this.unitPrice = unitPrice;
     }
-
 }

@@ -1,13 +1,5 @@
 package app.cart;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-
-import org.springframework.stereotype.Service;
-
 import app.order.Order;
 import app.order.OrderItem;
 import app.order.OrderRepository;
@@ -18,6 +10,12 @@ import app.product.ProductRepository;
 import app.user.User;
 import app.user.UserRepository;
 import jakarta.transaction.Transactional;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import org.springframework.stereotype.Service;
 
 @Service
 public class CartService {
@@ -27,8 +25,11 @@ public class CartService {
     private final CartItemRepository cartItemRepository;
     private final OrderRepository orderRepository;
 
-    public CartService(UserRepository userRepository, ProductRepository productRepository,
-            CartItemRepository cartItemRepository, OrderRepository orderRepository) {
+    public CartService(
+            UserRepository userRepository,
+            ProductRepository productRepository,
+            CartItemRepository cartItemRepository,
+            OrderRepository orderRepository) {
         this.userRepository = userRepository;
         this.productRepository = productRepository;
         this.cartItemRepository = cartItemRepository;
@@ -43,7 +44,8 @@ public class CartService {
      */
     @Transactional
     public boolean addToCart(String username, int productId) {
-        Product product = productRepository.findById(productId)
+        Product product = productRepository
+                .findById(productId)
                 .filter(Product::isActive)
                 .orElseThrow(() -> new ProductNotFoundException(productId));
         Optional<CartItem> existing = cartItemRepository.findByUserUsernameAndProductId(username, productId);
@@ -126,7 +128,8 @@ public class CartService {
         }
 
         order.markPaid(paymentIntentId);
-        List<Integer> productIds = items.stream().map(item -> item.getProduct().getId()).toList();
+        List<Integer> productIds =
+                items.stream().map(item -> item.getProduct().getId()).toList();
         cartItemRepository.deleteByUserIdAndProductIdIn(order.getUser().getId(), productIds);
     }
 
@@ -136,7 +139,8 @@ public class CartService {
      */
     @Transactional
     public void cancelIfPending(int orderId) {
-        orderRepository.findLockedById(orderId)
+        orderRepository
+                .findLockedById(orderId)
                 .filter(order -> order.getStatus() == OrderStatus.PENDING)
                 .ifPresent(Order::cancel);
     }
@@ -148,7 +152,7 @@ public class CartService {
      */
     @Transactional
     public void markRefunded(int orderId) {
-        Order order = orderRepository.findById(orderId).orElseThrow();
+        Order order = orderRepository.findLockedById(orderId).orElseThrow();
         if (order.getStatus() != OrderStatus.PAID) {
             return; // already refunded by other click (or shipped in the meantime)
         }

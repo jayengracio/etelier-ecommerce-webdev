@@ -1,12 +1,11 @@
 package app.security;
 
+import app.user.User;
+import app.user.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import app.user.User;
-import app.user.UserRepository;
 
 @Service
 public class AppUserDetailsService implements UserDetailsService {
@@ -22,8 +21,7 @@ public class AppUserDetailsService implements UserDetailsService {
         User user = userRepository.findByUsername(username).orElseThrow(() -> new UsernameNotFoundException(username));
 
         // Fully qualified to avoid clashing with app.User
-        return org.springframework.security.core.userdetails.User
-                .withUsername(user.getUsername())
+        return org.springframework.security.core.userdetails.User.withUsername(user.getUsername())
                 .password(user.getPassword())
                 .roles(user.getRole()) // "ADMIN" becomes authority ROLE_ADMIN
                 .build();

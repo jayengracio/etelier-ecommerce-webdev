@@ -1,17 +1,5 @@
 package app.admin;
 
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
-import java.util.EnumMap;
-import java.util.EnumSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-
 import app.order.Order;
 import app.order.OrderRepository;
 import app.order.OrderStatus;
@@ -19,6 +7,16 @@ import app.order.SalesTotals;
 import app.order.StatusCount;
 import app.product.Product;
 import app.product.ProductRepository;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.EnumMap;
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class DashboardService {
@@ -30,7 +28,9 @@ public class DashboardService {
     // Money the shop kept. REFUNDED will stay out of this set.
     private static final Set<OrderStatus> REVENUE_STATUSES = EnumSet.of(OrderStatus.PAID, OrderStatus.SHIPPED);
 
-    public DashboardService(OrderRepository orderRepository, ProductRepository productRepository,
+    public DashboardService(
+            OrderRepository orderRepository,
+            ProductRepository productRepository,
             @Value("${app.low-stock-threshold}") int lowStockThreshold) {
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
@@ -41,10 +41,13 @@ public class DashboardService {
         return lowStockThreshold;
     }
 
-    public record Stats(SalesTotals allTime, SalesTotals lastSevenDays,
-            Map<OrderStatus, Long> ordersByStatus, List<Order> recentOrders, List<Product> lowStock,
-            int lowStockThreshold) {
-    }
+    public record Stats(
+            SalesTotals allTime,
+            SalesTotals lastSevenDays,
+            Map<OrderStatus, Long> ordersByStatus,
+            List<Order> recentOrders,
+            List<Product> lowStock,
+            int lowStockThreshold) {}
 
     @Transactional(readOnly = true)
     public Stats stats() {

@@ -1,7 +1,5 @@
 package app.cart;
 
-import java.math.BigDecimal;
-
 import app.product.Product;
 import app.user.User;
 import jakarta.persistence.Column;
@@ -13,6 +11,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "cart_items")
@@ -33,9 +32,7 @@ public class CartItem {
     @Column(nullable = false)
     private int quantity;
 
-    protected CartItem() {
-
-    }
+    protected CartItem() {}
 
     public CartItem(User user, Product product, int quantity) {
         this.user = user;
@@ -78,5 +75,4 @@ public class CartItem {
     public void setQuantity(int quantity) {
         this.quantity = quantity;
     }
-
 }

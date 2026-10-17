@@ -8,8 +8,8 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  * @ResponseStatus makes Spring answer 404 wherever it's thrown (controller or service)
  */
 @ResponseStatus(HttpStatus.NOT_FOUND)
-public class ProductNotFoundException extends RuntimeException{
-    
+public class ProductNotFoundException extends RuntimeException {
+
     public ProductNotFoundException(int id) {
         super("No product with id " + id);
     }
