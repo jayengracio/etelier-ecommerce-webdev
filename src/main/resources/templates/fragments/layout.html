@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<!--/* The page frame every template uses: head, navbar, the page's <main>, footer.
+       A page passes in its own <title> and <main>:
+       <html th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}"> */-->
+<html lang="en" th:fragment="layout(title, content)" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <title th:replace="${title}">Shop</title>
+    <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}">
+
+    <!--/* code.js reads these for its POSTs. th:if: if a request ever has no token, skip them instead of failing the page. */-->
+    <meta name="_csrf" th:if="${_csrf}" th:content="${_csrf.token}">
+    <meta name="_csrf_header" th:if="${_csrf}" th:content="${_csrf.headerName}">
+
+    <link th:href="@{/style.css}" rel="stylesheet">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link crossorigin="anonymous" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
+        integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" rel="stylesheet">
+    <script th:src="@{/code.js}"></script>
+</head>
+
+<body class="d-flex flex-column min-vh-100">
+    <header th:replace="~{fragments/navbar :: navbar}"></header>
+    <main th:replace="${content}"></main>
+    <footer th:replace="~{fragments/footer :: footer}"></footer>
+</body>
+
+</html>

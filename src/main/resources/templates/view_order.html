@@ -1,81 +1,61 @@
 <!DOCTYPE html>
-
-<html lang="en">
+<html th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
 
 <head>
-    <link rel="shortcut icon" type="image/png" href="/images/logo.png">
     <title>View Orders</title>
-    <meta charset="utf-8">
-
-    <link href="/style.css" rel="stylesheet" type="text/css">
-    <script src="/code.js" type="text/javascript"></script>
-
-    <!-- Bootstrap -->
-    <meta content="width=device-width, initial-scale=1" name="viewport">
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
-    <!-- Font Awesome Icons -->
-    <link crossorigin="anonymous" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
-        integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" rel="stylesheet">
 </head>
 
 <body>
-    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <main>
+        <div class="user">
+            <nav th:if="${orders.totalPages > 1}" class="mt-3">
+                <a th:if="${orders.hasPrevious()}" class="btn btn-sm btn-outline-success"
+                    th:href="@{/view/orders(status=${status}, page=${orders.number - 1}, size=${orders.size})}">&laquo;
+                    Previous</a>
+                <span class="mx-2"
+                    th:text="|Page ${orders.number + 1} of ${orders.totalPages} · ${orders.totalElements} orders|"></span>
+                <a th:if="${orders.hasNext()}" class="btn btn-sm btn-outline-success"
+                    th:href="@{/view/orders(status=${status}, page=${orders.number + 1}, size=${orders.size})}">Next
+                    &raquo;</a>
+            </nav>
 
-    <div class="user">
+            <div class="mb-3">
+                <a th:href="@{/view/orders}" class="btn btn-sm"
+                    th:classappend="${status == null} ? 'btn-success' : 'btn-outline-success'">All</a>
+                <a th:each="s : ${statuses}" th:href="@{/view/orders(status=${s})}" th:text="${s}" class="btn btn-sm"
+                    th:classappend="${s == status} ? 'btn-success' : 'btn-outline-success'"></a>
+            </div>
 
-        <nav th:if="${orders.totalPages > 1}" class="mt-3">
-            <a th:if="${orders.hasPrevious()}" class="btn btn-sm btn-outline-success"
-                th:href="@{/view/orders(status=${status}, page=${orders.number - 1}, size=${orders.size})}">&laquo;
-                Previous</a>
-            <span class="mx-2"
-                th:text="|Page ${orders.number + 1} of ${orders.totalPages} · ${orders.totalElements} orders|"></span>
-            <a th:if="${orders.hasNext()}" class="btn btn-sm btn-outline-success"
-                th:href="@{/view/orders(status=${status}, page=${orders.number + 1}, size=${orders.size})}">Next
-                &raquo;</a>
-        </nav>
+            <p th:if="${orders.empty}">No orders here.</p>
 
-        <div class="mb-3">
-            <a th:href="@{/view/orders}" class="btn btn-sm"
-                th:classappend="${status == null} ? 'btn-success' : 'btn-outline-success'">All</a>
-            <a th:each="s : ${statuses}" th:href="@{/view/orders(status=${s})}" th:text="${s}" class="btn btn-sm"
-                th:classappend="${s == status} ? 'btn-success' : 'btn-outline-success'"></a>
+            <table class="user-table" id="userTable">
+                <thead>
+                    <tr>
+                        <th class="user-cell">Order</th>
+                        <th class="user-cell">Customer</th>
+                        <th class="user-cell">Date</th>
+                        <th class="user-cell">Total</th>
+                        <th class="user-cell">Status</th>
+                        <th class="user-cell"></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="order : ${orders}">
+                        <td class="user-cell" th:text="${order.id}"></td>
+                        <td class="user-cell" th:text="${order.user.username}"></td>
+                        <td class="user-cell" th:text="${#temporals.format(order.createdAt, 'dd MMM yyyy, HH:mm')}"></td>
+                        <td class="user-cell"
+                            th:text="'€' + ${#numbers.formatDecimal(order.total, 0, 'COMMA', 2, 'POINT')}"></td>
+                        <td class="user-cell" th:text="${order.status}"></td>
+                        <td class="user-cell"><a th:href="@{/orders/{id}(id=${order.id})}">
+                                <button class="user-button prd-btn btn btn-sm btn-success view-btn"
+                                    type="button">View</button>
+                            </a></td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
-
-        <p th:if="${orders.empty}">No orders here.</p>
-
-        <table class="user-table" id="userTable">
-            <thead>
-                <tr>
-                    <th class="user-cell">Order</th>
-                    <th class="user-cell">Customer</th>
-                    <th class="user-cell">Date</th>
-                    <th class="user-cell">Total</th>
-                    <th class="user-cell">Status</th>
-                    <th class="user-cell"></th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="order : ${orders}">
-                    <td class="user-cell" th:text="${order.id}"></td>
-                    <td class="user-cell" th:text="${order.user.username}"></td>
-                    <td class="user-cell" th:text="${#temporals.format(order.createdAt, 'dd MMM yyyy, HH:mm')}"></td>
-                    <td class="user-cell"
-                        th:text="'€' + ${#numbers.formatDecimal(order.total, 0, 'COMMA', 2, 'POINT')}"></td>
-                    <td class="user-cell" th:text="${order.status}"></td>
-                    <td class="user-cell"><a th:href="@{/orders/{id}(id=${order.id})}">
-                            <button class="user-button prd-btn btn btn-sm btn-success view-btn"
-                                type="button">View</button>
-                        </a></td>
-                </tr>
-            </tbody>
-        </table>
-
-    </div>
-
+    </main>
 </body>
 
 </html>
