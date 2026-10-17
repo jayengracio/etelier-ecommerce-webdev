@@ -14,15 +14,14 @@ The project started as a web development group project for University ([report](
 | Security | Spring Security: form login, BCrypt password hashing, `USER`/`ADMIN` roles, CSRF protection |
 | Persistence | Spring Data JPA (Hibernate) |
 | Validation | Bean Validation (Hibernate Validator) on request records |
-| Database | PostgreSQL 17, run in Docker |
+| Database | PostgreSQL 17, running in Docker |
 | Schema migrations | Flyway (versioned SQL scripts) |
 | Build | Maven 3.9 |
-| Monitoring | Spring Boot Actuator (included, not configured yet) |
 | Payments | Stripe Checkout (hosted payment page) and a signed webhook, via `stripe-java` |
 | Testing | JUnit 6, AssertJ, Mockito, Spring MockMvc with `spring-security-test`, Testcontainers (PostgreSQL 17) |
 | Formatting | Spotless with palantir-java-format, checked by `mvn verify` |
 
-## Running it locally
+## Run it locally
 
 ### Prerequisites
 
@@ -38,6 +37,7 @@ Copy the secret key from the Stripe dashboard (test mode: **Developers → API k
 ```powershell
 $sk = "sk_test_..."
 [Environment]::SetEnvironmentVariable("STRIPE_SECRET_KEY", $sk, "User")
+
 # The webhook secret must come from the same account as the key, hence --api-key
 $whsec = stripe listen --api-key $sk --print-secret
 [Environment]::SetEnvironmentVariable("STRIPE_WEBHOOK_SECRET", $whsec, "User")
@@ -290,7 +290,10 @@ compose.yaml                            the PostgreSQL container
 .git-blame-ignore-revs                  formatting commits git blame skips
 ```
 
-Design notes:
+<!-- markdownlint-disable MD033 -- <details> dropdowns need HTML -->
+
+<details>
+<summary><strong>Design notes</strong>: relations, transactions, locking, Stripe calls and refunds</summary>
 
 - **Links run from child to parent only** (`CartItem → User`, `OrderItem → Order`). A user's cart and orders are loaded through repositories, not through collections on `User`.
 - **`spring.jpa.open-in-view=false`:** the database session closes before the template renders. Each query states what it needs with `@EntityGraph`, so a template can't trigger extra hidden queries.
@@ -302,25 +305,16 @@ Design notes:
 - **Paging only fetches to-one relations.** The order list's `@EntityGraph` loads `user` but not `items`. Fetching a collection would make Hibernate page in memory, which loads every row again.
 - **Admin endpoints live under paths `SecurityConfig` already locks** (for example `POST /edit/{id}/active`). A new path would fall through to "any logged-in user".
 
+</details>
+
+<!-- markdownlint-enable MD033 -->
+
 ### Migrations
 
 | Version | What it does |
 | --- | --- |
 | V1 | The schema: `product`, `users`, `orders`, `order_items`, `cart_items`, with their constraints |
 | V2 | Seed data: 50 products and the 5 accounts above (BCrypt hashes) |
-
-Phases 1 to 5 built the schema in ten small migrations. Nothing had been deployed yet, so phase 6 squashed them into these two. From here on, never edit a migration that has already run: add a new `V3__description.sql` and change the entity in the same commit (`ddl-auto=validate` refuses to start if they disagree).
-
-## Roadmap
-
-1. ✅ Spring Boot 4 / Java 25, PostgreSQL + Flyway
-2. ✅ Spring Security with roles
-3. ✅ Cart and order model, `BigDecimal` money
-4. ✅ Stripe Checkout (hosted) and a webhook that marks orders PAID; stock taken when payment succeeds
-5. ✅ Admin dashboard, order management (filter, paging, refunds), low-stock alerts, hidden products
-6. ✅ Automated tests against a Testcontainers PostgreSQL (unit, repository, service and web layers), Spotless formatting, migrations squashed
-7. ⏭️ Continuous integration: a GitHub Actions workflow running `mvn verify` on every pull request. Deferred while the repository is private, to save Actions minutes; branch protection needs a public repository on GitHub Free.
-8. ⏭️ Deployment
 
 ## Known limitations
 
