@@ -7,30 +7,42 @@
 
 <body>
     <main class="mx-auto max-w-4xl">
-        <div class="card grid gap-6 md:grid-cols-2 md:gap-8">
-            <div th:replace="~{fragments/product-picture :: picture(${product}, 'aspect-4/3 w-full rounded-md', 'size-16')}"></div>
+        <div class="card">
+            <!--/* Back to the list: a round outlined icon button, so it looks clickable before any
+                   hover; hover (or keyboard focus) turns it emerald. The .tooltip is its name for
+                   screen readers and shows on hover/focus like the navbar's (it needs "group" on the
+                   link). left-0 translate-x-0 start the tooltip at the button instead of centring
+                   it, so it can't stick out past the card's left edge on phones. */-->
+            <a class="group relative mb-4 flex size-10 items-center justify-center rounded-full border border-stone-500 text-stone-700 transition-colors hover:border-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+                th:href="@{/products}">
+                <svg th:replace="~{fragments/icons :: arrow-left}"></svg>
+                <span class="tooltip left-0 translate-x-0">Back to products</span>
+            </a>
 
-            <div class="flex flex-col">
-                <p class="text-sm text-stone-500" th:text="${product.type}"></p>
-                <h1 class="mb-2" th:text="${product.name}"></h1>
-                <p class="text-2xl font-semibold"
-                    th:text="'€' + ${#numbers.formatDecimal(product.price, 1, 'COMMA', 2, 'POINT')}"></p>
-                <p class="mt-2" th:if="${product.stock == 0}"><span class="badge badge-danger">Out of stock</span></p>
-                <p class="mt-2" th:if="${product.stock > 0 and product.stock <= lowStockThreshold}">
-                    <span class="badge badge-warning" th:text="|Only ${product.stock} left|"></span>
-                </p>
-                <p class="mt-4 text-stone-700" th:text="${product.details}"></p>
+            <div class="grid gap-6 md:grid-cols-2 md:gap-8">
+                <div th:replace="~{fragments/product-picture :: picture(${product}, 'aspect-4/3 w-full rounded-md', 'size-16')}"></div>
 
-                <div class="mt-6 flex flex-wrap gap-2">
-                    <form th:action="@{/cart/add/{id}(id=${product.id})}" method="post" data-add-to-cart
-                        th:data-name="${product.name}" th:data-image="${product.image} ? @{${product.image}}">
-                        <button class="btn btn-outline" type="submit" th:disabled="${product.stock == 0}">Add To
-                            Cart</button>
-                    </form>
-                    <form th:action="@{/cart/buy/{id}(id=${product.id})}" method="post">
-                        <button class="btn btn-primary" type="submit" th:disabled="${product.stock == 0}">Buy</button>
-                    </form>
-                    <a class="btn btn-secondary" th:href="@{/products}">Back to products</a>
+                <div class="flex flex-col">
+                    <p class="text-sm text-stone-500" th:text="${product.type}"></p>
+                    <h1 class="mb-2" th:text="${product.name}"></h1>
+                    <p class="text-2xl font-semibold"
+                        th:text="'€' + ${#numbers.formatDecimal(product.price, 1, 'COMMA', 2, 'POINT')}"></p>
+                    <p class="mt-2" th:if="${product.stock == 0}"><span class="badge badge-danger">Out of stock</span></p>
+                    <p class="mt-2" th:if="${product.stock > 0 and product.stock <= lowStockThreshold}">
+                        <span class="badge badge-warning" th:text="|Only ${product.stock} left|"></span>
+                    </p>
+                    <p class="mt-4 text-stone-700" th:text="${product.details}"></p>
+
+                    <div class="mt-6 flex flex-wrap gap-2">
+                        <form th:action="@{/cart/add/{id}(id=${product.id})}" method="post" data-add-to-cart
+                            th:data-name="${product.name}" th:data-image="${product.image} ? @{${product.image}}">
+                            <button class="btn btn-outline" type="submit" th:disabled="${product.stock == 0}">Add To
+                                Cart</button>
+                        </form>
+                        <form th:action="@{/cart/buy/{id}(id=${product.id})}" method="post">
+                            <button class="btn btn-primary" type="submit" th:disabled="${product.stock == 0}">Buy</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
