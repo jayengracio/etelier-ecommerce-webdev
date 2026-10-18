@@ -162,6 +162,44 @@ class ProductRepositoryTest {
                 .hasMessageContaining("product_image_check");
     }
 
+    // images and tags: Postgres arrays
+
+    @Test
+    void imagesAndTagsComeBackInTheirOrder() {
+        Product product = product("Test Widget", 5);
+        product.setImages(List.of("https://example.com/2.png", "https://example.com/1.png"));
+        product.setTags(List.of("test", "widgets"));
+        Product saved = em.persistFlushFind(product);
+        em.clear();
+
+        Product found = products.findById(saved.getId()).orElseThrow();
+        assertThat(found.getImages()).containsExactly("https://example.com/2.png", "https://example.com/1.png");
+        assertThat(found.getTags()).containsExactly("test", "widgets");
+    }
+
+    // What an admin's new product gets for the columns the add form doesn't have.
+    @Test
+    void aProductWithoutTheDummyJsonFieldsGetsEmptyDefaults() {
+        Product saved = em.persistFlushFind(product("Test Widget", 5));
+        em.clear();
+
+        Product found = products.findById(saved.getId()).orElseThrow();
+        assertThat(found.getImages()).isEmpty();
+        assertThat(found.getTags()).isEmpty();
+        assertThat(found.getDiscountPercentage()).isEqualByComparingTo("0");
+        assertThat(found.getRating()).isNull();
+        assertThat(found.getBrand()).isNull();
+    }
+
+    // The seed inserts DummyJSON's ids by hand, which doesn't move the identity counter by itself.
+    @Test
+    void aNewProductGetsAnIdAfterTheSeededOnes() {
+        int highestSeedId =
+                products.findAll().stream().mapToInt(Product::getId).max().orElse(0);
+
+        assertThat(em.persistFlushFind(product("Test Widget", 5)).getId()).isGreaterThan(highestSeedId);
+    }
+
     // Catches a typo in a migration that sets a path, like '/images/apple.png'. It compares with the
     // real file names: Windows would also open "apple.png", but inside the jar and on Linux the
     // case must match.
