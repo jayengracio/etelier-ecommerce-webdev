@@ -1,80 +1,56 @@
 <!DOCTYPE html>
-<html lang="en">
+<html th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
 
 <head>
-    <link rel="shortcut icon" type="image/png" href="/images/logo.png">
     <title>Your Profile</title>
-    <meta charset="utf-8">
-
-    <link href="style.css" rel="stylesheet" type="text/css">
-    <script src="code.js" type="text/javascript"></script>
-
-    <!-- Bootstrap -->
-    <meta content="width=device-width, initial-scale=1" name="viewport">
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
-    <!-- Font Awesome Icons -->
-    <link crossorigin="anonymous" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
-        integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" rel="stylesheet">
 </head>
 
 <body>
-    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <main class="grid items-start gap-8 md:grid-cols-[16rem_1fr]">
+        <div class="card text-center">
+            <img alt="Avatar" class="mx-auto mb-4 size-32 rounded-full" src="/images/img_avatar.png">
+            <h3 th:text="'Welcome, ' + ${#authentication.name} + '!'"></h3>
+            <form th:action="@{/logout}" method="post">
+                <button class="btn btn-primary w-full" type="submit">Log Out</button>
+            </form>
+        </div>
 
-    <div class="main-container" style="width: 75%; margin: auto;">
-        <div class="profile-card">
-            <img alt="Avatar" src="/images/img_avatar.png" style="width:100%">
-            <div class="container">
-                <h4><b th:text="'Welcome, ' + ${#authentication.name} + '!'"></b></h4>
+        <div>
+            <h1>Your order history</h1>
+            <p class="text-stone-500" th:if="${orders.isEmpty()}">You haven't ordered anything yet.</p>
+
+            <div class="card mb-6 overflow-x-auto p-0" th:each="order : ${orders}">
+                <h3 class="px-4 pt-4 text-base">
+                    Order #<span th:text="${order.id}"></span>
+                    · <span th:text="${#temporals.format(order.createdAt, 'dd MM yyyy, HH:mm')}"></span>
+                    · <span th:text="${order.status}"></span>
+                </h3>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Qty</th>
+                            <th>Price</th>
+                            <th>Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="item : ${order.items}">
+                            <td th:text="${item.product.name}"></td>
+                            <td th:text="${item.quantity}"></td>
+                            <td th:text="'€' + ${#numbers.formatDecimal(item.unitPrice, 1, 'COMMA', 2, 'POINT')}"></td>
+                            <td th:text="'€' + ${#numbers.formatDecimal(item.lineTotal, 1, 'COMMA', 2, 'POINT')}"></td>
+                        </tr>
+                        <tr>
+                            <td class="text-right font-bold" colspan="4"
+                                th:text="'Total: €' + ${#numbers.formatDecimal(order.total, 1, 'COMMA', 2, 'POINT')}"></td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
-            <div class="log-btns text-center">
-                <form th:action="@{/logout}" method="post">
-                    <button class="login-btn btn btn-success btn-block" type="submit">Log Out</button>
-                </form>
-
-            </div>
         </div>
-        <div class="order-history">
-            <h1>Your order history: </h1>
-            <p th:if="${orders.isEmpty()}">You haven't ordered anything yet.</p>
-        </div>
+    </main>
 
-        <div class="products" th:each="order : ${orders}">
-            <h4>
-                Order #<span th:text="${order.id}"></span>
-                · <span th:text="${#temporals.format(order.createdAt, 'dd MM yyyy, HH:mm')}"></span>
-                · <span th:text="${order.status}"></span>
-            </h4>
-            <table class="product-table">
-                <thead>
-                    <tr>
-                        <th class="prod-cell">Name</th>
-                        <th class="prod-cell">Qty</th>
-                        <th class="prod-cell">Price</th>
-                        <th class="prod-cell">Subtotal</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="item : ${order.items}">
-                        <td class="prod-cell" th:text="${item.product.name}"></td>
-                        <td class="prod-cell" th:text="${item.quantity}"></td>
-                        <td class="prod-cell"
-                            th:text="'€' + ${#numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 2, 'POINT')}"></td>
-                        <td class="prod-cell"
-                            th:text="'€' + ${#numbers.formatDecimal(item.lineTotal, 0, 'COMMA', 2, 'POINT')}"></td>
-                    </tr>
-                    <tr>
-                        <td class="total-cell" colspan="4"
-                            th:text="'Total: €' + ${#numbers.formatDecimal(order.total, 0, 'COMMA', 2, 'POINT')}"></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-    </div>
 </body>
 
 </html>

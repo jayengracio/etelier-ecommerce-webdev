@@ -2,12 +2,14 @@ package app.security;
 
 import static app.TestData.product;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.containsString;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -85,6 +87,18 @@ class SecurityConfigTest {
     // The ids don't need to exist: security refuses the request before the controller
     // looks anything up.
 
+    // ---- static files ----
+
+    @Test
+    void anonymousVisitorsGetTheTailwindStylesheet() throws Exception {
+        // Maven builds app.css before the tests run (frontend-maven-plugin). It must be
+        // public, or the login page itself would be unstyled.
+        mvc.perform(get("/app.css"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith("text/css"))
+                .andExpect(content().string(containsString("tailwindcss")));
+    }
+
     @ParameterizedTest(name = "{0} {1}")
     @CsvSource({
         "GET,  /owners",
@@ -95,11 +109,23 @@ class SecurityConfigTest {
         "POST, /edit/1/active",
         "POST, /edit/product",
         "POST, /orders/1/ship",
-        "POST, /orders/1/refund"
+        "POST, /orders/1/refund",
+        "POST, /cart/buy/1"
     })
     void anonymousVisitorsAreSentToTheLoginPage(String method, String url) throws Exception {
         // With a CSRF token, so it's the missing login that gets refused, not the token
         mvc.perform(request(HttpMethod.valueOf(method), url).with(csrf()))
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("/login"));
+    }
+
+    @Test
+    void anAnonymousScriptAddIsSentToTheLoginPageToo() throws Exception {
+        // code.js relies on this: fetch follows the redirect and the page then goes to /login.
+        // A 401 here would leave the customer looking at an error toast instead.
+        mvc.perform(post("/cart/add/1")
+                        .header("X-Requested-With", "XMLHttpRequest")
+                        .with(csrf()))
                 .andExpect(status().isFound())
                 .andExpect(redirectedUrl("/login"));
     }

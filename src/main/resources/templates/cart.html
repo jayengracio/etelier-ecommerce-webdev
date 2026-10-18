@@ -1,83 +1,60 @@
 <!DOCTYPE html>
-<html lang="en">
+<html th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
 
 <head>
-    <meta name="_csrf" th:content="${_csrf.token}">
-    <meta name="_csrf_header" th:content="${_csrf.headerName}">
-    <link rel="shortcut icon" type="image/png" href="/images/logo.png">
     <title>Your Cart</title>
-    <meta charset="utf-8">
-
-    <link href="/style.css" rel="stylesheet" type="text/css">
-    <script src="/code.js" type="text/javascript"></script>
-
-    <!-- Bootstrap -->
-    <meta content="width=device-width, initial-scale=1" name="viewport">
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
-    <!-- Font Awesome Icons -->
-    <link crossorigin="anonymous" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
-        integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" rel="stylesheet">
 </head>
 
 <body>
-    <div th:replace="~{fragments/navbar :: navbar}"></div>
-
-    <div class="main-container">
+    <main>
         <h1 th:text="'Checkout Cart: ' + ${#authentication.name}">Cart for: </h1>
 
         <div th:if="${param.outOfStock}" class="alert alert-danger">
             Some items in your cart are out of stock or no longer being sold. Remove them from your cart or try again later.
         </div>
 
-        <div class="cart">
-            <table class="cart-table" id="cartTable">
+        <div class="card overflow-x-auto p-0">
+            <table class="data-table" id="cartTable">
                 <thead>
                     <tr>
-                        <th class="cart-cell">ID</th>
-                        <th class="cart-cell">Name</th>
-                        <th class="cart-cell">Price</th>
-                        <th class="cart-cell">Qty</th>
-                        <th class="cart-cell">Subtotal</th>
-                        <th class="cart-cell" style="width: 130px"></th>
-                        <th class="cart-cell" style="width: 170px"></th>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Price</th>
+                        <th>Qty</th>
+                        <th>Subtotal</th>
+                        <th><span class="sr-only">Actions</span></th>
                     </tr>
                 </thead>
 
                 <tbody>
                     <tr th:each="item : ${items}">
-                        <td class="cart-cell" th:text="${item.product.id}"></td>
-                        <td class="cart-cell" th:text="${item.product.name}"></td>
-                        <td class="cart-cell"
-                            th:text="'€' + ${#numbers.formatDecimal(item.product.price, 0, 'COMMA', 2, 'POINT')}"></td>
-                        <td class="cart-cell">
+                        <td th:text="${item.product.id}"></td>
+                        <td th:text="${item.product.name}"></td>
+                        <td th:text="'€' + ${#numbers.formatDecimal(item.product.price, 1, 'COMMA', 2, 'POINT')}"></td>
+                        <td>
                             <span th:text="${item.quantity}"></span>
-                            <small class="text-danger d-block" th:if="${item.quantity > item.product.stock}"
+                            <small class="block text-red-700" th:if="${item.quantity > item.product.stock}"
                                 th:text="|Only ${item.product.stock} left|"></small>
-                            <small class="text-danger d-block" th:unless="${item.product.active}">No longer sold. Please remove from your cart.</small>
+                            <small class="block text-red-700" th:unless="${item.product.active}">No longer sold. Please remove from your cart.</small>
                         </td>
-                        <td class="cart-cell"
-                            th:text="'€' + ${#numbers.formatDecimal(item.lineTotal, 0, 'COMMA', 2, 'POINT')}"></td>
-                        <td class="cart-cell"><a th:href="@{/details/{id}(id=${item.product.id})}">
-                                <button class="prod-button prd-btn btn btn-sm btn-success btn-block"
-                                    type="button">Details</button>
-                            </a></td>
-                        <td class="cart-cell">
-                            <button class="prod-button prd-btn btn btn-sm btn-success btn-block"
-                                th:onclick="|removeProduct(${item.product.id})|" type="button">Remove</button>
+                        <td th:text="'€' + ${#numbers.formatDecimal(item.lineTotal, 1, 'COMMA', 2, 'POINT')}"></td>
+                        <td>
+                            <div class="flex justify-end gap-2">
+                                <a class="btn btn-secondary btn-sm" th:href="@{/details/{id}(id=${item.product.id})}">Details</a>
+                                <button class="btn btn-secondary btn-sm" th:onclick="|removeProduct(${item.product.id})|"
+                                    type="button">Remove</button>
+                            </div>
                         </td>
                     </tr>
-
                 </tbody>
             </table>
-            <a href="/checkout">
-                <button class="prd-btn btn btn-lg btn-success" type="button">Proceed to Checkout</button>
-            </a>
         </div>
-    </div>
+
+        <div class="mt-6 flex justify-end">
+            <a class="btn btn-primary" href="/checkout">Proceed to Checkout</a>
+        </div>
+    </main>
+
 </body>
 
 </html>

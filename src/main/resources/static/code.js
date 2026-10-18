@@ -15,6 +15,7 @@ function addProduct(event) {
         price: Number(document.getElementById("price").value),
         details: document.getElementById("details").value,
         stock: Number(document.getElementById("stock").value),
+        image: document.getElementById("image").value,
     };
 
     var xhr = new XMLHttpRequest();
@@ -49,60 +50,140 @@ function removeProductFromCart() {
     location.reload();
 }
 
-function filterByName() {
-    var input, filter, table, tr, td, i, txtValue;
-    input = document.getElementById("searchName");
-    filter = input.value.toUpperCase();
-    table = document.getElementById("productTable");
-    tr = table.getElementsByTagName("tr");
+// ---- Product filters (fragments/product-filters.html, on both products pages) ----
+// Every product (a card or a table row) carries data-type and data-name. It stays visible when it
+// has the chosen type ("" = All) and its name contains the search text.
 
-    for (i = 0; i < tr.length; i++) {
-        td = tr[i].getElementsByTagName("td")[1];
-        if (td) {
-            txtValue = td.textContent || td.innerText;
-            if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                tr[i].style.display = "";
-            } else {
-                tr[i].style.display = "none";
-            }
+let chosenType = "";
+
+function filterProducts() {
+    const name = document.getElementById("searchName").value.trim().toUpperCase();
+    let shown = 0;
+    document.querySelectorAll("[data-type]").forEach(function (product) {
+        product.hidden = (chosenType !== "" && product.dataset.type !== chosenType)
+            || !product.dataset.name.toUpperCase().includes(name);
+        if (!product.hidden) {
+            shown++;
         }
-    }
+    });
+    document.getElementById("no-products").hidden = shown > 0;
 }
 
-function filterByType() {
-    var input, filter, table, tr, td, i, txtValue;
-    input = document.getElementById("searchType");
-    filter = input.value.toUpperCase();
-    table = document.getElementById("productTable");
-    tr = table.getElementsByTagName("tr");
-
-    for (i = 0; i < tr.length; i++) {
-        td = tr[i].getElementsByTagName("td")[0];
-        if (td) {
-            txtValue = td.textContent || td.innerText;
-            if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                tr[i].style.display = "";
-            } else {
-                tr[i].style.display = "none";
-            }
-        }
+// A chip click chooses its type; aria-pressed marks it for screen readers and for the CSS.
+document.addEventListener("click", function (event) {
+    const chip = event.target.closest("[data-type-filter]");
+    if (!chip) {
+        return;
     }
-}
+    chosenType = chip.dataset.typeFilter;
+    document.querySelectorAll("[data-type-filter]").forEach(function (other) {
+        other.setAttribute("aria-pressed", other === chip ? "true" : "false");
+    });
+    filterProducts();
+});
 
-(function () {
-    'use strict';
-    window.addEventListener('load', function () {
-        // Get the forms we want to add validation styles to
-        var forms = document.getElementsByClassName('needs-validation');
-        // Loop over them and prevent submission
-        var validation = Array.prototype.filter.call(forms, function (form) {
-            form.addEventListener('submit', function (event) {
-                if (form.checkValidity() === false) {
-                    event.preventDefault();
-                    event.stopPropagation();
-                }
-                form.classList.add('was-validated');
-            }, false);
+// ---- Add to cart without leaving the page ----
+// Forms marked data-add-to-cart are sent with fetch instead of loading a new page. The server
+// answers JSON (MainController.addToCartFromScript) and the toast in fragments/cart-toast.html
+// shows how it went. Without the toast (visitors) or without JavaScript, the form posts normally.
+
+const TOAST_HIDE_MS = 4000;
+let toastTimer;
+let lastAdd = 0;
+
+document.addEventListener("submit", function (event) {
+    const form = event.target;
+    const toast = document.getElementById("cart-toast");
+    if (!form.matches("form[data-add-to-cart]") || !toast) {
+        return;
+    }
+    event.preventDefault();
+    addToCart(form, toast);
+});
+
+document.addEventListener("click", function (event) {
+    if (event.target.closest("#cart-toast-close")) {
+        hideToast();
+    }
+});
+
+async function addToCart(form, toast) {
+    const thisAdd = ++lastAdd;
+    const button = form.querySelector("button");
+    button.disabled = true; // no double adds while the first one runs
+
+    let state = "error";
+    let message = "Couldn't add this to your cart. Please try again.";
+    try {
+        const response = await fetch(form.action, {
+            method: "POST",
+            // the form's fields, including the _csrf token Thymeleaf adds, as a normal form post
+            body: new URLSearchParams(new FormData(form)),
+            // X-Requested-With picks the JSON handler; Accept makes Spring's errors JSON too
+            headers: { "X-Requested-With": "XMLHttpRequest", "Accept": "application/json" },
         });
-    }, false);
-})();
+        if (response.redirected) {
+            // Logged out in the meantime: fetch followed the redirect to the login page.
+            location.href = response.url;
+            return;
+        }
+        if (response.ok || response.status === 409) {
+            showCartCount((await response.json()).cartCount);
+        }
+        if (response.ok) {
+            state = "added";
+            message = "Added to your cart";
+        } else if (response.status === 409) {
+            message = "Sorry, there's no more in stock";
+        } else if (response.status === 404) {
+            message = "This product is no longer sold";
+        }
+    } catch (error) {
+        // Network error: keep the "try again" message.
+    } finally {
+        button.disabled = false;
+    }
+    if (thisAdd === lastAdd) { // otherwise a newer click owns the toast now
+        showToast(toast, form.dataset.name, form.dataset.image, state, message);
+    }
+}
+
+// state is "added" or "error": the icon with that data-state shows, the other hides.
+function showToast(toast, name, image, state, message) {
+    document.getElementById("cart-toast-name").textContent = name;
+    const img = document.getElementById("cart-toast-image");
+    const noImage = document.getElementById("cart-toast-no-image");
+    // No data-image (the product has no picture): straight to the placeholder.
+    img.hidden = !image;
+    noImage.hidden = Boolean(image);
+    img.onerror = function () { // the picture didn't load
+        img.hidden = true;
+        noImage.hidden = false;
+    };
+    if (image) {
+        img.src = image;
+    }
+    toast.querySelectorAll("[data-state]").forEach(function (icon) {
+        icon.hidden = icon.dataset.state !== state;
+    });
+    document.getElementById("cart-toast-message").textContent = message;
+    toast.hidden = false;
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(hideToast, TOAST_HIDE_MS);
+}
+
+function hideToast() {
+    clearTimeout(toastTimer);
+    document.getElementById("cart-toast").hidden = true;
+}
+
+// Same wording as the label in fragments/navbar.html.
+function showCartCount(count) {
+    const badge = document.getElementById("cart-count");
+    if (!badge) {
+        return;
+    }
+    badge.textContent = count;
+    badge.hidden = count === 0;
+    document.getElementById("cart-count-label").textContent = count === 1 ? ", 1 item" : ", " + count + " items";
+}

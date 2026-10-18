@@ -1,0 +1,38 @@
+<!--/* The note in the bottom-right corner that code.js (addToCart) shows when a product goes into
+       the cart, once the server has answered: a check mark, or an error. Logged-in users
+       only; without #cart-toast, code.js lets the form post normally, which sends a visitor to
+       the login page. The outer div is the live region and is never hidden, so screen readers
+       announce what appears in it; code.js only hides and shows the card inside. */-->
+<div th:fragment="toast" sec:authorize="isAuthenticated()" role="status"
+    class="pointer-events-none fixed inset-x-4 bottom-4 z-20 flex justify-end"
+    xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+    <div id="cart-toast" class="card pointer-events-auto flex w-full items-center gap-3 p-3 shadow-lg sm:w-80" hidden>
+        <div class="relative size-12 shrink-0 overflow-hidden rounded-md bg-stone-100">
+            <img id="cart-toast-image" class="size-full object-cover" alt="">
+            <!--/* Shown instead of the picture when the product has none or it doesn't load (code.js). */-->
+            <span id="cart-toast-no-image" class="absolute inset-0 flex items-center justify-center text-stone-400"
+                hidden>
+                <svg th:replace="~{fragments/icons :: photo}"></svg>
+            </span>
+        </div>
+
+        <div class="min-w-0 flex-1">
+            <p id="cart-toast-name" class="truncate text-sm font-medium"></p>
+            <p class="mt-0.5 flex items-center gap-1.5 text-sm text-stone-600">
+                <!--/* code.js shows the one whose data-state matches. */-->
+                <span class="text-emerald-600" data-state="added" hidden>
+                    <svg th:replace="~{fragments/icons :: check-circle}"></svg>
+                </span>
+                <span class="text-red-600" data-state="error" hidden>
+                    <svg th:replace="~{fragments/icons :: exclamation-circle}"></svg>
+                </span>
+                <span id="cart-toast-message"></span>
+            </p>
+        </div>
+
+        <button id="cart-toast-close" class="shrink-0 cursor-pointer self-start rounded-md p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-600"
+            type="button" aria-label="Close">
+            <svg th:replace="~{fragments/icons :: x-mark}"></svg>
+        </button>
+    </div>
+</div>

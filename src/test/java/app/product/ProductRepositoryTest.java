@@ -2,14 +2,24 @@ package app.product;
 
 import static app.TestData.product;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import app.TestContainerConfiguration;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.NullSource;
+import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+import org.springframework.dao.DataIntegrityViolationException;
 
 @DataJpaTest
 @Import(TestContainerConfiguration.class)
@@ -124,5 +134,48 @@ class ProductRepositoryTest {
                 .toList();
 
         assertThat(ids.indexOf(first.getId())).isLessThan(ids.indexOf(second.getId()));
+    }
+
+    // image: where the picture is, or null for the placeholder
+
+    @ParameterizedTest
+    @NullSource
+    @ValueSource(strings = {"/images/Apple.png", "https://example.com/apple.png", "http://example.com/apple.png"})
+    void anImageCanBeAPathAUrlOrNothing(String image) {
+        Product product = product("Test Widget", 5);
+        product.setImage(image);
+        Product saved = em.persistFlushFind(product);
+        em.clear();
+
+        assertThat(products.findById(saved.getId()).orElseThrow().getImage()).isEqualTo(image);
+    }
+
+    // Each of these would be a broken image on some page.
+    @ParameterizedTest
+    @ValueSource(strings = {"", " ", "images/Apple.png", "Apple.png", "ftp://example.com/apple.png"})
+    void anImageMustBeAPathOrAUrl(String image) {
+        Product product = product("Test Widget", 5);
+        product.setImage(image);
+
+        assertThatThrownBy(() -> products.saveAndFlush(product))
+                .isInstanceOf(DataIntegrityViolationException.class)
+                .hasMessageContaining("product_image_check");
+    }
+
+    // Catches a typo in a migration that sets a path, like '/images/apple.png'. It compares with the
+    // real file names: Windows would also open "apple.png", but inside the jar and on Linux the
+    // case must match.
+    @Test
+    void everyPicturePathInTheDatabaseHasAFile() throws IOException {
+        Set<String> files = Arrays.stream(
+                        new PathMatchingResourcePatternResolver().getResources("classpath:static/images/*"))
+                .map(file -> "/images/" + file.getFilename())
+                .collect(Collectors.toSet());
+        List<String> paths = products.findAll().stream()
+                .map(Product::getImage)
+                .filter(image -> image != null && image.startsWith("/"))
+                .toList();
+
+        assertThat(paths).isSubsetOf(files);
     }
 }

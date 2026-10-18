@@ -1,8 +1,8 @@
 # Web Dev E-commerce Shop
 
-A small online shop built with Spring Boot and Thymeleaf. Customers can browse products, keep a cart, pay through Stripe and see their order history. An admin gets a sales dashboard with low-stock alerts, can filter and page through every order, ship or refund paid orders, and add, edit or hide products.
+A small online shop built with Spring Boot and Thymeleaf. Customers can browse and filter products, add them to a cart or buy one straight away, pay through Stripe and see their order history. An admin gets a sales dashboard with low-stock alerts, can filter and page through every order, ship or refund paid orders, and add, edit, hide or set pictures for products.
 
-The project started as a web development group project for University ([report](docs/report.pdf), [wireframe design](docs/wireframe_design.pdf)). I decided to see if I could update, further refine and implement features as practice. The framework was upgraded, the security, database and order model were rebuilt, real payments were added, and the whole thing is now covered by automated tests. The [Then vs now](#then-vs-now) section explains each change.
+The project started as a web development group project for University ([report](docs/report.pdf), [wireframe design](docs/wireframe_design.pdf)). I decided to see if I could update, further refine and implement features as practice. The framework was upgraded, the security, database and order model were rebuilt, real payments were added, the Bootstrap pages were rebuilt with Tailwind CSS, and the whole thing is now covered by automated tests. The [Then vs now](#then-vs-now) section explains each change.
 
 ## Tech stack
 
@@ -10,16 +10,17 @@ The project started as a web development group project for University ([report](
 | --- | --- |
 | Language | Java 25 (Eclipse Temurin) |
 | Framework | Spring Boot 4.1.1 (Spring MVC) |
-| Views | Thymeleaf server-side templates, plain CSS and JavaScript |
+| Views | Thymeleaf server-side templates with one shared layout; plain JavaScript (`fetch`) for the cart toast and the product filters |
+| Styling | Tailwind CSS v4, compiled at build time into one stylesheet (no CDN); Heroicons as inline SVG |
 | Security | Spring Security: form login, BCrypt password hashing, `USER`/`ADMIN` roles, CSRF protection |
 | Persistence | Spring Data JPA (Hibernate) |
 | Validation | Bean Validation (Hibernate Validator) on request records |
 | Database | PostgreSQL 17, running in Docker |
 | Schema migrations | Flyway (versioned SQL scripts) |
-| Build | Maven 3.9 |
+| Build | Maven 3.9; `frontend-maven-plugin` downloads Node and runs the Tailwind CLI during the build |
 | Payments | Stripe Checkout (hosted payment page) and a signed webhook, via `stripe-java` |
 | Testing | JUnit 6, AssertJ, Mockito, Spring MockMvc with `spring-security-test`, Testcontainers (PostgreSQL 17) |
-| Formatting | Spotless with palantir-java-format, checked by `mvn verify` |
+| Formatting | Spotless: palantir-java-format for Java, whitespace rules for templates, CSS, JS, SQL and properties; checked by `mvn verify` |
 
 ## Run it locally
 
@@ -29,6 +30,7 @@ The project started as a web development group project for University ([report](
 - Maven 3.9+
 - Docker Desktop (or another Docker engine with Compose), for the database and for the tests
 - A Stripe account in test mode (a sandbox) and the [Stripe CLI](https://docs.stripe.com/stripe-cli)
+- No Node.js: Maven downloads its own copy to build the stylesheet. Only the live-CSS loop below uses a local Node 24 and npm.
 
 ### One-time Stripe setup
 
@@ -60,6 +62,18 @@ mvn spring-boot:run
 
 Then open **<http://localhost:3000>**. Pay with the test card `4242 4242 4242 4242`, any future expiry date and any CVC.
 
+### Edit templates and CSS without restarting
+
+```powershell
+# Serve templates straight from src/ and don't cache them
+mvn spring-boot:run "-Dspring-boot.run.arguments=--spring.thymeleaf.prefix=file:src/main/resources/templates/ --spring.thymeleaf.cache=false"
+
+# In another terminal: rebuild app.css whenever a template or app.css changes
+cd src/main/frontend; npm run watch
+```
+
+Save, then refresh the browser. Java, `code.js` and image changes still need a restart. Tailwind only generates classes it finds in saved templates and `code.js`, so always write full class names (never build them from pieces).
+
 ### Seed accounts
 
 | Username | Password | Role |
@@ -70,7 +84,7 @@ Then open **<http://localhost:3000>**. Pay with the test card `4242 4242 4242 42
 | `Maria` | `maria2026` | USER |
 | `Kenji` | `kenji2026` | USER |
 
-The seed also has 50 products across 9 types. A few are at or below the low-stock threshold, one is out of stock and one is hidden, so every part of the dashboard has something to show.
+The seed also has 50 products across 9 types, 15 of them with a picture (the rest show a placeholder). A few are at or below the low-stock threshold, one is out of stock and one is hidden, so every part of the dashboard has something to show.
 
 ### Stop and reset the database
 
@@ -110,7 +124,7 @@ java -jar target/johne-0.0.1.jar
 ## Testing
 
 ```powershell
-mvn verify                          # all 147 tests, then the Spotless format check
+mvn verify                          # all 200 tests, then the Spotless format check
 mvn test "-Dtest=CartServiceTest"   # one class
 mvn spotless:apply                  # reformat the code; run this before verify if the check fails
 
@@ -125,23 +139,25 @@ mvn test "-Dtest=OrderTest,SalesTotalsTest,ProductValidationTest"
 
 | Layer | Classes | What they prove |
 | --- | --- | --- |
-| Unit (50 tests, no Spring) | `OrderTest`, `SalesTotalsTest`, `ProductValidationTest` | Every order status change allowed or refused; revenue sums; every validation limit on the product records, at the boundary |
-| Repository (14, `@DataJpaTest`) | `ProductRepositoryTest`, `OrderRepositoryTest`, `CartItemRepositoryTest` | The conditional stock `UPDATE` (enough, the last unit, not enough), the shop and low-stock lists, paging by status, the dashboard aggregates |
+| Unit (62 tests, no Spring) | `OrderTest`, `SalesTotalsTest`, `ProductValidationTest` | Every order status change allowed or refused; revenue sums; every validation limit on the product records, at the boundary, including the picture path rule |
+| Repository (26, `@DataJpaTest`) | `ProductRepositoryTest`, `OrderRepositoryTest`, `CartItemRepositoryTest` | The conditional stock `UPDATE` (enough, the last unit, not enough), the shop and low-stock lists, paging by status, the dashboard aggregates, the cart count, the picture column's `CHECK`, and that every picture path names a real file (case included) |
 | Service (14, `@SpringBootTest`) | `CartServiceTest`, `MyApplicationTests` | Cart → PENDING order → PAID with real commits and rollbacks: stock taken once, everything rolled back when stock runs out, and a second refund waits for the first one's row lock |
-| Web (69, MockMvc) | `PaymentWebTest` | The webhook with real signatures (valid → 200; wrong secret, changed body or missing header → 400), a duplicate event taking stock once, the automatic refund when stock ran out, the admin refund's idempotency key |
-| | `SecurityConfigTest` | Every admin URL sends visitors to `/login` and refuses customers with 403; a POST without a valid CSRF token is refused, even for an admin |
-| | `MainControllerTest` | 404 for missing and hidden products, 400 for bad JSON or an unknown status, `?invalid` for a bad edit form, 409 for shipping or refunding an order in the wrong state |
+| Web (98, MockMvc) | `PaymentWebTest` | The webhook with real signatures (valid → 200; wrong secret, changed body or missing header → 400), a duplicate event taking stock once, the automatic refund when stock ran out, the admin refund's idempotency key |
+| | `SecurityConfigTest` | Every admin URL sends visitors to `/login` and refuses customers with 403; a POST without a valid CSRF token is refused, even for an admin; the stylesheet is public |
+| | `MainControllerTest` | 404 for missing and hidden products, 400 for bad JSON or an unknown status, `?invalid` for a bad edit form, 409 for shipping or refunding an order in the wrong state; the add-to-cart JSON (new count, 409 without stock), Buy landing on checkout, the cart count on every page, the type chips, setting and clearing a picture |
 
 ## Features
 
-- **Catalogue:** product list and product detail pages, open to everyone. Products an admin has hidden don't appear, and their pages return 404.
+- **Catalogue:** a card grid, open to everyone, with each product's picture (or a placeholder), price and an "Only N left" or "Out of stock" hint. Cards lift slightly on hover. A name search and one chip per type filter the list together. Products an admin has hidden don't appear, and their pages return 404.
+- **Add to cart or buy:** Add To Cart stays on the page: a small toast shows the product, and the cart badge in the navbar updates. Buy adds the product and goes straight to checkout. Both buttons are disabled when a product is out of stock.
+- **One layout:** every page shares a sticky navbar (icon links with labels on hover and for screen readers) and a footer, and works on phones.
 - **Accounts:** registration (username of 3+ characters, password of 8+, unique usernames), login and logout.
 - **Cart:** one row per product with a quantity. Shows "Only N left" and "No longer sold" warnings, and blocks adding more than is in stock.
 - **Checkout and payment:** "Pay with Stripe" creates a PENDING order with each item's current price and sends the customer to Stripe's hosted payment page. When Stripe's webhook confirms the payment, the stock is taken, the order becomes PAID and those products leave the cart. If the customer never pays, the order is CANCELLED when the session expires. If stock ran out while they were paying, the payment is refunded automatically.
 - **Order history:** customers see their past orders with dates, items and status (PENDING, PAID, SHIPPED, CANCELLED, REFUNDED) on their profile.
 - **Admin dashboard** (`/owners`): revenue all time and for the last 7 days, order counts by status (each links to the filtered list), low-stock products, and the 10 most recent orders.
 - **Order management:** every order, 20 per page, filterable by status. An order's page links to its payment in the Stripe Dashboard. PAID orders can be marked as shipped, or refunded: the money goes back through Stripe and the stock returns to the shelf.
-- **Product management:** add and edit products, with server-side validation. Products can be hidden from the shop and shown again; they're never deleted, so old orders keep showing what was bought.
+- **Product management:** a product table with thumbnails and the same filters. Add and edit products, including an optional picture (a path in the app or an image URL), with server-side validation. Products can be hidden from the shop and shown again; they're never deleted, so old orders keep showing what was bought.
 
 ## Then vs now
 
@@ -214,11 +230,27 @@ The original version worked as a demo but had problems that would break a real s
 </details>
 
 <details>
-<summary><strong>Tests and tooling</strong>: 147 tests against a real PostgreSQL, Spotless formatting, two migrations instead of ten</summary>
+<summary><strong>Frontend</strong>: Bootstrap from CDNs → Tailwind built with Maven, one layout, product cards</summary>
 
 | Before | Now | Why |
 | --- | --- | --- |
-| No automated tests; every change was checked by clicking through the site | 147 tests in four layers, run by `mvn verify` (see [Testing](#testing)) | The payment flow has cases nobody clicks through by hand: duplicate webhooks, stock running out mid-payment, two refunds at once. |
+| Bootstrap 4.5, jQuery, Popper and Font Awesome from CDNs, plus a `style.css` | Tailwind CSS v4, compiled at build time into one `app.css` that only holds the classes the templates use | No third-party downloads at page load. Bootstrap's rules would also beat Tailwind's (Tailwind uses cascade layers), so the two couldn't share a page. |
+| Every page repeated its own `<head>`: stylesheets, scripts, favicon | One layout fragment holds the `<head>`, navbar and footer; each page only supplies its title and content | Adding a script or stylesheet is one edit instead of one per page. |
+| Text links, and Font Awesome icons for the account and cart links | Heroicons inline SVGs; each link's label shows on hover or keyboard focus and is also its accessible name | No icon font to download, and icon-only links still have a name for screen readers. |
+| Products in a table; a picture only on the details page, looked up by product name | A card grid; a `product.image` column holds a path or URL, and `NULL` shows a placeholder | 42 of the 50 products had no file with their exact name, so their pages showed a broken image. |
+| Add To Cart reloaded the page with no feedback | It posts with `fetch`; a toast shows the product and the navbar's cart badge updates. A Buy button goes straight to checkout | Customers see what happened without losing their place. Without JavaScript the form still posts normally. |
+| Two search boxes (type and name); whichever was typed in last won | One name search plus a chip per type, combined | Customers don't have to know the type names. |
+| Prices under €1 showed as "€.99" | "€0.99" | Thymeleaf's `formatDecimal` was told to print at least 0 digits before the point. |
+| The first page of a new session linked to `app.css;jsessionid=...` | `server.servlet.session.tracking-modes=cookie` | Spring Security rejects URLs with `;` in them, so that page loaded without its stylesheet or script. |
+
+</details>
+
+<details>
+<summary><strong>Tests and tooling</strong>: 200 tests against a real PostgreSQL, Spotless formatting, ten migrations squashed into two</summary>
+
+| Before | Now | Why |
+| --- | --- | --- |
+| No automated tests; every change was checked by clicking through the site | 200 tests in four layers, run by `mvn verify` (see [Testing](#testing)) | The payment flow has cases nobody clicks through by hand: duplicate webhooks, stock running out mid-payment, two refunds at once. |
 | — | Tests run against a real PostgreSQL in Docker (Testcontainers), not an in-memory database | Row locks (`SELECT ... FOR UPDATE`), `CHECK` constraints and the Flyway migrations behave exactly as in the app. An in-memory stand-in would only imitate them. |
 | Two refund clicks at the same moment could both put the stock back | `markRefunded` locks the order row, like `completePayment` | Found while writing the tests. Stripe refunded only once (same idempotency key), but the shelf ended up with stock that didn't exist. |
 | No formatting rules | Spotless (palantir-java-format) fails the build on unformatted code | Style stops being a review topic. The one big formatting commit is listed in `.git-blame-ignore-revs`, so `git blame` skips it. |
@@ -268,15 +300,20 @@ src/main/java/app/
 
 src/main/resources/
 ├── application.properties              port, database, JPA, Stripe, low-stock threshold
-├── db/migration/                       V1 schema, V2 seed (Flyway)
-├── templates/                          Thymeleaf pages, navbar fragment, 404 page
-└── static/                             style.css, code.js, product images
+├── db/migration/                       V1 schema, V2 seed, V3-V4 product pictures (Flyway)
+├── templates/                          Thymeleaf pages, error/404 page
+│   └── fragments/                      layout, navbar, footer, icons, cart toast, product picture, filters
+└── static/                             code.js, product images, logo
+
+src/main/frontend/                      the stylesheet's source; built into target/, never committed
+├── app.css                             Tailwind entry: files to scan, heading defaults, shared components
+└── package.json                        exact Tailwind CLI version; Maven runs npm ci and npm run build
 
 src/test/java/app/
 ├── TestContainerConfiguration.java     throwaway PostgreSQL 17 for the tests
 ├── TestData.java                       valid unsaved products and users
 ├── MyApplicationTests.java             the application starts
-├── MainControllerTest.java             bad input: 404, 400, ?invalid, 409
+├── MainControllerTest.java             pages, cart count, add to cart, Buy, bad input
 ├── cart/                               CartServiceTest, CartItemRepositoryTest
 ├── order/                              OrderTest, SalesTotalsTest, OrderRepositoryTest
 ├── payment/                            PaymentWebTest
@@ -303,6 +340,9 @@ compose.yaml                            the PostgreSQL container
 - **Amounts go to Stripe in cents** with `movePointRight(2).longValueExact()`, with no floating-point step in between.
 - **Admin refunds call Stripe first, then the database.** If the database step fails, the order still says PAID, and clicking Refund again is safe: the same idempotency key makes Stripe return the existing refund. The other order would risk an order marked REFUNDED whose customer never got their money.
 - **Paging only fetches to-one relations.** The order list's `@EntityGraph` loads `user` but not `items`. Fetching a collection would make Hibernate page in memory, which loads every row again.
+- **The stylesheet is build output.** The Tailwind CLI scans the templates and `code.js` and writes only the classes it finds to `target/classes/static/app.css`. A class name assembled at runtime would never be found, so templates always spell out full class names.
+- **One URL, two answers for add to cart.** A plain form post redirects back to the products page. `code.js` sends `X-Requested-With: XMLHttpRequest`, which picks a second mapping that answers JSON with the new cart count (409 when there's no stock left). The header decides, not `Accept`, because browsers send `Accept: */*`.
+- **The picture rule lives in two places.** A `CHECK` on `product.image` guards the data; `@Pattern` on the form records turns a bad value into a 400 or a form message instead of a database error (500).
 - **Admin endpoints live under paths `SecurityConfig` already locks** (for example `POST /edit/{id}/active`). A new path would fall through to "any logged-in user".
 
 </details>
@@ -315,6 +355,13 @@ compose.yaml                            the PostgreSQL container
 | --- | --- |
 | V1 | The schema: `product`, `users`, `orders`, `order_items`, `cart_items`, with their constraints |
 | V2 | Seed data: 50 products and the 5 accounts above (BCrypt hashes) |
+| V3 | Adds `product.image` (a path or URL, `NULL` for none, with a `CHECK`) and sets it for the 8 seed products whose picture file has their name |
+| V4 | Points 7 more seed products at picture files that have older names |
+
+## To-Do
+
+- A real visual design: the emerald and stone colours are Tailwind's defaults, kept as placeholders.
+- CI (GitHub Actions running `mvn verify`) and automated dependency updates once the repository is public. Tailwind and `stripe-java` are pinned by hand until then.
 
 ## Known limitations
 
@@ -329,3 +376,7 @@ compose.yaml                            the PostgreSQL container
 - "Last 7 days" on the dashboard counts orders by when they were placed, not when they were paid (there's no `paid_at` column).
 - The "View payment in Stripe" link points at the test-mode Dashboard.
 - Locally, webhooks only arrive while `stripe listen` is running. Events missed while it's off aren't replayed.
+- Pictures are set as a path or URL; there's no upload. A URL that stops working shows a broken image on the product pages (only the cart toast falls back to the placeholder).
+- Error pages show no cart badge, because they're rendered outside `MainController`.
+- The add-to-cart toast hides after 4 seconds, even while the pointer is on it.
+- `package.json` overrides `@parcel/watcher` to 2.6.0 so `npm audit` is clean. Remove the override once a newer Tailwind CLI depends on it.

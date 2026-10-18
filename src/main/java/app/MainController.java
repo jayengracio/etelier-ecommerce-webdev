@@ -28,6 +28,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -73,16 +74,38 @@ public class MainController {
         this.dashboardService = dashboardService;
     }
 
+    /**
+     * The navbar's cart badge. A @ModelAttribute method runs before every handler in this
+     * controller, so every page here can show it. Pages rendered elsewhere (the error pages)
+     * don't have it, which is why the navbar falls back to 0.
+     */
+    @ModelAttribute("cartCount")
+    public long cartCount(Principal principal) {
+        return principal == null ? 0 : cartItemRepository.countItems(principal.getName());
+    }
+
     // ------ PUBLIC PAGES ------
+    /**
+     * Spring Boot would serve index.html on its own as the "welcome page", but that skips this
+     * controller, so the page would miss cartCount and the navbar badge.
+     */
+    @GetMapping("/")
+    public String index() {
+        return "index.html";
+    }
+
     @GetMapping("/products")
     public String products(Model model, HttpServletRequest request) {
-        if (request.isUserInRole("ADMIN")) {
-            model.addAttribute("products", productRepository.findAll(Sort.by("id")));
-            model.addAttribute("lowStockThreshold", dashboardService.lowStockThreshold());
-            return "products_owner.html";
-        }
-        model.addAttribute("products", productRepository.findByActiveTrueOrderById());
-        return "products.html";
+        boolean admin = request.isUserInRole("ADMIN");
+        List<Product> products =
+                admin ? productRepository.findAll(Sort.by("id")) : productRepository.findByActiveTrueOrderById();
+        model.addAttribute("products", products);
+        // One filter chip per type on the page, A-Z, so a new type gets a chip by itself.
+        model.addAttribute(
+                "types",
+                products.stream().map(Product::getType).distinct().sorted().toList());
+        model.addAttribute("lowStockThreshold", dashboardService.lowStockThreshold());
+        return admin ? "products_owner.html" : "products.html";
     }
 
     @GetMapping("/details/{id}")
@@ -93,6 +116,7 @@ public class MainController {
                         .findById(id)
                         .filter(product -> product.isActive() || request.isUserInRole("ADMIN"))
                         .orElseThrow(() -> new ProductNotFoundException(id)));
+        model.addAttribute("lowStockThreshold", dashboardService.lowStockThreshold());
         return "details.html";
     }
 
@@ -158,6 +182,29 @@ public class MainController {
     @PostMapping("/cart/add/{id}")
     public String addToCart(@PathVariable int id, Principal principal) {
         return cartService.addToCart(principal.getName(), id) ? "redirect:/products" : "redirect:/stock";
+    }
+
+    /** The Buy button: the same add, then straight to checkout (with the whole cart). */
+    @PostMapping("/cart/buy/{id}")
+    public String buy(@PathVariable int id, Principal principal) {
+        return cartService.addToCart(principal.getName(), id) ? "redirect:/checkout" : "redirect:/stock";
+    }
+
+    /** What the cart add answers code.js: the new badge count. */
+    public record CartCount(long cartCount) {}
+
+    /**
+     * The same add for code.js, which sends X-Requested-With. Spring picks this method over the
+     * one above because its mapping is more specific, so a plain form post still redirects.
+     * Answers 409 when there's no more stock; an unknown or hidden product is still a 404.
+     */
+    @PostMapping(value = "/cart/add/{id}", headers = "X-Requested-With=XMLHttpRequest")
+    @ResponseBody
+    public ResponseEntity<CartCount> addToCartFromScript(@PathVariable int id, Principal principal) {
+        boolean added = cartService.addToCart(principal.getName(), id);
+        CartCount count = new CartCount(cartItemRepository.countItems(principal.getName()));
+        return ResponseEntity.status(added ? HttpStatus.OK : HttpStatus.CONFLICT)
+                .body(count);
     }
 
     @PostMapping("/cart/remove")
@@ -276,6 +323,7 @@ public class MainController {
         product.setDetails(form.details());
         product.setPrice(form.price());
         product.setStock(form.stock());
+        product.setImage(form.image());
         productRepository.save(product);
         return "redirect:/products";
     }

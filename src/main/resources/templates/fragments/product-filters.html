@@ -1,0 +1,16 @@
+<!--/* The filters above both products pages: a name search and one chip per type ("types" from
+       MainController). code.js's filterProducts() does the filtering on the data-type and data-name
+       of each product; a chip's aria-pressed says which type is chosen (and colours it, .chip). */-->
+<div th:fragment="filters" class="mb-4 space-y-3" xmlns:th="http://www.thymeleaf.org">
+    <label class="sr-only" for="searchName">Search products by name</label>
+    <input class="input sm:max-w-sm" id="searchName" oninput="filterProducts()" placeholder="Search by name..."
+        type="search">
+
+    <div class="flex flex-wrap gap-2" role="group" aria-label="Filter by type">
+        <button class="chip" type="button" data-type-filter="" aria-pressed="true">All</button>
+        <button th:each="type : ${types}" class="chip" type="button" th:data-type-filter="${type}"
+            aria-pressed="false" th:text="${type}"></button>
+    </div>
+
+    <p id="no-products" class="text-stone-600" hidden>No products match your search.</p>
+</div>

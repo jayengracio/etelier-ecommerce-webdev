@@ -1,68 +1,40 @@
 <!DOCTYPE html>
-
-<html lang="en">
+<html th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
 
 <head>
-    <link rel="shortcut icon" type="image/png" href="/images/logo.png">
     <title>Product Details</title>
-    <meta charset="utf-8">
-
-    <link href="/style.css" rel="stylesheet" type="text/css">
-    <script src="/code.js" type="text/javascript"></script>
-
-    <!-- Bootstrap -->
-    <meta content="width=device-width, initial-scale=1" name="viewport">
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
-    <!-- Font Awesome Icons -->
-    <link crossorigin="anonymous" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
-          integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" rel="stylesheet">
 </head>
 
 <body>
-    <div th:replace="~{fragments/navbar :: navbar}"></div>
+    <main class="mx-auto max-w-4xl">
+        <div class="card grid gap-6 md:grid-cols-2 md:gap-8">
+            <div th:replace="~{fragments/product-picture :: picture(${product}, 'aspect-4/3 w-full rounded-md', 'size-16')}"></div>
 
-<div class="main-container">
-    <h1 th:text="'Details for: ' + ${product.name}">Details for: </h1>
+            <div class="flex flex-col">
+                <p class="text-sm text-stone-500" th:text="${product.type}"></p>
+                <h1 class="mb-2" th:text="${product.name}"></h1>
+                <p class="text-2xl font-semibold"
+                    th:text="'€' + ${#numbers.formatDecimal(product.price, 1, 'COMMA', 2, 'POINT')}"></p>
+                <p class="mt-2" th:if="${product.stock == 0}"><span class="badge badge-danger">Out of stock</span></p>
+                <p class="mt-2" th:if="${product.stock > 0 and product.stock <= lowStockThreshold}">
+                    <span class="badge badge-warning" th:text="|Only ${product.stock} left|"></span>
+                </p>
+                <p class="mt-4 text-stone-700" th:text="${product.details}"></p>
 
-    <table class="details-table">
-        <tr>
-            <td class="detail-cell" style="width: 60px;">ID</td>
-            <td class="detail-cell" th:text="${product.id}"></td>
-        </tr>
-
-        <tr>
-            <td class="detail-cell" style="width: 60px;">Type</td>
-            <td class="detail-cell" th:text="${product.type}"></td>
-        </tr>
-
-        <tr>
-            <td class="detail-cell" style="width: 60px;">Price</td>
-            <td class="detail-cell"
-                th:text="'€' + ${#numbers.formatDecimal(product.price, 0, 'COMMA', 2, 'POINT')}"></td>
-        </tr>
-
-        <tr>
-            <td class="detail-cell" style="width: 60px;">Details</td>
-            <td class="detail-cell" th:text="${product.details}"></td>
-        </tr>
-        <tr>
-            <td class="detail-cell" colspan="2"><img th:src="@{${'/images/' + product.name + '.png'}}" alt="Product Image"></td>
-        </tr>
-    </table>
-
-    <div class="details-buttons">
-        <a>
-            <button class="prd-btn btn btn-sm btn-success btn-block" type="button">Add To Cart</button>
-        </a>
-        <a href="/products">
-            <button class="prd-btn btn btn-sm btn-success btn-block" type="button">Go Back</button>
-        </a>
-    </div>
-</div>
+                <div class="mt-6 flex flex-wrap gap-2">
+                    <form th:action="@{/cart/add/{id}(id=${product.id})}" method="post" data-add-to-cart
+                        th:data-name="${product.name}" th:data-image="${product.image} ? @{${product.image}}">
+                        <button class="btn btn-outline" type="submit" th:disabled="${product.stock == 0}">Add To
+                            Cart</button>
+                    </form>
+                    <form th:action="@{/cart/buy/{id}(id=${product.id})}" method="post">
+                        <button class="btn btn-primary" type="submit" th:disabled="${product.stock == 0}">Buy</button>
+                    </form>
+                    <a class="btn btn-secondary" th:href="@{/products}">Back to products</a>
+                </div>
+            </div>
+        </div>
+    </main>
 </body>
 
 </html>

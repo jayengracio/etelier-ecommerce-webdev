@@ -9,6 +9,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -22,6 +23,7 @@ import app.user.User;
 import app.user.UserRepository;
 import com.stripe.StripeClient;
 import java.math.BigDecimal;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -37,6 +39,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -147,6 +150,159 @@ class MainControllerTest {
         mvc.perform(get("/details/{id}", hidden.getId()).with(asAdmin())).andExpect(status().isOk());
     }
 
+    // ---- POST /cart/add/{id} and the navbar's cart count ----
+
+    // What code.js sends; the header is what routes it to the JSON handler
+    private ResultActions addFromScript(int productId) throws Exception {
+        return mvc.perform(post("/cart/add/{id}", productId)
+                .header("X-Requested-With", "XMLHttpRequest")
+                .with(asCustomer())
+                .with(csrf()));
+    }
+
+    @Test
+    void aScriptAddAnswersTheNewCartCount() throws Exception {
+        Product product = products.save(product("Test Apple", 10));
+
+        addFromScript(product.getId())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.cartCount").value(1));
+        addFromScript(product.getId())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.cartCount").value(2));
+    }
+
+    @Test
+    void aScriptAddWithNoStockLeftGives409AndTheUnchangedCount() throws Exception {
+        Product lastOne = products.save(product("Test Last One", 1));
+
+        addFromScript(lastOne.getId())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.cartCount").value(1));
+        addFromScript(lastOne.getId())
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.cartCount").value(1));
+    }
+
+    @Test
+    void aScriptAddOfAProductThatDoesNotExistGives404() throws Exception {
+        addFromScript(MISSING_ID).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void aFormAddStillRedirects() throws Exception {
+        // No header: the original handler. Exact URLs, so the cartCount model attribute
+        // can't have been tacked on as ?cartCount=
+        Product lastOne = products.save(product("Test Last One", 1));
+
+        mvc.perform(post("/cart/add/{id}", lastOne.getId()).with(asCustomer()).with(csrf()))
+                .andExpect(redirectedUrl("/products"));
+        mvc.perform(post("/cart/add/{id}", lastOne.getId()).with(asCustomer()).with(csrf()))
+                .andExpect(redirectedUrl("/stock"));
+    }
+
+    // ---- POST /cart/buy/{id} ----
+
+    private ResultActions buy(int productId) throws Exception {
+        return mvc.perform(post("/cart/buy/{id}", productId).with(asCustomer()).with(csrf()));
+    }
+
+    @Test
+    void buyingAddsToTheCartAndGoesToCheckout() throws Exception {
+        Product product = products.save(product("Test Apple", 10));
+
+        buy(product.getId()).andExpect(redirectedUrl("/checkout"));
+        mvc.perform(get("/checkout").with(asCustomer()))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("cartCount", 1L));
+    }
+
+    @Test
+    void buyingWithNoStockLeftGoesToTheStockPage() throws Exception {
+        Product lastOne = products.save(product("Test Last One", 1));
+
+        buy(lastOne.getId()).andExpect(redirectedUrl("/checkout"));
+        buy(lastOne.getId()).andExpect(redirectedUrl("/stock"));
+    }
+
+    @Test
+    void buyingAProductThatDoesNotExistGives404() throws Exception {
+        buy(MISSING_ID).andExpect(status().isNotFound());
+    }
+
+    // Every page a logged-in customer can open. A page served outside MainController
+    // (like Spring Boot's own welcome page for "/") would miss cartCount and fail here.
+    @ParameterizedTest
+    @ValueSource(
+            strings = {
+                "/",
+                "/products",
+                "/details/{id}",
+                "/stock",
+                "/forbid",
+                "/register",
+                "/cart",
+                "/checkout",
+                "/profile",
+                "/purchase"
+            })
+    void everyPageGetsTheCartCountForTheNavbar(String url) throws Exception {
+        Product apple = products.save(product("Test Apple", 10));
+        Product pizza = products.save(product("Test Pizza", 10));
+        addFromScript(apple.getId());
+        addFromScript(apple.getId());
+        addFromScript(pizza.getId());
+
+        mvc.perform(get(url, apple.getId()).with(asCustomer()))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("cartCount", 3L));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"/", "/products"})
+    void visitorsGetACartCountOfZero(String url) throws Exception {
+        mvc.perform(get(url)).andExpect(status().isOk()).andExpect(model().attribute("cartCount", 0L));
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<String> typeChipsFor(RequestPostProcessor who) throws Exception {
+        return (List<String>) mvc.perform(get("/products").with(who))
+                .andReturn()
+                .getModelAndView()
+                .getModel()
+                .get("types");
+    }
+
+    // A type only some hidden products have gets a chip for admins (they see hidden products) but not
+    // for customers, who would get an empty list when clicking it.
+    @Test
+    void theTypeChipsComeFromTheProductsOnThePage() throws Exception {
+        Product hidden = product("Test Hidden", 10);
+        hidden.setActive(false);
+        products.save(hidden);
+
+        assertThat(typeChipsFor(asCustomer()))
+                .doesNotContain("test")
+                .doesNotHaveDuplicates()
+                .isSorted();
+        assertThat(typeChipsFor(asAdmin()))
+                .contains("test")
+                .doesNotHaveDuplicates()
+                .isSorted();
+    }
+
+    // The "Only 3 left" hints need it. Without it Thymeleaf compares the stock with null, which is
+    // false, so the hints would silently never show.
+    @ParameterizedTest
+    @ValueSource(strings = {"/products", "/details/{id}"})
+    void productPagesGetTheLowStockThreshold(String url) throws Exception {
+        Product apple = products.save(product("Test Apple", 10));
+
+        mvc.perform(get(url, apple.getId())).andExpect(model().attribute("lowStockThreshold", 5));
+        mvc.perform(get(url, apple.getId()).with(asCustomer())).andExpect(model().attribute("lowStockThreshold", 5));
+        mvc.perform(get(url, apple.getId()).with(asAdmin())).andExpect(model().attribute("lowStockThreshold", 5));
+    }
+
     // ---- GET /view/orders?status= ----
 
     @Test
@@ -190,6 +346,7 @@ class MainControllerTest {
                 "{\"type\": \"test\", \"name\": \"Test\", \"price\": 2.50, \"details\": \"negative\", \"stock\": -1}",
                 "{\"type\": \"test\", \"name\": \"Test\", \"price\": 2.50, \"details\": \"no stock\"}",
                 "{\"type\": \"test\", \"name\": \"Test\", \"price\": \"cheap\", \"details\": \"text\", \"stock\": 5}",
+                "{\"type\": \"test\", \"name\": \"Test\", \"price\": 2.50, \"details\": \"x\", \"stock\": 5, \"image\": \"a.png\"}",
                 "{not json"
             })
     void anInvalidNewProductGives400AndSavesNothing(String json) throws Exception {
@@ -201,6 +358,17 @@ class MainControllerTest {
                 .andExpect(status().isBadRequest());
 
         assertThat(countTestProducts()).isZero();
+    }
+
+    @Test
+    void aNewProductCanHaveAPicture() throws Exception {
+        mvc.perform(post("/product/add")
+                        .with(asAdmin())
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(newProductJson(", \"image\": \"/images/Apple.png\"")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.image").value("/images/Apple.png"));
     }
 
     @Test
@@ -266,6 +434,38 @@ class MainControllerTest {
         assertThat(edited.getDetails()).isEqualTo("New details");
         assertThat(edited.getPrice()).isEqualByComparingTo(new BigDecimal("2.00"));
         assertThat(edited.getStock()).isEqualTo(5);
+    }
+
+    private ResultActions editPicture(Product product, String image) throws Exception {
+        return mvc.perform(post("/edit/product")
+                .param("id", String.valueOf(product.getId()))
+                .param("details", "Created by a test")
+                .param("price", "1.00")
+                .param("stock", "10")
+                .param("image", image)
+                .with(asAdmin())
+                .with(csrf()));
+    }
+
+    @Test
+    void anEditCanSetAndRemoveThePicture() throws Exception {
+        Product product = products.save(product("Test Edit Me", 10));
+
+        editPicture(product, "/images/Apple.png").andExpect(redirectedUrl("/products"));
+        assertThat(reload(product).getImage()).isEqualTo("/images/Apple.png");
+
+        editPicture(product, "").andExpect(redirectedUrl("/products"));
+        assertThat(reload(product).getImage()).isNull();
+    }
+
+    @Test
+    void anEditWithABadPictureChangesNothing() throws Exception {
+        Product product = product("Test Edit Me", 10);
+        product.setImage("/images/Apple.png");
+        products.save(product);
+
+        editPicture(product, "Apple.png").andExpect(redirectedUrl("/edit/" + product.getId() + "?invalid"));
+        assertThat(reload(product).getImage()).isEqualTo("/images/Apple.png");
     }
 
     @Test

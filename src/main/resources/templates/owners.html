@@ -1,172 +1,149 @@
 <!DOCTYPE html>
-<html lang="en">
+<html th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
 
 <head>
-    <meta name="_csrf" th:content="${_csrf.token}">
-    <meta name="_csrf_header" th:content="${_csrf.headerName}">
-    <link rel="shortcut icon" type="image/png" href="/images/logo.png">
-    <title>Owner Page</title>
-    <meta charset="utf-8">
-
-    <link href="style.css" rel="stylesheet" type="text/css">
-    <script src="code.js" type="text/javascript"></script>
-
-    <!-- Bootstrap -->
-    <meta content="width=device-width, initial-scale=1" name="viewport">
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
-    <!-- Font Awesome Icons -->
-    <link crossorigin="anonymous" href="https://use.fontawesome.com/releases/v5.7.0/css/all.css"
-        integrity="sha384-lZN37f5QGtY3VHgisS14W3ExzMWZxybE1SJSEsQp9S+oqd12jhcu+A56Ebc1zFSJ" rel="stylesheet">
+    <title>Owner Dashboard</title>
 </head>
 
 <body>
-    <div th:replace="~{fragments/navbar :: navbar}"></div>
-
-    <div class="main-container" style="width: 75%; margin: auto;">
-
-        <div class="profile-card">
-            <div class="container">
-                <h4><b th:text="'Welcome, ' + ${#authentication.name} + '!'"></b></h4>
-            </div>
-            <div class="log-btns text-center">
+    <main class="space-y-8">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <h1 class="mb-0" th:text="'Hello, ' + ${#authentication.name}"></h1>
+            <div class="flex gap-2">
+                <a class="btn btn-primary" href="/view/orders">View Orders</a>
                 <form th:action="@{/logout}" method="post">
-                    <button class="login-btn btn btn-success btn-block" type="submit">Log Out</button>
+                    <button class="btn btn-secondary" type="submit">Log Out</button>
                 </form>
-
-                <a href="/view/orders">
-                    <button class="login-btn btn btn-success btn-block" type="button">View
-                        Orders
-                    </button>
-                </a>
             </div>
         </div>
 
-        <div class="dashboard my-4">
+        <section>
             <h2>Dashboard</h2>
-
-            <div class="row text-center">
-                <div class="col-md-4 mb-3">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h6 class="card-subtitle text-muted mb-2">Revenue, all time</h6>
-                            <h3
-                                th:text="'€' + ${#numbers.formatDecimal(stats.allTime.revenue, 1, 'COMMA', 2, 'POINT')}">
-                                €0.00</h3>
-                            <small th:text="${stats.allTime.orders} + ' paid or shipped orders'"></small>
-                        </div>
-                    </div>
+            <div class="grid gap-4 text-center md:grid-cols-3">
+                <div class="card">
+                    <h3 class="text-sm font-medium text-stone-500">All time revenue</h3>
+                    <p class="text-2xl font-bold"
+                        th:text="'$' + ${#numbers.formatDecimal(stats.allTime.revenue, 1, 'COMMA', 2, 'POINT')}">$0.00
+                    </p>
+                    <p class="text-sm text-stone-500" th:text="${stats.allTime.orders} + ' paid or shipped orders'"></p>
                 </div>
 
-                <div class="col-md-4 mb-3">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h6 class="card-subtitle text-muted mb-2">Revenue, last 7 days</h6>
-                            <h3
-                                th:text="'€' + ${#numbers.formatDecimal(stats.lastSevenDays.revenue, 1, 'COMMA', 2, 'POINT')}">
-                                €0.00</h3>
-                            <small th:text="${stats.lastSevenDays.orders} + ' paid or shipped orders'"></small>
-                        </div>
-                    </div>
+                <div class="card">
+                    <h3 class="text-sm font-medium text-stone-500">Revenue, last 7 days</h3>
+                    <p class="text-2xl font-bold"
+                        th:text="'€' + ${#numbers.formatDecimal(stats.lastSevenDays.revenue, 1, 'COMMA', 2, 'POINT')}">
+                        $0.00</p>
+                    <p class="text-sm text-stone-500"
+                        th:text="${stats.lastSevenDays.orders} + ' paid or shipped orders'"> </p>
                 </div>
 
-                <div class="col-md-4 mb-3">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h6 class="card-subtitle text-muted mb-2">Orders by status</h6>
-                            <ul class="list-unstyled mb-0">
-                                <li th:each="entry : ${stats.ordersByStatus}">
-                                    <a th:href="@{/view/orders(status=${entry.key})}" th:text="${entry.key}"></a>
-                                    <b th:text="${entry.value}"></b>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
+                <div class="card">
+                    <h3 class="text-sm font-medium text-stone-500">Orders by status</h3>
+                    <ul class="space-y-1 text-sm">
+                        <li th:each="entry : ${stats.ordersByStatus}">
+                            <a class="link" th:href="@{/view/orders(status=${entry.key})}" th:text="${entry.key}"></a>
+                            <b th:text="${entry.value}"></b>
+                        </li>
+                    </ul>
                 </div>
             </div>
+        </section>
 
-            <h4 class="mt-3">Low stock
-                <small class="text-muted" th:text="|(${stats.lowStockThreshold} or fewer left)|"></small>
-            </h4>
-            <p th:if="${#lists.isEmpty(stats.lowStock)}">Everything is well stocked.</p>
-            <ul class="list-group mb-3" th:unless="${#lists.isEmpty(stats.lowStock)}">
-                <li class="list-group-item d-flex justify-content-between align-items-center"
-                    th:each="product : ${stats.lowStock}">
-                    <a th:href="@{/edit/{id}(id=${product.id})}" th:text="${product.name}"></a>
+        <section>
+            <h2>Low stock
+                <small class="text-base font-normal text-stone-500"
+                    th:text="|(${stats.lowStockThreshold} or fewer left)|"></small>
+            </h2>
+            <p class="text-stone-500" th:if="${#lists.isEmpty(stats.lowStock)}">Inventory is well stocked.</p>
+            <ul class="card divide-y divide-stone-200 p-0" th:unless="${#lists.isEmpty(stats.lowStock)}">
+                <li class="flex items-center justify-between gap-4 px-4 py-3" th:each="product : ${stats.lowStock}">
+                    <a class="link" th:href="@{/edit/{id}(id=${product.id})}" th:text="${product.name}"></a>
                     <span class="badge" th:classappend="${product.stock == 0} ? 'badge-danger' : 'badge-warning'"
                         th:text="${product.stock == 0} ? 'Out of stock' : |${product.stock} left|"></span>
                 </li>
             </ul>
+        </section>
 
+        <section>
+            <h2>Recent orders</h2>
+            <p class="text-stone-500" th:if="${#lists.isEmpty(stats.recentOrders)}">No orders yet.</p>
+            <div class="card overflow-x-auto p-0" th:unless="${#lists.isEmpty(stats.recentOrders)}">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Order</th>
+                            <th>Customer</th>
+                            <th>Date</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th><span class="sr-only">Actions</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="order : ${stats.recentOrders}">
+                            <td th:text="${order.id}"></td>
+                            <td th:text="${order.user.username}"></td>
+                            <td class="whitespace-nowrap"
+                                th:text="${#temporals.format(order.createdAt, 'dd MMM yyyy, HH:mm')}"></td>
+                            <td th:text="'€' + ${#numbers.formatDecimal(order.total, 1, 'COMMA', 2, 'POINT')}"></td>
+                            <td th:text="${order.status}"></td>
+                            <td class="text-right">
+                                <a class="btn btn-secondary btn-sm" th:href="@{/orders/{id}(id=${order.id})}">View</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
 
-            <h4 class="mt-3">Recent orders</h4>
-            <p th:if="${#lists.isEmpty(stats.recentOrders)}">No orders yet.</p>
-            <table class="user-table" th:unless="${#lists.isEmpty(stats.recentOrders)}">
-                <thead>
-                    <tr>
-                        <th class="user-cell">Order</th>
-                        <th class="user-cell">Customer</th>
-                        <th class="user-cell">Date</th>
-                        <th class="user-cell">Total</th>
-                        <th class="user-cell">Status</th>
-                        <th class="user-cell"></th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="order : ${stats.recentOrders}">
-                        <td class="user-cell" th:text="${order.id}"></td>
-                        <td class="user-cell" th:text="${order.user.username}"></td>
-                        <td class="user-cell" th:text="${#temporals.format(order.createdAt, 'dd MMM yyyy, HH:mm')}">
-                        </td>
-                        <td class="user-cell"
-                            th:text="'€' + ${#numbers.formatDecimal(order.total, 1, 'COMMA', 2, 'POINT')}"></td>
-                        <td class="user-cell" th:text="${order.status}"></td>
-                        <td class="user-cell"><a th:href="@{/orders/{id}(id=${order.id})}">
-                                <button class="prd-btn btn btn-sm btn-success" type="button">View</button>
-                            </a></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <div class="owners-form">
-            <form class="was-validated" onsubmit="addProduct(event)">
-                <div class="form-group">
-                    <label class="owner-label" for="name">Type:</label>
-                    <input class="form-control" id="type" name="type" type="text" required><br><br>
+        <!--/* code.js's addProduct() reads these ids: type, name, price, details, stock, image. */-->
+        <section class="card max-w-xl">
+            <h2>Add a product</h2>
+            <form class="space-y-4" onsubmit="addProduct(event)">
+                <div>
+                    <label class="label" for="type">Type</label>
+                    <input class="input" id="type" name="type" type="text" maxlength="50" required>
                 </div>
 
-                <div class="form-group">
-                    <label class="owner-label" for="name">Name:</label>
-                    <input class="form-control" id="name" name="name" type="text" required><br><br>
+                <div>
+                    <label class="label" for="name">Name</label>
+                    <input class="input" id="name" name="name" type="text" maxlength="255" required>
                 </div>
 
-                <div class="form-group">
-                    <label class="owner-label" for="price">Price:</label>
-                    <input class="form-control" id="price" name="price" type="number" step="0.01" min="0"
-                        required><br><br>
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <div>
+                        <label class="label" for="price">Price</label>
+                        <input class="input" id="price" name="price" type="number" step="0.01" min="0" required>
+                    </div>
+
+                    <div>
+                        <label class="label" for="stock">Stock</label>
+                        <input class="input" id="stock" name="stock" type="number" min="0" required>
+                    </div>
                 </div>
 
-                <div class="form-group">
-                    <label class="owner-label" for="details">Details:</label>
-                    <input class="form-control" id="details" name="details" type="text" required><br><br>
+                <div>
+                    <label class="label" for="details">Details</label>
+                    <input class="input" id="details" name="details" type="text" maxlength="1000" required>
                 </div>
 
-                <div class="form-group">
-                    <label class="owner-label" for="stock">Stock:</label>
-                    <input class="form-control" id="stock" name="stock" type="number" min="0" required><br><br>
+                <!--/* pattern repeats the server's rule (Product.IMAGE_PATTERN); an empty field passes it. */-->
+                <div>
+                    <label class="label" for="image">Image <span class="font-normal text-stone-500">(optional)</span></label>
+                    <input class="input peer" id="image" name="image" type="text" maxlength="1000"
+                        pattern="(/|https?://).*" placeholder="/images/Apple.png or https://…">
+                    <p class="mt-1 text-sm text-stone-500 peer-user-invalid:hidden">
+                        A path in this app or a full https:// address. Leave it empty for the placeholder.
+                    </p>
+                    <p class="mt-1 hidden text-sm text-red-700 peer-user-invalid:block">
+                        Start with / (a path in this app) or with http:// or https://.
+                    </p>
                 </div>
 
-                <div class="log-btns text-center">
-                    <button class="owner-btn btn btn-success btn-block" type="submit">Add Product</button>
-                </div>
+                <button class="btn btn-primary w-full" type="submit">Add Product</button>
             </form>
-        </div>
-
-    </div>
+        </section>
+    </main>
 </body>
 
 </html>
