@@ -200,6 +200,35 @@ class MainControllerTest {
                 .andExpect(redirectedUrl("/stock"));
     }
 
+    // ---- POST /cart/buy/{id} ----
+
+    private ResultActions buy(int productId) throws Exception {
+        return mvc.perform(post("/cart/buy/{id}", productId).with(asCustomer()).with(csrf()));
+    }
+
+    @Test
+    void buyingAddsToTheCartAndGoesToCheckout() throws Exception {
+        Product product = products.save(product("Test Apple", 10));
+
+        buy(product.getId()).andExpect(redirectedUrl("/checkout"));
+        mvc.perform(get("/checkout").with(asCustomer()))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("cartCount", 1L));
+    }
+
+    @Test
+    void buyingWithNoStockLeftGoesToTheStockPage() throws Exception {
+        Product lastOne = products.save(product("Test Last One", 1));
+
+        buy(lastOne.getId()).andExpect(redirectedUrl("/checkout"));
+        buy(lastOne.getId()).andExpect(redirectedUrl("/stock"));
+    }
+
+    @Test
+    void buyingAProductThatDoesNotExistGives404() throws Exception {
+        buy(MISSING_ID).andExpect(status().isNotFound());
+    }
+
     // Every page a logged-in customer can open. A page served outside MainController
     // (like Spring Boot's own welcome page for "/") would miss cartCount and fail here.
     @ParameterizedTest

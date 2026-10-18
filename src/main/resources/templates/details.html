@@ -24,8 +24,11 @@
                 <div class="mt-6 flex flex-wrap gap-2">
                     <form th:action="@{/cart/add/{id}(id=${product.id})}" method="post" data-add-to-cart
                         th:data-name="${product.name}" th:data-image="${product.image} ? @{${product.image}}">
-                        <button class="btn btn-primary" type="submit" th:disabled="${product.stock == 0}">Add To
+                        <button class="btn btn-outline" type="submit" th:disabled="${product.stock == 0}">Add To
                             Cart</button>
+                    </form>
+                    <form th:action="@{/cart/buy/{id}(id=${product.id})}" method="post">
+                        <button class="btn btn-primary" type="submit" th:disabled="${product.stock == 0}">Buy</button>
                     </form>
                     <a class="btn btn-secondary" th:href="@{/products}">Back to products</a>
                 </div>

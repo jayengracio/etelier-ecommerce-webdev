@@ -37,6 +37,12 @@
         @apply bg-red-600 text-white hover:bg-red-700 focus-visible:outline-red-600;
     }
 
+    /* Outline buttons only colour the border that .btn already reserves (transparent),
+       so they are exactly as tall as the filled ones next to them. */
+    .btn-outline {
+        @apply border-emerald-600 text-emerald-700 hover:bg-emerald-50 focus-visible:outline-emerald-600;
+    }
+
     .btn-outline-danger {
         @apply border-red-600 text-red-700 hover:bg-red-50 focus-visible:outline-red-600;
     }

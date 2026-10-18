@@ -109,7 +109,8 @@ class SecurityConfigTest {
         "POST, /edit/1/active",
         "POST, /edit/product",
         "POST, /orders/1/ship",
-        "POST, /orders/1/refund"
+        "POST, /orders/1/refund",
+        "POST, /cart/buy/1"
     })
     void anonymousVisitorsAreSentToTheLoginPage(String method, String url) throws Exception {
         // With a CSRF token, so it's the missing login that gets refused, not the token

@@ -181,6 +181,12 @@ public class MainController {
         return cartService.addToCart(principal.getName(), id) ? "redirect:/products" : "redirect:/stock";
     }
 
+    /** The Buy button: the same add, then straight to checkout (with the whole cart). */
+    @PostMapping("/cart/buy/{id}")
+    public String buy(@PathVariable int id, Principal principal) {
+        return cartService.addToCart(principal.getName(), id) ? "redirect:/checkout" : "redirect:/stock";
+    }
+
     /** What the cart add answers code.js: the new badge count. */
     public record CartCount(long cartCount) {}
 
