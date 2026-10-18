@@ -29,7 +29,7 @@
                 </div>
 
                 <div class="card">
-                    <h3 class="test-sm font-medium text-stone-500">Revenue, last 7 days</h3>
+                    <h3 class="text-sm font-medium text-stone-500">Revenue, last 7 days</h3>
                     <p class="text-2xl font-bold"
                         th:text="'€' + ${#numbers.formatDecimal(stats.lastSevenDays.revenue, 1, 'COMMA', 2, 'POINT')}">
                         $0.00</p>
