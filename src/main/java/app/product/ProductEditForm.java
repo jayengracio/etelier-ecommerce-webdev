@@ -4,6 +4,7 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import java.math.BigDecimal;
@@ -18,4 +19,13 @@ public record ProductEditForm(
         @NotNull @DecimalMin("0.00") @Digits(integer = 8, fraction = 2)
         BigDecimal price,
 
-        @NotNull @PositiveOrZero Integer stock) {}
+        @NotNull @PositiveOrZero Integer stock,
+
+        @Size(max = 1000) @Pattern(regexp = Product.IMAGE_PATTERN, message = Product.IMAGE_MESSAGE)
+        String image) {
+
+    // Runs before validation: clearing the field removes the picture.
+    public ProductEditForm {
+        image = Product.imageOrNull(image);
+    }
+}

@@ -15,6 +15,7 @@ function addProduct(event) {
         price: Number(document.getElementById("price").value),
         details: document.getElementById("details").value,
         stock: Number(document.getElementById("stock").value),
+        image: document.getElementById("image").value,
     };
 
     var xhr = new XMLHttpRequest();
@@ -49,16 +50,37 @@ function removeProductFromCart() {
     location.reload();
 }
 
-// The search boxes on both products pages. Every product (a card or a table row) carries
-// data-type and data-name; it stays visible only when it matches both boxes.
+// ---- Product filters (fragments/product-filters.html, on both products pages) ----
+// Every product (a card or a table row) carries data-type and data-name. It stays visible when it
+// has the chosen type ("" = All) and its name contains the search text.
+
+let chosenType = "";
+
 function filterProducts() {
-    const type = document.getElementById("searchType").value.toUpperCase();
-    const name = document.getElementById("searchName").value.toUpperCase();
+    const name = document.getElementById("searchName").value.trim().toUpperCase();
+    let shown = 0;
     document.querySelectorAll("[data-type]").forEach(function (product) {
-        product.hidden = !product.dataset.type.toUpperCase().includes(type)
+        product.hidden = (chosenType !== "" && product.dataset.type !== chosenType)
             || !product.dataset.name.toUpperCase().includes(name);
+        if (!product.hidden) {
+            shown++;
+        }
     });
+    document.getElementById("no-products").hidden = shown > 0;
 }
+
+// A chip click chooses its type; aria-pressed marks it for screen readers and for the CSS.
+document.addEventListener("click", function (event) {
+    const chip = event.target.closest("[data-type-filter]");
+    if (!chip) {
+        return;
+    }
+    chosenType = chip.dataset.typeFilter;
+    document.querySelectorAll("[data-type-filter]").forEach(function (other) {
+        other.setAttribute("aria-pressed", other === chip ? "true" : "false");
+    });
+    filterProducts();
+});
 
 // ---- Add to cart without leaving the page ----
 // Forms marked data-add-to-cart are sent with fetch instead of loading a new page. The server

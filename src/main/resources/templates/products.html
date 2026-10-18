@@ -8,10 +8,7 @@
 <body>
     <main>
         <h1>Products</h1>
-        <div class="mb-4 grid gap-3 sm:grid-cols-2">
-            <input class="input" id="searchType" oninput="filterProducts()" placeholder="Search by type..." type="text">
-            <input class="input" id="searchName" oninput="filterProducts()" placeholder="Search by name..." type="text">
-        </div>
+        <div th:replace="~{fragments/product-filters :: filters}"></div>
 
         <!--/* data-type and data-name are what filterProducts() in code.js searches. */-->
         <ul class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">

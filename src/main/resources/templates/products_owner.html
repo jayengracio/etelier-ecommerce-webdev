@@ -8,10 +8,7 @@
 <body>
     <main>
         <h1>Products</h1>
-        <div class="mb-4 grid gap-3 sm:grid-cols-2">
-            <input class="input" id="searchType" oninput="filterProducts()" placeholder="Search by type..." type="text">
-            <input class="input" id="searchName" oninput="filterProducts()" placeholder="Search by name..." type="text">
-        </div>
+        <div th:replace="~{fragments/product-filters :: filters}"></div>
 
         <div class="card overflow-x-auto p-0">
             <table class="data-table">

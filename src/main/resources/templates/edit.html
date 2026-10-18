@@ -10,8 +10,8 @@
         <h1 th:text="'Details for: ' + ${product.name}">Details for: </h1>
 
         <div th:if="${param.invalid}" class="alert alert-danger">
-            Check the values: details can't be empty (max 1000 characters), price and stock can't be negative, and price
-            has at most 2 decimals.
+            Check the values: details can't be empty (max 1000 characters), price and stock can't be negative, price
+            has at most 2 decimals, and an image starts with / or http(s)://.
         </div>
 
         <form class="card space-y-4" th:action="@{/edit/product}" method="POST">
@@ -50,6 +50,19 @@
                     th:value="${product.stock}" required>
                 <p class="mt-1 hidden text-sm text-red-700 peer-user-invalid:block">
                     Stock must be a whole number, 0 or more.
+                </p>
+            </div>
+
+            <!--/* Filled with the current picture; emptying it removes the picture (placeholder). */-->
+            <div>
+                <label class="label" for="image">Image <span class="font-normal text-stone-500">(optional)</span></label>
+                <input class="input peer" id="image" name="image" type="text" maxlength="1000"
+                    pattern="(/|https?://).*" placeholder="/images/Apple.png or https://…" th:value="${product.image}">
+                <p class="mt-1 text-sm text-stone-500 peer-user-invalid:hidden">
+                    A path in this app or a full https:// address. Leave it empty for the placeholder.
+                </p>
+                <p class="mt-1 hidden text-sm text-red-700 peer-user-invalid:block">
+                    Start with / (a path in this app) or with http:// or https://.
                 </p>
             </div>
 

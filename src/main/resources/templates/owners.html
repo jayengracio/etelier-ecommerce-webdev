@@ -96,7 +96,7 @@
             </div>
         </section>
 
-        <!--/* code.js's addProduct() reads these ids: type, name, price, details, stock. */-->
+        <!--/* code.js's addProduct() reads these ids: type, name, price, details, stock, image. */-->
         <section class="card max-w-xl">
             <h2>Add a product</h2>
             <form class="space-y-4" onsubmit="addProduct(event)">
@@ -125,6 +125,19 @@
                 <div>
                     <label class="label" for="details">Details</label>
                     <input class="input" id="details" name="details" type="text" maxlength="1000" required>
+                </div>
+
+                <!--/* pattern repeats the server's rule (Product.IMAGE_PATTERN); an empty field passes it. */-->
+                <div>
+                    <label class="label" for="image">Image <span class="font-normal text-stone-500">(optional)</span></label>
+                    <input class="input peer" id="image" name="image" type="text" maxlength="1000"
+                        pattern="(/|https?://).*" placeholder="/images/Apple.png or https://…">
+                    <p class="mt-1 text-sm text-stone-500 peer-user-invalid:hidden">
+                        A path in this app or a full https:// address. Leave it empty for the placeholder.
+                    </p>
+                    <p class="mt-1 hidden text-sm text-red-700 peer-user-invalid:block">
+                        Start with / (a path in this app) or with http:// or https://.
+                    </p>
                 </div>
 
                 <button class="btn btn-primary w-full" type="submit">Add Product</button>

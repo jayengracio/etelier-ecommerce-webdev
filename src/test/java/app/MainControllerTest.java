@@ -23,6 +23,7 @@ import app.user.User;
 import app.user.UserRepository;
 import com.stripe.StripeClient;
 import java.math.BigDecimal;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -263,6 +264,33 @@ class MainControllerTest {
         mvc.perform(get(url)).andExpect(status().isOk()).andExpect(model().attribute("cartCount", 0L));
     }
 
+    @SuppressWarnings("unchecked")
+    private List<String> typeChipsFor(RequestPostProcessor who) throws Exception {
+        return (List<String>) mvc.perform(get("/products").with(who))
+                .andReturn()
+                .getModelAndView()
+                .getModel()
+                .get("types");
+    }
+
+    // A type only some hidden products have gets a chip for admins (they see hidden products) but not
+    // for customers, who would get an empty list when clicking it.
+    @Test
+    void theTypeChipsComeFromTheProductsOnThePage() throws Exception {
+        Product hidden = product("Test Hidden", 10);
+        hidden.setActive(false);
+        products.save(hidden);
+
+        assertThat(typeChipsFor(asCustomer()))
+                .doesNotContain("test")
+                .doesNotHaveDuplicates()
+                .isSorted();
+        assertThat(typeChipsFor(asAdmin()))
+                .contains("test")
+                .doesNotHaveDuplicates()
+                .isSorted();
+    }
+
     // The "Only 3 left" hints need it. Without it Thymeleaf compares the stock with null, which is
     // false, so the hints would silently never show.
     @ParameterizedTest
@@ -318,6 +346,7 @@ class MainControllerTest {
                 "{\"type\": \"test\", \"name\": \"Test\", \"price\": 2.50, \"details\": \"negative\", \"stock\": -1}",
                 "{\"type\": \"test\", \"name\": \"Test\", \"price\": 2.50, \"details\": \"no stock\"}",
                 "{\"type\": \"test\", \"name\": \"Test\", \"price\": \"cheap\", \"details\": \"text\", \"stock\": 5}",
+                "{\"type\": \"test\", \"name\": \"Test\", \"price\": 2.50, \"details\": \"x\", \"stock\": 5, \"image\": \"a.png\"}",
                 "{not json"
             })
     void anInvalidNewProductGives400AndSavesNothing(String json) throws Exception {
@@ -329,6 +358,17 @@ class MainControllerTest {
                 .andExpect(status().isBadRequest());
 
         assertThat(countTestProducts()).isZero();
+    }
+
+    @Test
+    void aNewProductCanHaveAPicture() throws Exception {
+        mvc.perform(post("/product/add")
+                        .with(asAdmin())
+                        .with(csrf())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(newProductJson(", \"image\": \"/images/Apple.png\"")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.image").value("/images/Apple.png"));
     }
 
     @Test
@@ -394,6 +434,38 @@ class MainControllerTest {
         assertThat(edited.getDetails()).isEqualTo("New details");
         assertThat(edited.getPrice()).isEqualByComparingTo(new BigDecimal("2.00"));
         assertThat(edited.getStock()).isEqualTo(5);
+    }
+
+    private ResultActions editPicture(Product product, String image) throws Exception {
+        return mvc.perform(post("/edit/product")
+                .param("id", String.valueOf(product.getId()))
+                .param("details", "Created by a test")
+                .param("price", "1.00")
+                .param("stock", "10")
+                .param("image", image)
+                .with(asAdmin())
+                .with(csrf()));
+    }
+
+    @Test
+    void anEditCanSetAndRemoveThePicture() throws Exception {
+        Product product = products.save(product("Test Edit Me", 10));
+
+        editPicture(product, "/images/Apple.png").andExpect(redirectedUrl("/products"));
+        assertThat(reload(product).getImage()).isEqualTo("/images/Apple.png");
+
+        editPicture(product, "").andExpect(redirectedUrl("/products"));
+        assertThat(reload(product).getImage()).isNull();
+    }
+
+    @Test
+    void anEditWithABadPictureChangesNothing() throws Exception {
+        Product product = product("Test Edit Me", 10);
+        product.setImage("/images/Apple.png");
+        products.save(product);
+
+        editPicture(product, "Apple.png").andExpect(redirectedUrl("/edit/" + product.getId() + "?invalid"));
+        assertThat(reload(product).getImage()).isEqualTo("/images/Apple.png");
     }
 
     @Test

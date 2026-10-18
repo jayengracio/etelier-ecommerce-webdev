@@ -96,13 +96,16 @@ public class MainController {
 
     @GetMapping("/products")
     public String products(Model model, HttpServletRequest request) {
+        boolean admin = request.isUserInRole("ADMIN");
+        List<Product> products =
+                admin ? productRepository.findAll(Sort.by("id")) : productRepository.findByActiveTrueOrderById();
+        model.addAttribute("products", products);
+        // One filter chip per type on the page, A-Z, so a new type gets a chip by itself.
+        model.addAttribute(
+                "types",
+                products.stream().map(Product::getType).distinct().sorted().toList());
         model.addAttribute("lowStockThreshold", dashboardService.lowStockThreshold());
-        if (request.isUserInRole("ADMIN")) {
-            model.addAttribute("products", productRepository.findAll(Sort.by("id")));
-            return "products_owner.html";
-        }
-        model.addAttribute("products", productRepository.findByActiveTrueOrderById());
-        return "products.html";
+        return admin ? "products_owner.html" : "products.html";
     }
 
     @GetMapping("/details/{id}")
@@ -320,6 +323,7 @@ public class MainController {
         product.setDetails(form.details());
         product.setPrice(form.price());
         product.setStock(form.stock());
+        product.setImage(form.image());
         productRepository.save(product);
         return "redirect:/products";
     }

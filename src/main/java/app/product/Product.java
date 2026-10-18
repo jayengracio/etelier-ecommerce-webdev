@@ -10,6 +10,19 @@ import java.math.BigDecimal;
 @Entity
 public class Product {
 
+    /**
+     * What the add and edit forms accept as an image: the same rule as the database's
+     * product_image_check, a path in this app or an http(s) URL.
+     */
+    public static final String IMAGE_PATTERN = "(/|https?://).*";
+
+    public static final String IMAGE_MESSAGE = "must be a path starting with / or an http(s):// URL";
+
+    /** A blank image from a form means "no picture", which the database stores as null. */
+    public static String imageOrNull(String image) {
+        return image == null || image.isBlank() ? null : image.strip();
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;

@@ -84,6 +84,11 @@
         @apply bg-stone-200 text-stone-700;
     }
 
+    /* The type filters on the products pages. aria-pressed="true" is the chosen one. */
+    .chip {
+        @apply cursor-pointer rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700 transition-colors hover:border-emerald-600 hover:text-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 aria-pressed:border-emerald-600 aria-pressed:bg-emerald-600 aria-pressed:text-white;
+    }
+
     .alert {
         @apply mb-4 rounded-md border px-4 py-3 text-sm;
     }
