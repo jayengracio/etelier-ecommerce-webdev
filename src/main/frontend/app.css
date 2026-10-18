@@ -117,4 +117,17 @@
         @apply border-t border-stone-200 px-4 py-3 align-middle;
     }
 
+    /* Navbar links that show only an icon. The link also needs the "group" class in the HTML
+       (it marks the element that group-hover: watches; @apply can't add it). */
+    .nav-icon {
+        @apply relative flex rounded-md p-2 text-stone-700 transition-colors hover:bg-stone-100 hover:text-emerald-700 focus-visible:outline-2 focus-visible:outline-emerald-600;
+    }
+
+    /* The link's name, shown under it on hover or keyboard focus. It stays in the page when
+       hidden, so screen readers still read it as the link text. Tailwind's hover: only applies
+       on devices that can hover, so phones never get a tooltip stuck open after a tap. */
+    .tooltip {
+        @apply pointer-events-none absolute top-full left-1/2 mt-2 -translate-x-1/2 rounded-md bg-stone-900 px-2 py-1 text-xs font-medium whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100;
+    }
+
 }

@@ -8,7 +8,7 @@
 <body>
     <main class="space-y-8">
         <div class="flex flex-wrap items-center justify-between gap-4">
-            <h1 class="mb-0" th:text="'Welcome, ' + ${#authentication.name}"></h1>
+            <h1 class="mb-0" th:text="'Hello, ' + ${#authentication.name}"></h1>
             <div class="flex gap-2">
                 <a class="btn btn-primary" href="/view/orders">View Orders</a>
                 <form th:action="@{/logout}" method="post">

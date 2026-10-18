@@ -1,29 +1,47 @@
 <header class="sticky top-0 z-10 border-b border-stone-200 bg-white" th:fragment="navbar"
     xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-    <nav class="mx-auto flex max-w-6xl items-center gap-6 px-4 py-3">
+    <nav class="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
         <a class="shrink-0" href="/">
-            <img alt="Home" class="size-10" src="/images/logo.svg">
+            <img alt="Web Dev Shop home" class="size-10" src="/images/logo.svg">
         </a>
-        <ul class="flex flex-wrap items-center gap-x-5 gap-y-1 text-sm font-medium">
+        <!--/* Each link is an icon plus a .tooltip span: the span is the link's name for screen
+             readers and shows on hover/focus. See .nav-icon and .tooltip in app.css. */-->
+        <ul class="flex items-center gap-1">
             <li>
-                <a class="hover:text-emerald-700" href="/">Home</a>
+                <a class="nav-icon group" href="/">
+                    <svg th:replace="~{fragments/icons :: home}"></svg>
+                    <span class="tooltip">Home</span>
+                </a>
             </li>
 
             <li>
-                <a class="hover:text-emerald-700" href="/products">Products</a>
+                <a class="nav-icon group" href="/products">
+                    <svg th:replace="~{fragments/icons :: shopping-bag}"></svg>
+                    <span class="tooltip">Products</span>
+                </a>
             </li>
 
             <li sec:authorize="hasRole('ADMIN')">
-                <a class="hover:text-emerald-700" href="/owners">Admin</a>
+                <a class="nav-icon group" href="/owners">
+                    <svg th:replace="~{fragments/icons :: chart-bar}"></svg>
+                    <span class="tooltip">Admin</span>
+                </a>
             </li>
         </ul>
-        <ul class="ml-auto flex items-center gap-5">
+        <ul class="ml-auto flex items-center gap-1">
             <li>
-                <a aria-label="Account" class="hover:text-emerald-700" href="/login"><i class="fas fa-user"></i></a>
+                <a class="nav-icon group" href="/login">
+                    <svg th:replace="~{fragments/icons :: user-circle}"></svg>
+                    <span class="tooltip" sec:authorize="isAuthenticated()">Account</span>
+                    <span class="tooltip" sec:authorize="!isAuthenticated()">Log in</span>
+                </a>
             </li>
 
             <li sec:authorize="isAuthenticated()">
-                <a aria-label="Cart" class="hover:text-emerald-700" href="/cart"><i class="fas fa-shopping-cart"></i></a>
+                <a class="nav-icon group" href="/cart">
+                    <svg th:replace="~{fragments/icons :: shopping-cart}"></svg>
+                    <span class="tooltip">Cart</span>
+                </a>
             </li>
         </ul>
     </nav>
