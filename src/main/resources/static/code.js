@@ -49,44 +49,15 @@ function removeProductFromCart() {
     location.reload();
 }
 
-function filterByName() {
-    var input, filter, table, tr, td, i, txtValue;
-    input = document.getElementById("searchName");
-    filter = input.value.toUpperCase();
-    table = document.getElementById("productTable");
-    tr = table.getElementsByTagName("tr");
-
-    for (i = 0; i < tr.length; i++) {
-        td = tr[i].getElementsByTagName("td")[1];
-        if (td) {
-            txtValue = td.textContent || td.innerText;
-            if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                tr[i].style.display = "";
-            } else {
-                tr[i].style.display = "none";
-            }
-        }
-    }
-}
-
-function filterByType() {
-    var input, filter, table, tr, td, i, txtValue;
-    input = document.getElementById("searchType");
-    filter = input.value.toUpperCase();
-    table = document.getElementById("productTable");
-    tr = table.getElementsByTagName("tr");
-
-    for (i = 0; i < tr.length; i++) {
-        td = tr[i].getElementsByTagName("td")[0];
-        if (td) {
-            txtValue = td.textContent || td.innerText;
-            if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                tr[i].style.display = "";
-            } else {
-                tr[i].style.display = "none";
-            }
-        }
-    }
+// The search boxes on both products pages. Every product (a card or a table row) carries
+// data-type and data-name; it stays visible only when it matches both boxes.
+function filterProducts() {
+    const type = document.getElementById("searchType").value.toUpperCase();
+    const name = document.getElementById("searchName").value.toUpperCase();
+    document.querySelectorAll("[data-type]").forEach(function (product) {
+        product.hidden = !product.dataset.type.toUpperCase().includes(type)
+            || !product.dataset.name.toUpperCase().includes(name);
+    });
 }
 
 (function () {
@@ -178,13 +149,16 @@ function showToast(toast, name, image, state, message) {
     document.getElementById("cart-toast-name").textContent = name;
     const img = document.getElementById("cart-toast-image");
     const noImage = document.getElementById("cart-toast-no-image");
-    img.hidden = false;
-    noImage.hidden = true;
-    img.onerror = function () { // not every product has a picture yet
+    // No data-image (the product has no picture): straight to the placeholder.
+    img.hidden = !image;
+    noImage.hidden = Boolean(image);
+    img.onerror = function () { // the picture didn't load
         img.hidden = true;
         noImage.hidden = false;
     };
-    img.src = image;
+    if (image) {
+        img.src = image;
+    }
     toast.querySelectorAll("[data-state]").forEach(function (icon) {
         icon.hidden = icon.dataset.state !== state;
     });

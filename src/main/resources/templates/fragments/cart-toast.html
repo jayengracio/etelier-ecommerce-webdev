@@ -9,7 +9,7 @@
     <div id="cart-toast" class="card pointer-events-auto flex w-full items-center gap-3 p-3 shadow-lg sm:w-80" hidden>
         <div class="relative size-12 shrink-0 overflow-hidden rounded-md bg-stone-100">
             <img id="cart-toast-image" class="size-full object-cover" alt="">
-            <!--/* Shown instead of the picture when the product has none (code.js: img.onerror). */-->
+            <!--/* Shown instead of the picture when the product has none or it doesn't load (code.js). */-->
             <span id="cart-toast-no-image" class="absolute inset-0 flex items-center justify-center text-stone-400"
                 hidden>
                 <svg th:replace="~{fragments/icons :: photo}"></svg>

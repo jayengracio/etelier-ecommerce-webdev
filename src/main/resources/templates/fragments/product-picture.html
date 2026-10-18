@@ -1,0 +1,12 @@
+<!--/* A product's picture, or a grey box with a photo icon when it has none (product.image is
+       null). "box" sizes and shapes it, "icon" sizes the placeholder icon. Pass full class names
+       (e.g. 'aspect-4/3 w-full', 'size-12') so Tailwind finds them in the calling template.
+       alt is empty because the product's name is always written next to it. */-->
+<th:block th:fragment="picture(product, box, icon)" xmlns:th="http://www.thymeleaf.org">
+    <img th:if="${product.image}" class="bg-white object-contain" th:classappend="${box}"
+        th:src="@{${product.image}}" alt="">
+    <div th:unless="${product.image}" class="flex items-center justify-center bg-stone-100 text-stone-400"
+        th:classappend="${box}">
+        <svg th:replace="~{fragments/icons :: photo(iconSize=${icon})}"></svg>
+    </div>
+</th:block>

@@ -32,6 +32,10 @@ public class Product {
     @Column(nullable = false)
     private boolean active = true;
 
+    // A path in this app ("/images/Apple.png") or a full URL; null shows a placeholder.
+    @Column(length = 1000)
+    private String image;
+
     public int getId() {
         return id;
     }
@@ -86,5 +90,13 @@ public class Product {
 
     public void setActive(boolean active) {
         this.active = active;
+    }
+
+    public String getImage() {
+        return image;
+    }
+
+    public void setImage(String image) {
+        this.image = image;
     }
 }

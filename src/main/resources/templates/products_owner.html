@@ -9,8 +9,8 @@
     <main>
         <h1>Products</h1>
         <div class="mb-4 grid gap-3 sm:grid-cols-2">
-            <input class="input" id="searchType" onkeyup="filterByType()" placeholder="Search by type..." type="text">
-            <input class="input" id="searchName" onkeyup="filterByName()" placeholder="Search by name..." type="text">
+            <input class="input" id="searchType" oninput="filterProducts()" placeholder="Search by type..." type="text">
+            <input class="input" id="searchName" oninput="filterProducts()" placeholder="Search by name..." type="text">
         </div>
 
         <div class="card overflow-x-auto p-0">
@@ -26,13 +26,18 @@
                 </thead>
 
                 <tbody>
+                    <!--/* data-type and data-name are what filterProducts() in code.js searches. */-->
                     <tr th:each="product : ${products}" th:id="|row_${product.id}|"
-                        th:classappend="${!product.active} ? 'text-stone-500'">
+                        th:classappend="${!product.active} ? 'text-stone-500'" th:data-type="${product.type}"
+                        th:data-name="${product.name}">
                         <td th:text="${product.type}"></td>
 
                         <td>
-                            <span th:text="${product.name}"></span>
-                            <span th:unless="${product.active}" class="badge badge-secondary">Hidden</span>
+                            <div class="flex items-center gap-3">
+                                <div th:replace="~{fragments/product-picture :: picture(${product}, 'size-10 shrink-0 rounded', 'size-6')}"></div>
+                                <span th:text="${product.name}"></span>
+                                <span th:unless="${product.active}" class="badge badge-secondary">Hidden</span>
+                            </div>
                         </td>
 
                         <td th:text="'€' + ${#numbers.formatDecimal(product.price, 1, 'COMMA', 2, 'POINT')}"></td>
@@ -50,9 +55,9 @@
                             <div class="flex justify-end gap-2">
                                 <form th:if="${product.active}" th:action="@{/cart/add/{id}(id=${product.id})}"
                                     method="post" data-add-to-cart th:data-name="${product.name}"
-                                    th:data-image="@{${'/images/' + product.name + '.png'}}">
-                                    <button class="btn btn-primary btn-sm whitespace-nowrap" type="submit">Add To
-                                        Cart</button>
+                                    th:data-image="${product.image} ? @{${product.image}}">
+                                    <button class="btn btn-primary btn-sm whitespace-nowrap" type="submit"
+                                        th:disabled="${product.stock == 0}">Add To Cart</button>
                                 </form>
                                 <a class="btn btn-secondary btn-sm" th:href="@{/details/{id}(id=${product.id})}">Details</a>
                                 <a class="btn btn-secondary btn-sm" th:href="@{/edit/{id}(id=${product.id})}">Edit</a>

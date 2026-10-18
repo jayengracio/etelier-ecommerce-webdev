@@ -96,9 +96,9 @@ public class MainController {
 
     @GetMapping("/products")
     public String products(Model model, HttpServletRequest request) {
+        model.addAttribute("lowStockThreshold", dashboardService.lowStockThreshold());
         if (request.isUserInRole("ADMIN")) {
             model.addAttribute("products", productRepository.findAll(Sort.by("id")));
-            model.addAttribute("lowStockThreshold", dashboardService.lowStockThreshold());
             return "products_owner.html";
         }
         model.addAttribute("products", productRepository.findByActiveTrueOrderById());
@@ -113,6 +113,7 @@ public class MainController {
                         .findById(id)
                         .filter(product -> product.isActive() || request.isUserInRole("ADMIN"))
                         .orElseThrow(() -> new ProductNotFoundException(id)));
+        model.addAttribute("lowStockThreshold", dashboardService.lowStockThreshold());
         return "details.html";
     }
 

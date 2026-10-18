@@ -6,39 +6,28 @@
 </head>
 
 <body>
-    <main class="mx-auto max-w-3xl">
-        <h1 th:text="'Details for: ' + ${product.name}">Details for: </h1>
+    <main class="mx-auto max-w-4xl">
+        <div class="card grid gap-6 md:grid-cols-2 md:gap-8">
+            <div th:replace="~{fragments/product-picture :: picture(${product}, 'aspect-4/3 w-full rounded-md', 'size-16')}"></div>
 
-        <div class="card grid gap-6 md:grid-cols-2">
-            <img class="w-full rounded-md object-contain" th:src="@{${'/images/' + product.name + '.png'}}"
-                alt="Product Image">
+            <div class="flex flex-col">
+                <p class="text-sm text-stone-500" th:text="${product.type}"></p>
+                <h1 class="mb-2" th:text="${product.name}"></h1>
+                <p class="text-2xl font-semibold"
+                    th:text="'€' + ${#numbers.formatDecimal(product.price, 0, 'COMMA', 2, 'POINT')}"></p>
+                <p class="mt-2" th:if="${product.stock == 0}"><span class="badge badge-danger">Out of stock</span></p>
+                <p class="mt-2" th:if="${product.stock > 0 and product.stock <= lowStockThreshold}">
+                    <span class="badge badge-warning" th:text="|Only ${product.stock} left|"></span>
+                </p>
+                <p class="mt-4 text-stone-700" th:text="${product.details}"></p>
 
-            <div>
-                <dl class="space-y-3 text-sm">
-                    <div>
-                        <dt class="font-medium text-stone-500">ID</dt>
-                        <dd th:text="${product.id}"></dd>
-                    </div>
-                    <div>
-                        <dt class="font-medium text-stone-500">Type</dt>
-                        <dd th:text="${product.type}"></dd>
-                    </div>
-                    <div>
-                        <dt class="font-medium text-stone-500">Price</dt>
-                        <dd th:text="'€' + ${#numbers.formatDecimal(product.price, 0, 'COMMA', 2, 'POINT')}"></dd>
-                    </div>
-                    <div>
-                        <dt class="font-medium text-stone-500">Details</dt>
-                        <dd th:text="${product.details}"></dd>
-                    </div>
-                </dl>
-
-                <div class="mt-6 flex gap-2">
+                <div class="mt-6 flex flex-wrap gap-2">
                     <form th:action="@{/cart/add/{id}(id=${product.id})}" method="post" data-add-to-cart
-                        th:data-name="${product.name}" th:data-image="@{${'/images/' + product.name + '.png'}}">
-                        <button class="btn btn-primary" type="submit">Add To Cart</button>
+                        th:data-name="${product.name}" th:data-image="${product.image} ? @{${product.image}}">
+                        <button class="btn btn-primary" type="submit" th:disabled="${product.stock == 0}">Add To
+                            Cart</button>
                     </form>
-                    <a class="btn btn-secondary" href="/products">Go Back</a>
+                    <a class="btn btn-secondary" th:href="@{/products}">Back to products</a>
                 </div>
             </div>
         </div>

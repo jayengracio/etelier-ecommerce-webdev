@@ -234,6 +234,18 @@ class MainControllerTest {
         mvc.perform(get(url)).andExpect(status().isOk()).andExpect(model().attribute("cartCount", 0L));
     }
 
+    // The "Only 3 left" hints need it. Without it Thymeleaf compares the stock with null, which is
+    // false, so the hints would silently never show.
+    @ParameterizedTest
+    @ValueSource(strings = {"/products", "/details/{id}"})
+    void productPagesGetTheLowStockThreshold(String url) throws Exception {
+        Product apple = products.save(product("Test Apple", 10));
+
+        mvc.perform(get(url, apple.getId())).andExpect(model().attribute("lowStockThreshold", 5));
+        mvc.perform(get(url, apple.getId()).with(asCustomer())).andExpect(model().attribute("lowStockThreshold", 5));
+        mvc.perform(get(url, apple.getId()).with(asAdmin())).andExpect(model().attribute("lowStockThreshold", 5));
+    }
+
     // ---- GET /view/orders?status= ----
 
     @Test
