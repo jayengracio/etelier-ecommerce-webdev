@@ -37,10 +37,16 @@
                 </a>
             </li>
 
-            <li sec:authorize="isAuthenticated()">
+            <!--/* cartCount comes from MainController; pages rendered elsewhere (errors) don't have it. */-->
+            <li sec:authorize="isAuthenticated()" th:with="count=${cartCount ?: 0}">
                 <a class="nav-icon group" href="/cart">
                     <svg th:replace="~{fragments/icons :: shopping-cart}"></svg>
-                    <span class="tooltip">Cart</span>
+                    <!--/* The number is for the eye (aria-hidden); screen readers get "Cart, 3 items" from the
+                         label below. code.js (showCartCount) updates both after an add. */-->
+                    <span id="cart-count" aria-hidden="true" th:text="${count}" th:hidden="${count == 0}"
+                        class="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-600 px-1 text-xs font-semibold text-white tabular-nums ring-2 ring-white"></span>
+                    <span class="tooltip">Cart<span id="cart-count-label" class="sr-only"
+                            th:text="${count == 1} ? ', 1 item' : |, ${count} items|"></span></span>
                 </a>
             </li>
         </ul>

@@ -45,4 +45,26 @@ class CartItemRepositoryTest {
                 .containsExactly(addedLater.getId());
         assertThat(cartItems.findByUserUsernameOrderById("test-someone-else")).hasSize(1);
     }
+
+    @Test
+    void countItemsAddsUpTheQuantitiesInThatUsersCart() {
+        User buyer = em.persist(user("test-buyer"));
+        User someoneElse = em.persist(user("test-someone-else"));
+        Product apple = em.persist(product("Test Apple", 10));
+        Product pizza = em.persist(product("Test Pizza", 10));
+        em.persist(new CartItem(buyer, apple, 2));
+        em.persist(new CartItem(buyer, pizza, 1));
+        em.persist(new CartItem(someoneElse, apple, 5));
+
+        // quantities, not lines: 2 apples + 1 pizza
+        assertThat(cartItems.countItems("test-buyer")).isEqualTo(3);
+    }
+
+    @Test
+    void countItemsIsZeroForAnEmptyCart() {
+        // SUM over no rows is NULL in SQL; COALESCE turns it into 0
+        em.persist(user("test-buyer"));
+
+        assertThat(cartItems.countItems("test-buyer")).isZero();
+    }
 }

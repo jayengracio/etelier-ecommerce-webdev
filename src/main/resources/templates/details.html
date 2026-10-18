@@ -34,7 +34,8 @@
                 </dl>
 
                 <div class="mt-6 flex gap-2">
-                    <form th:action="@{/cart/add/{id}(id=${product.id})}" method="post">
+                    <form th:action="@{/cart/add/{id}(id=${product.id})}" method="post" data-add-to-cart
+                        th:data-name="${product.name}" th:data-image="@{${'/images/' + product.name + '.png'}}">
                         <button class="btn btn-primary" type="submit">Add To Cart</button>
                     </form>
                     <a class="btn btn-secondary" href="/products">Go Back</a>

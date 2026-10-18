@@ -118,6 +118,17 @@ class SecurityConfigTest {
                 .andExpect(redirectedUrl("/login"));
     }
 
+    @Test
+    void anAnonymousScriptAddIsSentToTheLoginPageToo() throws Exception {
+        // code.js relies on this: fetch follows the redirect and the page then goes to /login.
+        // A 401 here would leave the customer looking at an error toast instead.
+        mvc.perform(post("/cart/add/1")
+                        .header("X-Requested-With", "XMLHttpRequest")
+                        .with(csrf()))
+                .andExpect(status().isFound())
+                .andExpect(redirectedUrl("/login"));
+    }
+
     @ParameterizedTest(name = "{0} {1}")
     @CsvSource({
         "GET,  /owners",

@@ -9,6 +9,7 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -37,6 +38,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
@@ -145,6 +147,91 @@ class MainControllerTest {
         mvc.perform(get("/details/{id}", hidden.getId())).andExpect(status().isNotFound());
         mvc.perform(get("/details/{id}", hidden.getId()).with(asCustomer())).andExpect(status().isNotFound());
         mvc.perform(get("/details/{id}", hidden.getId()).with(asAdmin())).andExpect(status().isOk());
+    }
+
+    // ---- POST /cart/add/{id} and the navbar's cart count ----
+
+    // What code.js sends; the header is what routes it to the JSON handler
+    private ResultActions addFromScript(int productId) throws Exception {
+        return mvc.perform(post("/cart/add/{id}", productId)
+                .header("X-Requested-With", "XMLHttpRequest")
+                .with(asCustomer())
+                .with(csrf()));
+    }
+
+    @Test
+    void aScriptAddAnswersTheNewCartCount() throws Exception {
+        Product product = products.save(product("Test Apple", 10));
+
+        addFromScript(product.getId())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.cartCount").value(1));
+        addFromScript(product.getId())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.cartCount").value(2));
+    }
+
+    @Test
+    void aScriptAddWithNoStockLeftGives409AndTheUnchangedCount() throws Exception {
+        Product lastOne = products.save(product("Test Last One", 1));
+
+        addFromScript(lastOne.getId())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.cartCount").value(1));
+        addFromScript(lastOne.getId())
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.cartCount").value(1));
+    }
+
+    @Test
+    void aScriptAddOfAProductThatDoesNotExistGives404() throws Exception {
+        addFromScript(MISSING_ID).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void aFormAddStillRedirects() throws Exception {
+        // No header: the original handler. Exact URLs, so the cartCount model attribute
+        // can't have been tacked on as ?cartCount=
+        Product lastOne = products.save(product("Test Last One", 1));
+
+        mvc.perform(post("/cart/add/{id}", lastOne.getId()).with(asCustomer()).with(csrf()))
+                .andExpect(redirectedUrl("/products"));
+        mvc.perform(post("/cart/add/{id}", lastOne.getId()).with(asCustomer()).with(csrf()))
+                .andExpect(redirectedUrl("/stock"));
+    }
+
+    // Every page a logged-in customer can open. A page served outside MainController
+    // (like Spring Boot's own welcome page for "/") would miss cartCount and fail here.
+    @ParameterizedTest
+    @ValueSource(
+            strings = {
+                "/",
+                "/products",
+                "/details/{id}",
+                "/stock",
+                "/forbid",
+                "/register",
+                "/cart",
+                "/checkout",
+                "/profile",
+                "/purchase"
+            })
+    void everyPageGetsTheCartCountForTheNavbar(String url) throws Exception {
+        Product apple = products.save(product("Test Apple", 10));
+        Product pizza = products.save(product("Test Pizza", 10));
+        addFromScript(apple.getId());
+        addFromScript(apple.getId());
+        addFromScript(pizza.getId());
+
+        mvc.perform(get(url, apple.getId()).with(asCustomer()))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("cartCount", 3L));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"/", "/products"})
+    void visitorsGetACartCountOfZero(String url) throws Exception {
+        mvc.perform(get(url)).andExpect(status().isOk()).andExpect(model().attribute("cartCount", 0L));
     }
 
     // ---- GET /view/orders?status= ----

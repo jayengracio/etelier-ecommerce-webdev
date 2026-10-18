@@ -49,7 +49,8 @@
                                  it stay lined up because the row is right-aligned. */-->
                             <div class="flex justify-end gap-2">
                                 <form th:if="${product.active}" th:action="@{/cart/add/{id}(id=${product.id})}"
-                                    method="post">
+                                    method="post" data-add-to-cart th:data-name="${product.name}"
+                                    th:data-image="@{${'/images/' + product.name + '.png'}}">
                                     <button class="btn btn-primary btn-sm whitespace-nowrap" type="submit">Add To
                                         Cart</button>
                                 </form>
