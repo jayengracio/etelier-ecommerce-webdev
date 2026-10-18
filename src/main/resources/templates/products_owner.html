@@ -7,73 +7,63 @@
 
 <body>
     <main>
-        <div class="searchDiv">
-            <h1>Products</h1>
-            <input id="searchType" onkeyup="filterByType()" placeholder="Search by type..." type="text">
-            <input id="searchName" onkeyup="filterByName()" placeholder="Search by name..." type="text">
+        <h1>Products</h1>
+        <div class="mb-4 grid gap-3 sm:grid-cols-2">
+            <input class="input" id="searchType" onkeyup="filterByType()" placeholder="Search by type..." type="text">
+            <input class="input" id="searchName" onkeyup="filterByName()" placeholder="Search by name..." type="text">
         </div>
 
-        <div class="products">
-            <table class="product-table" id="productTable">
+        <div class="card overflow-x-auto p-0">
+            <table class="data-table" id="productTable">
                 <thead>
                     <tr>
-                        <th class="prod-cell" style="width: auto">Type</th>
-                        <th class="prod-cell" style="width: auto">Name</th>
-                        <th class="prod-cell" style="width: auto">Price</th>
-                        <th class="prod-cell" style="width: auto">Stock</th>
-                        <th class="prod-cell" style="width: 130px"></th>
-                        <th class="prod-cell" style="width: 170px"></th>
-                        <th class="prod-cell" style="width: 130px"></th>
-                        <th class="prod-cell" style="width: 130px"></th>
+                        <th>Type</th>
+                        <th>Name</th>
+                        <th>Price</th>
+                        <th>Stock</th>
+                        <th><span class="sr-only">Actions</span></th>
                     </tr>
                 </thead>
 
                 <tbody>
                     <tr th:each="product : ${products}" th:id="|row_${product.id}|"
-                        th:classappend="${!product.active} ? 'text-muted'">
-                        <td class="prod-cell" th:text="${product.type}"></td>
+                        th:classappend="${!product.active} ? 'text-stone-500'">
+                        <td th:text="${product.type}"></td>
 
-                        <td class="prod-cell">
+                        <td>
                             <span th:text="${product.name}"></span>
                             <span th:unless="${product.active}" class="badge badge-secondary">Hidden</span>
                         </td>
 
-                        <td class="prod-cell"
-                            th:text="'€' + ${#numbers.formatDecimal(product.price, 1, 'COMMA', 2, 'POINT')}"></td>
+                        <td th:text="'€' + ${#numbers.formatDecimal(product.price, 1, 'COMMA', 2, 'POINT')}"></td>
 
-                        <td class="prod-cell">
+                        <td class="whitespace-nowrap">
                             <span th:text="${product.stock}"></span>
                             <span th:if="${product.stock == 0}" class="badge badge-danger">Out</span>
                             <span th:if="${product.active and product.stock > 0 and product.stock <= lowStockThreshold}"
                                 class="badge badge-warning">Low</span>
                         </td>
 
-                        <td class="prod-cell"><a th:href="@{/details/{id}(id=${product.id})}">
-                                <button class="prod-button prd-btn btn btn-sm btn-success btn-block"
-                                    type="button">Details</button>
-                            </a></td>
-
-                        <td class="prod-cell">
-                            <form th:if="${product.active}" th:action="@{/cart/add/{id}(id=${product.id})}" method="post">
-                                <button class="prod-button prd-btn btn btn-sm btn-success btn-block" type="submit">Add To
-                                    Cart</button>
-                            </form>
+                        <td>
+                            <!--/* Add To Cart comes first: hidden rows don't have it, and the buttons after
+                                 it stay lined up because the row is right-aligned. */-->
+                            <div class="flex justify-end gap-2">
+                                <form th:if="${product.active}" th:action="@{/cart/add/{id}(id=${product.id})}"
+                                    method="post">
+                                    <button class="btn btn-primary btn-sm whitespace-nowrap" type="submit">Add To
+                                        Cart</button>
+                                </form>
+                                <a class="btn btn-secondary btn-sm" th:href="@{/details/{id}(id=${product.id})}">Details</a>
+                                <a class="btn btn-secondary btn-sm" th:href="@{/edit/{id}(id=${product.id})}">Edit</a>
+                                <form th:action="@{/edit/{id}/active(id=${product.id})}" method="post">
+                                    <input type="hidden" name="active" th:value="${!product.active}">
+                                    <!--/* Full class names in both branches, so Tailwind finds them in this file. */-->
+                                    <button class="btn btn-sm w-16" type="submit"
+                                        th:classappend="${product.active} ? 'btn-outline-danger' : 'btn-primary'"
+                                        th:text="${product.active} ? 'Hide' : 'Show'"></button>
+                                </form>
+                            </div>
                         </td>
-
-                        <td class="prod-cell"><a th:href="@{/edit/{id}(id=${product.id})}">
-                                <button class="prod-button prd-btn btn btn-sm btn-success btn-block"
-                                    type="button">Edit</button>
-                            </a></td>
-
-                        <td class="prod-cell">
-                            <form th:action="@{/edit/{id}/active(id=${product.id})}" method="post">
-                                <input type="hidden" name="active" th:value="${!product.active}">
-                                <button class="prod-button prd-btn btn btn-sm btn-block" type="submit"
-                                    th:classappend="${product.active} ? 'btn-outline-danger' : 'btn-success'"
-                                    th:text="${product.active} ? 'Hide' : 'Show'"></button>
-                            </form>
-                        </td>
-
                     </tr>
                 </tbody>
             </table>

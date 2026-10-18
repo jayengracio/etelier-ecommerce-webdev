@@ -26,11 +26,19 @@
    Tailwind's utilities layer comes after components. */
 @layer components {
     .btn {
-        @apply inline-flex cursor-pointer items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+        @apply inline-flex cursor-pointer items-center justify-center rounded-md border border-transparent px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
     }
 
     .btn-primary {
         @apply bg-emerald-600 text-white hover:bg-emerald-700 focus-visible:outline-emerald-600;
+    }
+
+    .btn-danger {
+        @apply bg-red-600 text-white hover:bg-red-700 focus-visible:outline-red-600;
+    }
+
+    .btn-outline-danger {
+        @apply border-red-600 text-red-700 hover:bg-red-50 focus-visible:outline-red-600;
     }
 
     .btn-sm {
@@ -43,6 +51,31 @@
 
     .input {
         @apply block w-full rounded-md border border-stone-300 bg-white px-3 py-2 focus:border-emerald-600 focus:outline-2 focus:outline-emerald-600/30 user-invalid:border-red-600;
+    }
+
+    .label {
+        @apply mb-1 block text-sm font-medium text-stone-700;
+    }
+
+    /* The reset makes links look like plain text; this is for links inside text. */
+    .link {
+        @apply font-medium text-emerald-700 underline underline-offset-2 hover:text-emerald-800;
+    }
+
+    .badge {
+        @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap;
+    }
+
+    .badge-danger {
+        @apply bg-red-100 text-red-800;
+    }
+
+    .badge-warning {
+        @apply bg-amber-100 text-amber-800;
+    }
+
+    .badge-secondary {
+        @apply bg-stone-200 text-stone-700;
     }
 
     .alert {

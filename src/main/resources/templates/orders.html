@@ -7,56 +7,57 @@
 
 <body>
     <main>
-        <div class="searchDiv">
-            <h1 th:text="|Order ${order.id}: ${order.user.username}|"></h1>
-            <div th:if="${param.refunded}" class="alert alert-success">Refunded in Stripe. Stock added back to shelf</div>
-            <div th:if="${param.refundError}" class="alert alert-danger">
-                Refund refused by Stripe. This order is unchanged. Check this order's refund status in Dashboard.
-            </div>
+        <h1 th:text="|Order ${'#' + order.id}: ${order.user.username}|"></h1>
+        <div th:if="${param.refunded}" class="alert alert-success">Refunded in Stripe. Stock added back to shelf</div>
+        <div th:if="${param.refundError}" class="alert alert-danger">
+            Refund refused by Stripe. This order is unchanged. Check this order's refund status in Dashboard.
+        </div>
+
+        <div class="card mb-6 space-y-3">
             <p>
                 <span th:text="${#temporals.format(order.createdAt, 'dd MM yyyy, HH:mm')}"></span>
                 · Status: <b th:text="${order.status}"></b>
             </p>
-            <p th:if="${order.stripeSessionId}" class="text-muted small">
-                Stripe session: <code th:text="${order.stripeSessionId}"></code>
+            <!--/* break-all: the session id is one long word and would widen the page on phones. */-->
+            <p th:if="${order.stripeSessionId}" class="text-sm text-stone-500">
+                Stripe session: <code class="break-all" th:text="${order.stripeSessionId}"></code>
                 <th:block th:if="${order.stripePaymentIntentId}">
-                    · <a th:href="|https://dashboard.stripe.com/test/payments/${order.stripePaymentIntentId}|"
+                    · <a class="link" th:href="|https://dashboard.stripe.com/test/payments/${order.stripePaymentIntentId}|"
                         target="_blank" rel="noopener">View payment in Stripe</a>
                 </th:block>
             </p>
 
-            <form th:if="${order.shippable}" th:action="@{/orders/{id}/ship(id=${order.id})}" method="post">
-                <button class="btn btn-success" type="submit">Mark as shipped</button>
-            </form>
-            <form th:if="${order.refundable}" th:action="@{/orders/{id}/refund(id=${order.id})}" method="post" class="mt-2"
-                onsubmit="return confirm('Refund this order?');">
-                <button class="btn btn-danger" type="submit">Refund</button>
-            </form>
-
+            <div th:if="${order.shippable or order.refundable}" class="flex flex-wrap gap-2">
+                <form th:if="${order.shippable}" th:action="@{/orders/{id}/ship(id=${order.id})}" method="post">
+                    <button class="btn btn-primary" type="submit">Mark as shipped</button>
+                </form>
+                <form th:if="${order.refundable}" th:action="@{/orders/{id}/refund(id=${order.id})}" method="post"
+                    onsubmit="return confirm('Refund this order?');">
+                    <button class="btn btn-danger" type="submit">Refund</button>
+                </form>
+            </div>
         </div>
 
-        <div class="products">
-            <table class="product-table" id="productTable">
+        <div class="card overflow-x-auto p-0">
+            <table class="data-table">
                 <thead>
                     <tr>
-                        <th class="prod-cell">Name</th>
-                        <th class="prod-cell">Qty</th>
-                        <th class="prod-cell">Price</th>
-                        <th class="prod-cell">Subtotal</th>
+                        <th>Name</th>
+                        <th>Qty</th>
+                        <th>Price</th>
+                        <th>Subtotal</th>
                     </tr>
                 </thead>
 
                 <tbody>
                     <tr th:each="item : ${order.items}">
-                        <td class="prod-cell" th:text="${item.product.name}"></td>
-                        <td class="prod-cell" th:text="${item.quantity}"></td>
-                        <td class="prod-cell"
-                            th:text="'€' + ${#numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 2, 'POINT')}"></td>
-                        <td class="prod-cell"
-                            th:text="'€' + ${#numbers.formatDecimal(item.lineTotal, 0, 'COMMA', 2, 'POINT')}"></td>
+                        <td th:text="${item.product.name}"></td>
+                        <td th:text="${item.quantity}"></td>
+                        <td th:text="'€' + ${#numbers.formatDecimal(item.unitPrice, 0, 'COMMA', 2, 'POINT')}"></td>
+                        <td th:text="'€' + ${#numbers.formatDecimal(item.lineTotal, 0, 'COMMA', 2, 'POINT')}"></td>
                     </tr>
                     <tr>
-                        <td class="total-cell" colspan="4"
+                        <td class="text-right font-bold" colspan="4"
                             th:text="'Total: €' + ${#numbers.formatDecimal(order.total, 0, 'COMMA', 2, 'POINT')}"></td>
                     </tr>
                 </tbody>
