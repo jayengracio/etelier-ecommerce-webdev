@@ -5,7 +5,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import app.TestContainerConfiguration;
+import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
@@ -14,7 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.context.annotation.Import;
-import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.dao.DataIntegrityViolationException;
 
 @DataJpaTest
@@ -158,17 +162,20 @@ class ProductRepositoryTest {
                 .hasMessageContaining("product_image_check");
     }
 
-    // Catches a typo in a migration that sets a path, like '/images/apple.png'.
+    // Catches a typo in a migration that sets a path, like '/images/apple.png'. It compares with the
+    // real file names: Windows would also open "apple.png", but inside the jar and on Linux the
+    // case must match.
     @Test
-    void everyPicturePathInTheDatabaseHasAFile() {
+    void everyPicturePathInTheDatabaseHasAFile() throws IOException {
+        Set<String> files = Arrays.stream(
+                        new PathMatchingResourcePatternResolver().getResources("classpath:static/images/*"))
+                .map(file -> "/images/" + file.getFilename())
+                .collect(Collectors.toSet());
         List<String> paths = products.findAll().stream()
                 .map(Product::getImage)
                 .filter(image -> image != null && image.startsWith("/"))
                 .toList();
 
-        assertThat(paths)
-                .allSatisfy(path -> assertThat(new ClassPathResource("static" + path).exists())
-                        .as(path)
-                        .isTrue());
+        assertThat(paths).isSubsetOf(files);
     }
 }

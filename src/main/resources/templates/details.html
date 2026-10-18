@@ -14,7 +14,7 @@
                 <p class="text-sm text-stone-500" th:text="${product.type}"></p>
                 <h1 class="mb-2" th:text="${product.name}"></h1>
                 <p class="text-2xl font-semibold"
-                    th:text="'€' + ${#numbers.formatDecimal(product.price, 0, 'COMMA', 2, 'POINT')}"></p>
+                    th:text="'€' + ${#numbers.formatDecimal(product.price, 1, 'COMMA', 2, 'POINT')}"></p>
                 <p class="mt-2" th:if="${product.stock == 0}"><span class="badge badge-danger">Out of stock</span></p>
                 <p class="mt-2" th:if="${product.stock > 0 and product.stock <= lowStockThreshold}">
                     <span class="badge badge-warning" th:text="|Only ${product.stock} left|"></span>

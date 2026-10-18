@@ -30,14 +30,14 @@
                     <tr th:each="item : ${items}">
                         <td th:text="${item.product.id}"></td>
                         <td th:text="${item.product.name}"></td>
-                        <td th:text="'€' + ${#numbers.formatDecimal(item.product.price, 0, 'COMMA', 2, 'POINT')}"></td>
+                        <td th:text="'€' + ${#numbers.formatDecimal(item.product.price, 1, 'COMMA', 2, 'POINT')}"></td>
                         <td>
                             <span th:text="${item.quantity}"></span>
                             <small class="block text-red-700" th:if="${item.quantity > item.product.stock}"
                                 th:text="|Only ${item.product.stock} left|"></small>
                             <small class="block text-red-700" th:unless="${item.product.active}">No longer sold. Please remove from your cart.</small>
                         </td>
-                        <td th:text="'€' + ${#numbers.formatDecimal(item.lineTotal, 0, 'COMMA', 2, 'POINT')}"></td>
+                        <td th:text="'€' + ${#numbers.formatDecimal(item.lineTotal, 1, 'COMMA', 2, 'POINT')}"></td>
                         <td>
                             <div class="flex justify-end gap-2">
                                 <a class="btn btn-secondary btn-sm" th:href="@{/details/{id}(id=${item.product.id})}">Details</a>

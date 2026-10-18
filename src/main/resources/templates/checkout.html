@@ -36,7 +36,7 @@
                     <tr th:each="item : ${items}">
                         <td th:text="${item.product.name}"></td>
                         <td th:text="${item.quantity}"></td>
-                        <td th:text="'€' + ${#numbers.formatDecimal(item.lineTotal, 0, 'COMMA', 2, 'POINT')}"></td>
+                        <td th:text="'€' + ${#numbers.formatDecimal(item.lineTotal, 1, 'COMMA', 2, 'POINT')}"></td>
                         <td>
                             <button class="btn btn-secondary btn-sm" th:onclick="|removeProduct(${item.product.id})|"
                                 type="button">Remove</button>
@@ -45,7 +45,7 @@
 
                     <tr>
                         <td class="text-right text-lg font-bold" colspan="4"
-                            th:text="'Total: €' + ${#numbers.formatDecimal(total, 0, 'COMMA', 2, 'POINT')}"></td>
+                            th:text="'Total: €' + ${#numbers.formatDecimal(total, 1, 'COMMA', 2, 'POINT')}"></td>
                     </tr>
                 </tbody>
             </table>

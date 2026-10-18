@@ -47,7 +47,7 @@
                         <td th:text="${order.user.username}"></td>
                         <td class="whitespace-nowrap"
                             th:text="${#temporals.format(order.createdAt, 'dd MMM yyyy, HH:mm')}"></td>
-                        <td th:text="'€' + ${#numbers.formatDecimal(order.total, 0, 'COMMA', 2, 'POINT')}"></td>
+                        <td th:text="'€' + ${#numbers.formatDecimal(order.total, 1, 'COMMA', 2, 'POINT')}"></td>
                         <td th:text="${order.status}"></td>
                         <td class="text-right">
                             <a class="btn btn-secondary btn-sm" th:href="@{/orders/{id}(id=${order.id})}">View</a>

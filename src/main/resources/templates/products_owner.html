@@ -14,7 +14,7 @@
         </div>
 
         <div class="card overflow-x-auto p-0">
-            <table class="data-table" id="productTable">
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>Type</th>
@@ -27,9 +27,8 @@
 
                 <tbody>
                     <!--/* data-type and data-name are what filterProducts() in code.js searches. */-->
-                    <tr th:each="product : ${products}" th:id="|row_${product.id}|"
-                        th:classappend="${!product.active} ? 'text-stone-500'" th:data-type="${product.type}"
-                        th:data-name="${product.name}">
+                    <tr th:each="product : ${products}" th:classappend="${!product.active} ? 'text-stone-500'"
+                        th:data-type="${product.type}" th:data-name="${product.name}">
                         <td th:text="${product.type}"></td>
 
                         <td>
