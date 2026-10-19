@@ -2,6 +2,7 @@ package app;
 
 import static app.TestData.product;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -307,6 +308,29 @@ class MainControllerTest {
                 .andExpect(model().attribute("lowStockThreshold", lowStockThreshold));
         mvc.perform(get(url, apple.getId()).with(asAdmin()))
                 .andExpect(model().attribute("lowStockThreshold", lowStockThreshold));
+    }
+
+    // ---- GET / ----
+
+    @Test
+    void theHomePageFeaturesTheBestRatedProductsFirst() throws Exception {
+        // 5.00 is the highest rating there is, so the first featured product has it
+        Product best = product("Test Best", 10);
+        best.setRating(new BigDecimal("5.00"));
+        products.save(best);
+
+        assertThat(featuredOnHomePage()).extracting(Product::getRating).first().isEqualTo(new BigDecimal("5.00"));
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<Product> featuredOnHomePage() throws Exception {
+        return (List<Product>) mvc.perform(get("/"))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("featured", hasSize(MainController.FEATURED_PRODUCTS)))
+                .andReturn()
+                .getModelAndView()
+                .getModel()
+                .get("featured");
     }
 
     // ---- GET /view/orders?status= ----

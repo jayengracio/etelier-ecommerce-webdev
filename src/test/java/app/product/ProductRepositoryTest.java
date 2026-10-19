@@ -6,7 +6,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import app.TestContainerConfiguration;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -20,6 +22,7 @@ import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Limit;
 
 @DataJpaTest
 @Import(TestContainerConfiguration.class)
@@ -134,6 +137,54 @@ class ProductRepositoryTest {
                 .toList();
 
         assertThat(ids.indexOf(first.getId())).isLessThan(ids.indexOf(second.getId()));
+    }
+
+    // Home page's Featured row
+
+    private Product saveRated(String name, int stock, boolean active, String rating) {
+        Product product = product(name, stock);
+        product.setActive(active);
+        product.setRating(rating == null ? null : new BigDecimal(rating));
+        return em.persistFlushFind(product);
+    }
+
+    @Test
+    void featuredPutsTheBestRatedFirstAndUnratedProductsLast() {
+        Product best = saveRated("Test Best", 10, true, "5.00");
+        Product unrated = saveRated("Test Unrated", 10, true, null);
+
+        List<Product> featured = products.findFeatured(Limit.unlimited());
+        List<Integer> ids = featured.stream().map(Product::getId).toList();
+
+        // Without NULLS LAST, Postgres would put the unrated product first
+        assertThat(ids.indexOf(best.getId())).isLessThan(ids.indexOf(unrated.getId()));
+        assertThat(featured.getLast().getRating()).isNull();
+        assertThat(featured.stream()
+                        .map(Product::getRating)
+                        .filter(r -> r != null)
+                        .toList())
+                .isSortedAccordingTo(Comparator.reverseOrder());
+    }
+
+    @Test
+    void featuredSkipsHiddenAndSoldOutProducts() {
+        Product hidden = saveRated("Test Hidden Best", 10, false, "5.00");
+        Product soldOut = saveRated("Test Sold Out Best", 0, true, "5.00");
+
+        List<Product> featured = products.findFeatured(Limit.unlimited());
+
+        assertThat(featured).extracting(Product::getId).doesNotContain(hidden.getId(), soldOut.getId());
+        assertThat(featured).allSatisfy(product -> {
+            assertThat(product.isActive()).isTrue();
+            assertThat(product.getStock()).isPositive();
+        });
+    }
+
+    @Test
+    void featuredReturnsAtMostTheLimit() {
+        saveRated("Test Best", 10, true, "5.00");
+
+        assertThat(products.findFeatured(Limit.of(1))).hasSize(1);
     }
 
     // image: where the picture is, or null for the placeholder
