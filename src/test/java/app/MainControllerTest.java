@@ -32,6 +32,7 @@ import org.junit.jupiter.params.provider.CsvSource;
 import org.junit.jupiter.params.provider.EnumSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
@@ -74,6 +75,9 @@ class MainControllerTest {
 
     @Autowired
     JdbcTemplate jdbc;
+
+    @Value("${app.low-stock-threshold}")
+    int lowStockThreshold;
 
     private MockMvc mvc;
     private User customer;
@@ -298,9 +302,11 @@ class MainControllerTest {
     void productPagesGetTheLowStockThreshold(String url) throws Exception {
         Product apple = products.save(product("Test Apple", 10));
 
-        mvc.perform(get(url, apple.getId())).andExpect(model().attribute("lowStockThreshold", 5));
-        mvc.perform(get(url, apple.getId()).with(asCustomer())).andExpect(model().attribute("lowStockThreshold", 5));
-        mvc.perform(get(url, apple.getId()).with(asAdmin())).andExpect(model().attribute("lowStockThreshold", 5));
+        mvc.perform(get(url, apple.getId())).andExpect(model().attribute("lowStockThreshold", lowStockThreshold));
+        mvc.perform(get(url, apple.getId()).with(asCustomer()))
+                .andExpect(model().attribute("lowStockThreshold", lowStockThreshold));
+        mvc.perform(get(url, apple.getId()).with(asAdmin()))
+                .andExpect(model().attribute("lowStockThreshold", lowStockThreshold));
     }
 
     // ---- GET /view/orders?status= ----
