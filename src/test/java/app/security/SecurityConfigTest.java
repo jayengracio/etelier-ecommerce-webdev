@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.request;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -17,6 +18,9 @@ import app.TestContainerConfiguration;
 import app.product.Product;
 import app.product.ProductRepository;
 import com.stripe.StripeClient;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Pattern;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,6 +30,8 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.http.HttpMethod;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
@@ -211,5 +217,42 @@ class SecurityConfigTest {
                 .andExpect(status().isForbidden());
 
         assertThat(isActive(product)).isTrue();
+    }
+
+    @Test
+    void anonymousVisitorsGetEveryFontTheStylesheetNames() throws Exception {
+        // app.css loads the fonts by relative URL (url("fonts/...") → /fonts/...). Without
+        // the permit, the browser gets a 302 to /login instead of the font and silently
+        // falls back to a system font.
+        String css = mvc.perform(get("/app.css")).andReturn().getResponse().getContentAsString();
+        List<String> fonts = Pattern.compile("url\\([\"']?(fonts/[^\"')]+)")
+                .matcher(css)
+                .results()
+                .map(match -> match.group(1))
+                .toList();
+        assertThat(fonts).isNotEmpty();
+
+        // Windows finds "fonts/Inter.woff2" for "fonts/inter.woff2"; the jar and Linux don't
+        List<String> files = Arrays.stream(
+                        new PathMatchingResourcePatternResolver().getResources("classpath:static/fonts/*"))
+                .map(Resource::getFilename)
+                .map(name -> "fonts/" + name)
+                .toList();
+        assertThat(files).containsAll(fonts);
+
+        for (String font : fonts) {
+            mvc.perform(get("/" + font))
+                    .andExpect(status().isOk())
+                    .andExpect(content().contentType("font/woff2"));
+        }
+    }
+
+    @Test
+    void fontsAreCachedDespiteSecuritysNoStore() throws Exception {
+        // WebConfig sets the header; Security would otherwise send "no-store" and the
+        // browser would download the fonts again on every page
+        mvc.perform(get("/fonts/inter-latin.woff2"))
+                .andExpect(status().isOk())
+                .andExpect(header().string("Cache-Control", "max-age=31536000, public, immutable"));
     }
 }

@@ -8,23 +8,20 @@
              readers and shows on hover/focus. See .nav-icon and .tooltip in app.css. */-->
         <ul class="flex items-center gap-1">
             <li>
-                <a class="nav-icon group" href="/">
-                    <svg th:replace="~{fragments/icons :: home}"></svg>
-                    <span class="tooltip">Home</span>
+                <a href="/">
+                    Home
                 </a>
             </li>
 
             <li>
-                <a class="nav-icon group" href="/products">
-                    <svg th:replace="~{fragments/icons :: shopping-bag}"></svg>
-                    <span class="tooltip">Products</span>
+                <a href="/products">
+                    Products
                 </a>
             </li>
 
             <li sec:authorize="hasRole('ADMIN')">
-                <a class="nav-icon group" href="/owners">
-                    <svg th:replace="~{fragments/icons :: chart-bar}"></svg>
-                    <span class="tooltip">Admin</span>
+                <a href="/owners">
+                    Admin
                 </a>
             </li>
         </ul>

@@ -24,7 +24,8 @@ public class SecurityConfig {
                                 "/stripe/webhook", // Stripe has no login; the signature check is the auth
                                 "/app.css",
                                 "/code.js",
-                                "/images/**")
+                                "/images/**",
+                                "/fonts/**")
                         .permitAll()
                         .requestMatchers("/owners", "/product/add", "/edit/**", "/view/orders", "/orders/**")
                         .hasRole("ADMIN")
