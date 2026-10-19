@@ -23,6 +23,7 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -45,6 +46,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Controller
 public class MainController {
+
+    public static final int FEATURED_PRODUCTS =
+            4; // how many products the home page's Featured row shows (phones show the first two)
 
     private final DashboardService dashboardService;
     private final OrderRepository orderRepository;
@@ -99,7 +103,9 @@ public class MainController {
      * controller, so the page would miss cartCount and the navbar badge.
      */
     @GetMapping("/")
-    public String index() {
+    public String index(Model model) {
+        model.addAttribute("featured", productRepository.findFeatured(Limit.of(FEATURED_PRODUCTS)));
+        model.addAttribute("lowStockThreshold", dashboardService.lowStockThreshold());
         return "index.html";
     }
 

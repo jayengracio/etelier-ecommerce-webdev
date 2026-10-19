@@ -8,18 +8,18 @@
     xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
     <!--/* No border: the L4 shadow (shadow-float) plus a faint ring lifts it off the page. */-->
     <div id="cart-toast" class="pointer-events-auto flex w-full max-w-85 items-center gap-3 rounded-xl bg-white p-3 shadow-float ring-1 ring-black/6" hidden>
-        <div class="relative size-12 shrink-0 overflow-hidden rounded-md bg-stone-100">
+        <div class="relative size-12 shrink-0 overflow-hidden rounded-lg bg-zinc-100">
             <img id="cart-toast-image" class="size-full object-cover" alt="">
             <!--/* Shown instead of the picture when the product has none or it doesn't load (code.js). */-->
-            <span id="cart-toast-no-image" class="absolute inset-0 flex items-center justify-center text-stone-400"
+            <span id="cart-toast-no-image" class="absolute inset-0 flex items-center justify-center text-zinc-400"
                 hidden>
                 <svg th:replace="~{fragments/icons :: photo}"></svg>
             </span>
         </div>
 
         <div class="min-w-0 flex-1">
-            <p id="cart-toast-name" class="truncate text-sm font-medium"></p>
-            <p class="mt-0.5 flex items-center gap-1.5 text-sm text-stone-600">
+            <p id="cart-toast-name" class="truncate text-sm font-strong"></p>
+            <p class="mt-0.5 flex items-center gap-1.5 text-caption font-regular text-zinc-600">
                 <!--/* code.js shows the one whose data-state matches. */-->
                 <span class="text-emerald-600" data-state="added" hidden>
                     <svg th:replace="~{fragments/icons :: check-circle}"></svg>
@@ -31,7 +31,7 @@
             </p>
         </div>
 
-        <button id="cart-toast-close" class="shrink-0 cursor-pointer self-start rounded-md p-1 text-stone-400 hover:bg-stone-100 hover:text-stone-600"
+        <button id="cart-toast-close" class="shrink-0 cursor-pointer self-start rounded-full p-1.5 text-zinc-400 transition ease-out hover:bg-zinc-100 hover:text-zinc-600"
             type="button" aria-label="Close">
             <svg th:replace="~{fragments/icons :: x-mark}"></svg>
         </button>

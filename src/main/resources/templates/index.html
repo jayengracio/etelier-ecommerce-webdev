@@ -6,12 +6,30 @@
 </head>
 
 <body>
-    <main class="text-center">
-        <h1>Browse catalogue</h1>
-        <h2 sec:authorize="isAuthenticated()" th:text="'Welcome, ' + ${#authentication.name} + '!'"></h2>
-        <h2 sec:authorize="isAnonymous()">Welcome!</h2>
+    <!--/* One welcome line, one action, then a few products: "featured" (MainController) is the
+           best-rated ones you can buy right now. sm:pt-8 adds to the layout's 64px, so the welcome
+           starts 96px down on desktop. */-->
+    <main class="flex flex-col gap-10 sm:gap-16 sm:pt-8">
+        <div class="flex flex-col items-start gap-6 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+            <!--/* wrap-break-word: a long username breaks instead of widening the page. */-->
+            <h1 class="mb-0 wrap-break-word sm:text-display-xl" sec:authorize="isAuthenticated()"
+                th:text="|Welcome, ${#authentication.name}!|">Welcome!</h1>
+            <h1 class="mb-0 sm:text-display-xl" sec:authorize="isAnonymous()">Welcome!</h1>
+            <a class="btn btn-outline" href="/products">Browse catalogue</a>
+        </div>
+
+        <section class="flex flex-col gap-4" th:unless="${featured.isEmpty()}">
+            <p class="text-eyebrow text-zinc-500 uppercase">Featured</p>
+            <!--/* Phones show the first two (the arbitrary variant hides the 3rd li onwards). */-->
+            <ul class="grid gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4 max-sm:[&>li:nth-child(n+3)]:hidden">
+                <th:block th:each="product : ${featured}">
+                    <li th:replace="~{fragments/product-card :: card(${product})}"></li>
+                </th:block>
+            </ul>
+        </section>
     </main>
 
 </body>
+
 
 </html>

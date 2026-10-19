@@ -5,7 +5,7 @@
 <th:block th:fragment="picture(product, box, icon)" xmlns:th="http://www.thymeleaf.org">
     <img th:if="${product.image}" class="bg-white object-contain" th:classappend="${box}"
         th:src="@{${product.image}}" alt="">
-    <div th:unless="${product.image}" class="flex items-center justify-center bg-stone-100 text-stone-400"
+    <div th:unless="${product.image}" class="flex items-center justify-center bg-zinc-100 text-zinc-400"
         th:classappend="${box}">
         <svg th:replace="~{fragments/icons :: photo(iconSize=${icon})}"></svg>
     </div>

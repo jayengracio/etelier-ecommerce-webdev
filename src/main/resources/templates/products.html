@@ -12,48 +12,9 @@
 
         <!--/* data-type and data-name are what filterProducts() in code.js searches. */-->
         <ul class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-            <!--/* Hover (or Tab into a card): it grows a little and its shadow deepens, as if picked up.
-                   Only scale, no upward move: a card that moved away from the pointer would lose
-                   its hover and drop back, flickering. motion-safe: no growing for people who turn
-                   off animations; they still get the shadow. */-->
-            <li th:each="product : ${products}" class="card flex flex-col overflow-hidden p-0 transition duration-200 ease-out hover:shadow-xl has-focus-visible:shadow-xl motion-safe:hover:scale-103 motion-safe:has-focus-visible:scale-103"
-                th:data-type="${product.type}" th:data-name="${product.name}">
-                <!--/* The picture is a second link to the details page, for mouse and touch. Tab and
-                       screen readers skip it, so they only meet the name link. */-->
-                <a class="block" th:href="@{/details/{id}(id=${product.id})}" tabindex="-1" aria-hidden="true">
-                    <div th:replace="~{fragments/product-picture :: picture(${product}, 'aspect-4/3 w-full', 'size-12')}"></div>
-                </a>
-
-                <!--/* flex-1 here + mt-auto on the buttons: they line up at the bottom of each row of cards. */-->
-                <div class="flex flex-1 flex-col gap-2 border-t border-stone-200 p-4">
-                    <h2 class="mb-0 text-lg leading-snug font-semibold">
-                        <a class="hover:text-emerald-700 hover:underline" th:href="@{/details/{id}(id=${product.id})}"
-                            th:text="${product.name}"></a>
-                    </h2>
-                    <p class="font-semibold"
-                        th:text="'€' + ${#numbers.formatDecimal(product.price, 1, 'COMMA', 2, 'POINT')}"></p>
-                    <p th:if="${product.stock == 0}"><span class="badge badge-danger">Out of stock</span></p>
-                    <p th:if="${product.stock > 0 and product.stock <= lowStockThreshold}">
-                        <span class="badge badge-warning" th:text="|Only ${product.stock} left|"></span>
-                    </p>
-
-                    <!--/* Two forms: Add To Cart stays on the page (code.js sends it and shows the toast);
-                           Buy is a normal post that ends on the checkout page. flex-auto: each grows from
-                           its own text width, so "Add To Cart" never gets squeezed on narrow cards. */-->
-                    <div class="mt-auto flex gap-2 pt-2">
-                        <form class="flex-auto" th:action="@{/cart/add/{id}(id=${product.id})}" method="post"
-                            data-add-to-cart th:data-name="${product.name}"
-                            th:data-image="${product.image} ? @{${product.image}}">
-                            <button class="btn btn-outline w-full whitespace-nowrap" type="submit"
-                                th:disabled="${product.stock == 0}">Add To Cart</button>
-                        </form>
-                        <form class="flex-auto" th:action="@{/cart/buy/{id}(id=${product.id})}" method="post">
-                            <button class="btn btn-primary w-full" type="submit"
-                                th:disabled="${product.stock == 0}">Buy</button>
-                        </form>
-                    </div>
-                </div>
-            </li>
+            <th:block th:each="product : ${products}">
+                <li th:replace="~{fragments/product-card :: card(${product})}"></li>
+            </th:block>
         </ul>
     </main>
 </body>
