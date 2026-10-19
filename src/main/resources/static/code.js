@@ -57,16 +57,31 @@ function removeProductFromCart() {
 let chosenType = "";
 
 function filterProducts() {
-    const name = document.getElementById("searchName").value.trim().toUpperCase();
+    const search = document.getElementById("searchName").value.trim();
+    const name = search.toUpperCase();
+    const products = document.querySelectorAll("[data-type]");
     let shown = 0;
-    document.querySelectorAll("[data-type]").forEach(function (product) {
+    products.forEach(function (product) {
         product.hidden = (chosenType !== "" && product.dataset.type !== chosenType)
             || !product.dataset.name.toUpperCase().includes(name);
         if (!product.hidden) {
             shown++;
         }
     });
+    // Same wording as the count in fragments/product-filters.html
+    document.getElementById("product-count").textContent = shown === products.length
+        ? (products.length === 1 ? "1 product" : products.length + " products")
+        : shown + " of " + products.length;
     document.getElementById("no-products").hidden = shown > 0;
+    // What was searched, e.g. "lamp" in furniture (in curly quotes)
+    const searched = [];
+    if (search !== "") {
+        searched.push("\u201c" + search + "\u201d");
+    }
+    if (chosenType !== "") {
+        searched.push("in " + chosenType);
+    }
+    document.getElementById("no-products-detail").textContent = searched.join(" ");
 }
 
 // A chip click chooses its type; aria-pressed marks it for screen readers and for the CSS.

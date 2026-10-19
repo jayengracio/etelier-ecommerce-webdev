@@ -6,9 +6,8 @@
 </head>
 
 <body>
-    <main>
-        <h1>Products</h1>
-        <div th:replace="~{fragments/product-filters :: filters}"></div>
+    <main class="flex flex-col gap-6">
+        <th:block th:replace="~{fragments/product-filters :: filters}"></th:block>
 
         <div class="card overflow-x-auto p-0">
             <table class="data-table">

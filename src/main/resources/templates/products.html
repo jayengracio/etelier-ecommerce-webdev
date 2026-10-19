@@ -6,12 +6,11 @@
 </head>
 
 <body>
-    <main>
-        <h1>Products</h1>
-        <div th:replace="~{fragments/product-filters :: filters}"></div>
+    <main class="flex flex-col gap-5 sm:gap-8">
+        <th:block th:replace="~{fragments/product-filters :: filters}"></th:block>
 
         <!--/* data-type and data-name are what filterProducts() in code.js searches. */-->
-        <ul class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+        <ul class="grid gap-4 sm:grid-cols-2 sm:gap-6 md:grid-cols-3 lg:grid-cols-4">
             <th:block th:each="product : ${products}">
                 <li th:replace="~{fragments/product-card :: card(${product})}"></li>
             </th:block>

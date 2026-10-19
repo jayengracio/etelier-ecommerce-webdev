@@ -299,7 +299,7 @@ class MainControllerTest {
     // The "Only 3 left" hints need it. Without it Thymeleaf compares the stock with null, which is
     // false, so the hints would silently never show.
     @ParameterizedTest
-    @ValueSource(strings = {"/products", "/details/{id}"})
+    @ValueSource(strings = {"/", "/products", "/details/{id}"})
     void productPagesGetTheLowStockThreshold(String url) throws Exception {
         Product apple = products.save(product("Test Apple", 10));
 
