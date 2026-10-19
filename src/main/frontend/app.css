@@ -275,6 +275,13 @@
         @apply relative flex rounded-full p-2 text-ink transition ease-out hover:bg-zinc-100;
     }
 
+    /* The page links in the navbar. From sm up they show their word; on phones only their icon
+       (the word is then sr-only, so it's still the link's name). aria-current="page" is the page
+       you're on. */
+    .nav-link {
+        @apply flex items-center rounded-full p-2 transition ease-out hover:bg-zinc-100 aria-[current=page]:font-strong sm:px-3.5;
+    }
+
     /* The link's name, shown under it on hover or keyboard focus. It stays in the page when
        hidden, so screen readers still read it as the link text. Tailwind's hover: only applies
        on devices that can hover, so phones never get a tooltip stuck open after a tap. */

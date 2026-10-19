@@ -1,30 +1,41 @@
-<header class="sticky top-0 z-10 border-b border-stone-200 bg-white" th:fragment="navbar"
+<!--/* The bar at the top of every page: the Etelier wordmark, the page links, then the account and
+       cart icons. The page links are words from sm up; on phones each shows only its icon and keeps
+       its word for screen readers (max-sm:sr-only). currentPath (MainController) marks the page
+       you're on; error pages don't have it, so nothing is marked there. */-->
+<header class="sticky top-0 z-10 border-b border-zinc-200 bg-white" th:fragment="navbar"
     xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-    <nav class="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3">
-        <a class="shrink-0" href="/">
-            <img alt="Web Dev Shop home" class="size-10" src="/images/logo.svg">
+    <nav class="mx-auto flex min-h-16 max-w-6xl items-center gap-2 px-6 py-3 sm:gap-6">
+        <!--/* The word is the link's name, so the logo next to it is decoration (alt=""). */-->
+        <a class="flex shrink-0 items-center gap-2.5 font-display text-lg/none font-medium tracking-[0.36px]" href="/">
+            <img alt="" class="size-8" src="/images/logo.svg">
+            <span>Etelier</span>
         </a>
-        <!--/* Each link is an icon plus a .tooltip span: the span is the link's name for screen
-             readers and shows on hover/focus. See .nav-icon and .tooltip in app.css. */-->
-        <ul class="flex items-center gap-1">
+
+        <ul class="flex items-center sm:gap-1">
             <li>
-                <a href="/">
-                    Home
+                <a class="nav-link" href="/" th:aria-current="${currentPath == '/'} ? 'page'">
+                    <span class="sm:hidden"><svg th:replace="~{fragments/icons :: home}"></svg></span>
+                    <span class="max-sm:sr-only">Home</span>
                 </a>
             </li>
 
             <li>
-                <a href="/products">
-                    Products
+                <a class="nav-link" href="/products" th:aria-current="${currentPath == '/products'} ? 'page'">
+                    <span class="sm:hidden"><svg th:replace="~{fragments/icons :: shopping-bag}"></svg></span>
+                    <span class="max-sm:sr-only">Products</span>
                 </a>
             </li>
 
             <li sec:authorize="hasRole('ADMIN')">
-                <a href="/owners">
-                    Admin
+                <a class="nav-link" href="/owners" th:aria-current="${currentPath == '/owners'} ? 'page'">
+                    <span class="sm:hidden"><svg th:replace="~{fragments/icons :: chart-bar}"></svg></span>
+                    <span class="max-sm:sr-only">Admin</span>
                 </a>
             </li>
         </ul>
+
+        <!--/* Icon links: the .tooltip span is the link's name for screen readers and shows on
+             hover/focus. See .nav-icon and .tooltip in app.css. */-->
         <ul class="ml-auto flex items-center gap-1">
             <li>
                 <a class="nav-icon group" href="/login">
@@ -41,7 +52,7 @@
                     <!--/* The number is for the eye (aria-hidden); screen readers get "Cart, 3 items" from the
                          label below. code.js (showCartCount) updates both after an add. */-->
                     <span id="cart-count" aria-hidden="true" th:text="${count}" th:hidden="${count == 0}"
-                        class="absolute -top-1 -right-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-600 px-1 text-xs font-semibold text-white tabular-nums ring-2 ring-white"></span>
+                        class="absolute top-0 -right-0.5 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-mint px-1.25 text-[11px]/none font-semibold text-ink tabular-nums ring-2 ring-white"></span>
                     <span class="tooltip">Cart<span id="cart-count-label" class="sr-only"
                             th:text="${count == 1} ? ', 1 item' : |, ${count} items|"></span></span>
                 </a>

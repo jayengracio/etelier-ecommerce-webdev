@@ -84,6 +84,15 @@ public class MainController {
         return principal == null ? 0 : cartItemRepository.countItems(principal.getName());
     }
 
+    /**
+     * The path of this request, so the navbar can mark the link to the page you're on
+     * (aria-current). Thymeleaf 3.1 templates can't read the request themselves.
+     */
+    @ModelAttribute("currentPath")
+    public String currentPath(HttpServletRequest request) {
+        return request.getRequestURI();
+    }
+
     // ------ PUBLIC PAGES ------
     /**
      * Spring Boot would serve index.html on its own as the "welcome page", but that skips this

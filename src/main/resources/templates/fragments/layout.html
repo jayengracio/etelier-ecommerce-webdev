@@ -7,7 +7,7 @@
 <head>
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1" name="viewport">
-    <title th:replace="${title}">Shop</title>
+    <title th:replace="${title}">Etelier</title>
     <link rel="icon" type="image/svg+xml" th:href="@{/images/logo.svg}">
 
     <!--/* code.js reads these for its POSTs. th:if: if a request ever has no token, skip them instead of failing the page. */-->
@@ -20,7 +20,7 @@
 
 <body class="flex min-h-screen flex-col">
     <header th:replace="~{fragments/navbar :: navbar}"></header>
-    <div class="mx-auto w-full max-w-6xl flex-1 px-4 py-8">
+    <div class="mx-auto w-full max-w-6xl flex-1 px-6 py-16">
         <main th:replace="${content}"></main>
     </div>
     <footer th:replace="~{fragments/footer :: footer}"></footer>

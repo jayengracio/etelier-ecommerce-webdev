@@ -536,4 +536,10 @@ class MainControllerTest {
     void shippingOrRefundingAnOrderThatDoesNotExistGives404(String url) throws Exception {
         mvc.perform(post(url, MISSING_ID).with(asAdmin()).with(csrf())).andExpect(status().isNotFound());
     }
+
+    @ParameterizedTest
+    @ValueSource(strings = {"/", "/products"})
+    void theNavbarKnowsWhichPageItIsOn(String url) throws Exception {
+        mvc.perform(get(url)).andExpect(status().isOk()).andExpect(model().attribute("currentPath", url));
+    }
 }

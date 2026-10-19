@@ -1,4 +1,6 @@
-<footer class="border-t border-stone-200 py-6 text-center text-sm text-stone-500" th:fragment="footer"
-    xmlns:th="http://www.thymeleaf.org">
-    <small th:text="|© ${#temporals.year(#temporals.createNow())} Web Dev Shop|">© Web Dev Shop</small>
+<footer class="border-t border-zinc-200 bg-white" th:fragment="footer" xmlns:th="http://www.thymeleaf.org">
+    <div class="mx-auto max-w-6xl px-6 py-6 text-center">
+        <small class="text-caption text-zinc-500"
+            th:text="|© ${#temporals.year(#temporals.createNow())} Etelier|">© Etelier</small>
+    </div>
 </footer>

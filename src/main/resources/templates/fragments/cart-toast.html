@@ -6,7 +6,8 @@
 <div th:fragment="toast" sec:authorize="isAuthenticated()" role="status"
     class="pointer-events-none fixed inset-x-4 bottom-4 z-20 flex justify-end"
     xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
-    <div id="cart-toast" class="card pointer-events-auto flex w-full items-center gap-3 p-3 shadow-lg sm:w-80" hidden>
+    <!--/* No border: the L4 shadow (shadow-float) plus a faint ring lifts it off the page. */-->
+    <div id="cart-toast" class="pointer-events-auto flex w-full max-w-85 items-center gap-3 rounded-xl bg-white p-3 shadow-float ring-1 ring-black/6" hidden>
         <div class="relative size-12 shrink-0 overflow-hidden rounded-md bg-stone-100">
             <img id="cart-toast-image" class="size-full object-cover" alt="">
             <!--/* Shown instead of the picture when the product has none or it doesn't load (code.js). */-->
