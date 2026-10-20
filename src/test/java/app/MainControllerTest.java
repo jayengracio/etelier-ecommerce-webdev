@@ -243,6 +243,37 @@ class MainControllerTest {
                 .andExpect(model().attributeDoesNotExist("total"));
     }
 
+    // ---- POST /register: register.html shows ?invalid and ?taken ----
+
+    private ResultActions register(String username, String password) throws Exception {
+        return mvc.perform(post("/register")
+                .param("username", username)
+                .param("password", password)
+                .with(csrf()));
+    }
+
+    @Test
+    void aNewAccountIsCreatedAndSentToLogIn() throws Exception {
+        register("test-newcomer", "longenough").andExpect(redirectedUrl("/login?registered"));
+
+        assertThat(users.existsByUsername("test-newcomer")).isTrue();
+    }
+
+    // The username is trimmed first, so spaces don't count towards its length
+    @ParameterizedTest
+    @CsvSource({"ab, longenough", "'   ab   ', longenough", "test-newcomer, short"})
+    void aTooShortUsernameOrPasswordIsRefused(String username, String password) throws Exception {
+        register(username, password).andExpect(redirectedUrl("/register?invalid"));
+
+        assertThat(users.existsByUsername(username.trim())).isFalse();
+    }
+
+    @Test
+    void aTakenUsernameIsRefused() throws Exception {
+        // setUp() already saved test-customer
+        register("test-customer", "longenough").andExpect(redirectedUrl("/register?taken"));
+    }
+
     // ---- POST /cart/buy/{id} ----
 
     private ResultActions buy(int productId) throws Exception {
