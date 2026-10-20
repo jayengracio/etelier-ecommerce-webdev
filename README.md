@@ -1,46 +1,26 @@
-# Etelier
+# Etelier Ecommerce Website Demo
 
 A small online shop built with Spring Boot and Thymeleaf. Customers can browse and filter products, add them to a cart or buy one straight away, pay through Stripe and see their order history. An admin gets a sales dashboard with low-stock alerts, can filter and page through every order, ship or refund paid orders, and add, edit, hide or set pictures for products.
 
 The project started as a web development group project for University ([report](docs/report.pdf), [wireframe design](docs/wireframe_design.pdf)). I decided to see if I could update, further refine and implement features as practice. The framework was upgraded, the security, database and order model were rebuilt, real payments were added, the Bootstrap pages were rebuilt with Tailwind CSS and then redesigned as **Etelier**, the catalogue was replaced with 194 real-looking products, and the whole thing is now covered by automated tests. The [Then vs now](#then-vs-now) section explains each change.
 
-## Tech stack
-
-| Layer | Choice |
-| --- | --- |
-| Language | Java 25 (Eclipse Temurin) |
-| Framework | Spring Boot 4.1.1 (Spring MVC) |
-| Views | Thymeleaf server-side templates with one shared layout; plain JavaScript (`fetch`) for the cart toast and the product filters |
-| Styling | Tailwind CSS v4, compiled at build time into one stylesheet (no CDN), with the design's colours, type sizes and radii as `@theme` tokens; Heroicons as inline SVG |
-| Fonts | Geist (headings) and Inter (text), self-hosted as WOFF2 and cached for a year |
-| Security | Spring Security: form login, BCrypt password hashing, `USER`/`ADMIN` roles, CSRF protection |
-| Persistence | Spring Data JPA (Hibernate) |
-| Validation | Bean Validation (Hibernate Validator) on request records |
-| Database | PostgreSQL 17, running in Docker |
-| Schema migrations | Flyway (versioned SQL scripts) |
-| Seed data | [DummyJSON](https://dummyjson.com/docs/products)'s product catalogue, turned into a migration by a Node script |
-| Build | Maven 3.9; `frontend-maven-plugin` downloads Node and runs the Tailwind CLI during the build |
-| Payments | Stripe Checkout (hosted payment page) and a signed webhook, via `stripe-java` |
-| Testing | JUnit 6, AssertJ, Mockito, Spring MockMvc with `spring-security-test`, Testcontainers (PostgreSQL 17) |
-| Formatting | Spotless: palantir-java-format for Java, whitespace rules for templates, CSS, JS, SQL and properties; checked by `mvn verify` |
-
 ## Run it locally
 
-### Prerequisites
+Check out [developer guide](docs/README.md) for when working on the code and/or running the tests
 
-- JDK 25
-- Maven 3.9+
-- Docker Desktop (or another Docker engine with Compose), for the database and for the tests
-- A Stripe account in test mode (a sandbox) and the [Stripe CLI](https://docs.stripe.com/stripe-cli)
+### What you need
+
+- [JDK 25](https://adoptium.net/) and [Maven 3.9+](https://maven.apache.org/download.cgi)
+- [Docker Desktop](https://www.docker.com/products/docker-desktop/), running
+- A free [Stripe account](https://dashboard.stripe.com/register) in test mode (no real money moves) and the [Stripe CLI](https://docs.stripe.com/stripe-cli)
 - An internet connection: product pictures load from DummyJSON's CDN
-- No Node.js: Maven downloads its own copy to build the stylesheet. Only the live-CSS loop and the seed script below use a local Node 24 and npm.
 
-### One-time Stripe setup
+### 1. Connect Stripe (once)
 
-Copy the secret key from the Stripe dashboard (test mode: **Developers → API keys**), then in PowerShell:
+In the Stripe Dashboard, switch to test mode and copy the secret key from **Developers → API keys**. Then run:
 
 ```powershell
-$sk = "sk_test_..."
+$sk = "sk_test_..."   # paste your secret key here
 [Environment]::SetEnvironmentVariable("STRIPE_SECRET_KEY", $sk, "User")
 
 # The webhook secret must come from the same account as the key, hence --api-key
@@ -48,36 +28,28 @@ $whsec = stripe listen --api-key $sk --print-secret
 [Environment]::SetEnvironmentVariable("STRIPE_WEBHOOK_SECRET", $whsec, "User")
 ```
 
-Restart your editor and terminals so they pick up both variables. The app refuses to start without them.
+Close and reopen your terminals (and your editor) so they pick up both variables. The app won't start without them.
 
-### Start
+### 2. Start the shop
+
+From the project folder:
 
 ```powershell
-# 1. Start PostgreSQL in the background (defined in compose.yaml)
+# Start the database (PostgreSQL in Docker) in the background
 docker compose up -d
 
-# 2. In a second terminal, keep this running: it forwards Stripe's events to the app
+# In a second terminal, leave this running: it passes Stripe's payment events to the app
 stripe listen --api-key $env:STRIPE_SECRET_KEY --events checkout.session.completed,checkout.session.expired --forward-to localhost:3000/stripe/webhook
 
-# 3. In a third terminal, start the app. Flyway creates and seeds the schema on first run.
+# In a third terminal, start the app
 mvn spring-boot:run
 ```
 
-Then open **<http://localhost:3000>**. Pay with the test card `4242 4242 4242 4242`, any future expiry date and any CVC.
+The first start takes a few minutes: Maven downloads its dependencies and a copy of Node to build the stylesheet, and the database is created and filled with the demo data. The shop is ready when the log shows `Started MyApplication`.
 
-### Edit templates and CSS without restarting
+### 3. Try it
 
-```powershell
-# Serve templates straight from src/ and don't cache them
-mvn spring-boot:run "-Dspring-boot.run.arguments=--spring.thymeleaf.prefix=file:src/main/resources/templates/ --spring.thymeleaf.cache=false"
-
-# In another terminal: rebuild app.css whenever a template or app.css changes
-cd src/main/frontend; npm run watch
-```
-
-Save, then refresh the browser. Java, `code.js`, image and font changes still need a restart. Tailwind only generates classes it finds in saved templates and `code.js`, so always write full class names (never build them from pieces).
-
-### Seed accounts
+Open **<http://localhost:3000>** and log in with one of the demo accounts:
 
 | Username | Password | Role |
 | --- | --- | --- |
@@ -87,187 +59,71 @@ Save, then refresh the browser. Java, `code.js`, image and font changes still ne
 | `Maria` | `maria2026` | USER |
 | `Kenji` | `kenji2026` | USER |
 
-### Seed products
+The shop is stocked with DummyJSON's 194 sample products in 24 types. A few are low or out of stock and one is hidden, so every admin view has something to show.
 
-The shop is stocked with DummyJSON's 194 sample products in 24 types, with pictures hot-linked from `cdn.dummyjson.com`.
+- **As a customer:** browse and filter the catalogue, add a few products to the cart and pay. Use the test card `4242 4242 4242 4242` with any future expiry date and any CVC. The order then appears as PAID on your profile.
+- **As `owner`:** see that order on the dashboard, mark it as shipped or refund it, and add, edit or hide products.
+
+### Stop
+
+Press `Ctrl+C` in the app's terminal and in the `stripe listen` terminal, then:
+
+```powershell
+docker compose down       # stop the database; accounts and orders are kept
+docker compose down -v    # or: stop and wipe it, for fresh demo data on the next start
+```
 
 <!-- markdownlint-disable MD033 -- <details> dropdowns need HTML -->
 
 <details>
-<summary><strong>What's in the seed, and how to regenerate it</strong></summary>
+<summary><strong>If something goes wrong</strong></summary>
 
-Besides pictures, each product has a brand, rating, discount, gallery and tags, and there are 582 reviews. Four products are out of stock, several are at or below the low-stock threshold, and one (a duplicate "Rolex Cellini Moonphase") is hidden, so every part of the dashboard and the admin list has something to show.
-
-`V3__dummyjson_products.sql` is generated and committed, so builds and tests never call DummyJSON. To regenerate it (only for a fresh database, because Flyway refuses an applied migration that changed):
-
-```powershell
-node scripts/dummyjson-to-sql.mjs
-docker compose down -v; mvn clean
-```
+- **"STRIPE_SECRET_KEY is not set" when the app starts:** the terminal was opened before step 1. Open a new one.
+- **A paid order stays PENDING:** `stripe listen` isn't running, or the key and the webhook secret come from different Stripe accounts. Redo step 1 with `--api-key` as shown.
+- **The database won't start, or port 5432 is in use:** another PostgreSQL is running on your machine. Stop it, or stop the other Docker container that uses the port.
+- **Flyway reports migrations it doesn't know:** the database was created by an older version of the project. Wipe it with `docker compose down -v` and run `mvn clean` once.
+- **Port 3000 is in use:** another copy of the app is still running. Stop it first.
 
 </details>
 
 <!-- markdownlint-enable MD033 -->
 
-### Stop and reset the database
+## Development
 
-```bash
-# Stop the app: Ctrl+C in the terminal running mvn
-
-docker compose down       # stop the database, keep its data
-docker compose down -v    # stop and wipe the data; Flyway rebuilds it from V1 next start
-```
-
-A database created before the migrations were squashed into V1-V3 won't start: Flyway finds migrations it no longer has. Wipe it once with `docker compose down -v`, and run `mvn clean` so old migration files don't linger in `target/classes`.
-
-### Look inside the database
-
-```bash
-docker compose exec db psql -U shop -d shop
-```
-
-Useful commands inside psql: `\dt` (list tables), `\d orders` (describe a table), `SELECT * FROM flyway_schema_history;` (applied migrations), `\q` (quit).
-
-### Build a runnable jar
-
-```bash
-mvn clean package
-java -jar target/johne-0.0.1.jar
-```
-
-### Configuration
-
-| Setting | Default | Notes |
-| --- | --- | --- |
-| HTTP port | `3000` | `server.port` in `application.properties` |
-| Database | `localhost:5432`, db/user `shop` | matches `compose.yaml` |
-| `DB_PASSWORD` env var | `devpassword` | local-only default; set the variable to override it |
-| `APP_BASE_URL` env var | `http://localhost:3000` | where Stripe sends the customer back after paying or cancelling |
-| `app.low-stock-threshold` | `13` | "Only N left" hints, Low badges and the dashboard's low-stock list |
-
-## Testing
-
-```powershell
-mvn verify                          # all 240 tests, then the Spotless format check
-mvn test "-Dtest=CartServiceTest"   # one class
-mvn spotless:apply                  # reformat the code; run this before verify if the check fails
-
-# Only the tests that need no Docker:
-mvn test "-Dtest=OrderTest,SalesTotalsTest,ProductValidationTest"
-```
-
-- **Docker must be running:** the tests use a throwaway PostgreSQL 17, never the development database.
-- **No Stripe account is needed:** Stripe is mocked, and the test profile has dummy keys.
-
-<!-- markdownlint-disable MD033 -- <details> dropdowns need HTML -->
-
-<details>
-<summary><strong>How the tests are set up</strong></summary>
-
-- **A real database per run.** Testcontainers starts PostgreSQL 17 on a random port and Flyway migrates it, so every run also checks the migrations against an empty database.
-- **Nothing reaches Stripe.** `StripeClient` is a Mockito mock in every Spring test, and `src/test/resources/application-test.properties` supplies dummy keys. If `STRIPE_SECRET_KEY` / `STRIPE_WEBHOOK_SECRET` are set, Spring uses them instead (environment variables beat properties files); the tests work either way.
-- **All Spring tests share one context and one container.** The `@SpringBootTest` classes carry identical annotations and mock beans, so Spring builds the application once. MockMvc is built from that context in each class instead of with `@AutoConfigureMockMvc`, which would start a second one.
-- **Tests work alongside the seed data instead of relying on it.** They create their own `Test ...` products and `test-...` users, check properties of the result ("contains mine", "sorted", "one more than before") rather than exact seed contents, and delete their rows afterwards.
-- **Tests read configured values** (the low-stock threshold, the number of featured products) instead of repeating them, so changing a setting can't turn the build red.
-- **Every page test renders its template.** MockMvc runs Thymeleaf, so a broken expression fails the test even though no test looks at the HTML; the tests check the model the page is given.
-
-</details>
-
-<details>
-<summary><strong>What each layer tests</strong>: 62 unit, 38 repository, 14 service and 126 web tests</summary>
-
-| Layer | Classes | What they prove |
-| --- | --- | --- |
-| Unit (62 tests, no Spring) | `OrderTest`, `SalesTotalsTest`, `ProductValidationTest` | Every order status change allowed or refused; revenue sums; every validation limit on the product records, at the boundary, including the picture path rule |
-| Repository (38, `@DataJpaTest`) | `ProductRepositoryTest`, `ReviewRepositoryTest`, `OrderRepositoryTest`, `CartItemRepositoryTest` | The conditional stock `UPDATE` (enough, the last unit, not enough), the shop list, the featured list (best rated first, unrated last, no hidden or sold-out products), the low-stock list and its count, paging by status, the dashboard aggregates, the cart count, reviews newest first, the picture and rating `CHECK`s, and that every local picture path names a real file (case included) |
-| Service (14, `@SpringBootTest`) | `CartServiceTest`, `MyApplicationTests` | Cart → PENDING order → PAID with real commits and rollbacks: stock taken once, everything rolled back when stock runs out, and a second refund waits for the first one's row lock |
-| Web (126, MockMvc) | `PaymentWebTest` | The webhook with real signatures (valid → 200; wrong secret, changed body or missing header → 400), a duplicate event taking stock once, the automatic refund when stock ran out, the admin refund's idempotency key |
-| | `SecurityConfigTest` | Every admin URL sends visitors to `/login` and refuses customers with 403; a POST without a valid CSRF token is refused, even for an admin; the stylesheet and every font it names are public, and fonts are cached for a year |
-| | `MainControllerTest` | 404 for missing and hidden products, 400 for bad JSON or an unknown status, the edit form shown again with the failing field marked, 409 for shipping or refunding an order in the wrong state; the add-to-cart JSON (new count, 409 without stock), Buy landing on checkout, the cart count and the current path (for the navbar) on every page, Home's featured products, the type chips and the hidden count, the cart total, the profile's orders newest first, the dashboard's low-stock list, the order list's filter and pages, every status's order page, setting and clearing a picture |
-
-</details>
-
-<!-- markdownlint-enable MD033 -->
+The tech stack, the 240 automated tests, editing pages without restarting, the seed script, the database and the configuration settings are in the [developer guide](docs/README.md).
 
 ## Features
 
 <!-- markdownlint-disable MD033 -- <details> dropdowns need HTML -->
 
-- **Home:** a welcome line and a Featured row with the four best-rated products in stock.
-- **Catalogue:** every product in a card grid, filtered by a name search and a chip per type.
-  <details>
-  <summary>Cards, filters and hidden products</summary>
+<details>
+<summary><strong>Show all features</strong>: browsing and buying, payment, order history, and the admin's dashboard, orders and products</summary>
 
-  Each card shows the product's picture (or a placeholder), its price and an "Only N left" or "Out of stock" hint, and lifts slightly on hover. The search and the chips filter together, and the count above the grid follows ("12 of 194"). Products an admin has hidden don't appear, and their pages return 404.
+- **Home:** a welcome line, a link to the catalogue and a Featured row with the four best-rated products in stock.
+- **Catalogue:** a card grid, open to everyone, with each product's picture (or a placeholder), price and an "Only N left" or "Out of stock" hint. Cards lift slightly on hover. A name search and one chip per type filter the list together, and the count above it follows ("12 of 194"). Products an admin has hidden don't appear, and their pages return 404.
+- **Product page:** a large picture in a photo frame, the name, details, price and stock hint. On phones Add To Cart and Buy stay pinned to the bottom of the screen.
+- **Add to cart or buy:** Add To Cart stays on the page: a small toast shows the product, and the cart badge in the navbar updates. Buy adds the product and goes straight to checkout. Both buttons are disabled when a product is out of stock.
+- **One layout:** every page shares a sticky navbar that marks the current page, and a footer. Everything works on phones, where the navbar's links become icons.
+- **Accounts:** registration (username of 3+ characters, password of 8+, unique usernames), login and logout, with visible labels, the password rule shown up front and a message under the field that's wrong.
+- **Cart:** one line per product with its picture, price and quantity, "Only N left" and "No longer sold" warnings, and a summary with the total. Adding more than is in stock is blocked.
+- **Checkout and payment:** an order summary next to the payment card. "Pay with Stripe" creates a PENDING order with each item's current price and sends the customer to Stripe's hosted payment page. When Stripe's webhook confirms the payment, the stock is taken, the order becomes PAID and those products leave the cart. If the customer never pays, the order is CANCELLED when the session expires. If stock ran out while they were paying, the payment is refunded automatically.
+- **Order history:** customers see their past orders, newest first, with dates, items and a colour badge for the status (PENDING, PAID, SHIPPED, CANCELLED, REFUNDED) on their profile.
+- **Admin dashboard** (`/owners`): revenue all time and for the last 7 days, order counts by status (each links to the filtered list), the 10 most recent orders next to the 10 emptiest products (with how many are low in total), and a form to add a product.
+- **Order management:** every order, 20 per page, filtered with status chips. An order's page shows its items next to its facts and actions, and links to its payment in the Stripe Dashboard. PAID orders can be marked as shipped, or refunded: the money goes back through Stripe and the stock returns to the shelf.
+- **Product management:** a product table with thumbnails, the same filters and a count of hidden products. Add and edit products, including an optional picture (a path in the app or an image URL), with server-side validation: a refused edit comes back with what was typed and a message under each failing field. Products can be hidden from the shop and shown again; they're never deleted, so old orders keep showing what was bought.
 
-  </details>
-
-- **Product page:** a large picture with the details, price and stock. On phones, Add To Cart and Buy stay pinned to the bottom of the screen.
-- **Add to cart or buy:** Add To Cart keeps you on the page; Buy goes straight to checkout.
-  <details>
-  <summary>The toast and the cart badge</summary>
-
-  Adding a product shows a small toast with its picture and name, and the cart badge in the navbar updates. Without JavaScript the form still posts normally. Both buttons are disabled when a product is out of stock.
-
-  </details>
-
-- **One layout:** a sticky navbar that marks the current page, and a footer. On phones, the navbar's links become icons.
-- **Accounts:** register, log in and log out.
-  <details>
-  <summary>Registration rules</summary>
-
-  Usernames need 3+ characters and must be unique; passwords need 8+. Every field has a visible label, the password rule is shown up front, and a field that's wrong gets a message under it.
-
-  </details>
-
-- **Cart:** one line per product, stock warnings and the total.
-  <details>
-  <summary>What a cart line shows</summary>
-
-  Each line shows the picture, the price each and the quantity, with an "Only N left" or "No longer sold" warning when needed. Adding more than is in stock is blocked. On phones the total and the checkout button stay pinned to the bottom of the screen.
-
-  </details>
-
-- **Checkout and payment:** pay on Stripe's hosted page; Stripe's webhook confirms the order.
-  <details>
-  <summary>How an order goes from PENDING to PAID</summary>
-
-  "Pay with Stripe" creates a PENDING order with each item's current price and sends the customer to Stripe. When Stripe's webhook confirms the payment, the stock is taken, the order becomes PAID and those products leave the cart. If the customer never pays, the order is CANCELLED when the session expires. If stock ran out while they were paying, the payment is refunded automatically.
-
-  </details>
-
-- **Order history:** past orders on the profile, newest first, each with a colour badge for its status.
-- **Admin dashboard** (`/owners`): revenue, orders by status, recent orders and low stock.
-  <details>
-  <summary>What the dashboard shows</summary>
-
-  Revenue all time and for the last 7 days, order counts by status (each links to the filtered list), the 10 most recent orders next to the 10 emptiest products (with how many are low in total), and a form to add a product.
-
-  </details>
-
-- **Order management:** every order, filtered by status, with shipping and refunds.
-  <details>
-  <summary>Paging, the order page and refunds</summary>
-
-  Orders come 20 per page, filtered with status chips. An order's page shows its items next to its facts and actions, and links to its payment in the Stripe Dashboard. PAID orders can be marked as shipped, or refunded: the money goes back through Stripe and the stock returns to the shelf.
-
-  </details>
-
-- **Product management:** add, edit, hide and show products, and set their pictures.
-  <details>
-  <summary>The product table and the edit form</summary>
-
-  The admin's product table has thumbnails, the same filters as the catalogue and a count of hidden products. A picture is a path in the app or an image URL. The server validates every edit: a refused one comes back with what was typed and a message under each failing field. Products are never deleted, only hidden, so old orders keep showing what was bought.
-
-  </details>
+</details>
 
 <!-- markdownlint-enable MD033 -->
 
 ## Then vs now
 
-The original version worked as a demo but had problems that would break a real shop. Open a category to see each change: the old behaviour, what replaced it, and why.
-
 <!-- markdownlint-disable MD033 -- <details> dropdowns need HTML -->
+
+<details>
+<summary><strong>Show what changed and why</strong>: platform, security, orders and money, payment, admin, frontend, design, seed data, tests</summary>
+
+The original version worked as a demo but had problems that would break a real shop. Open a category to see each change: the old behaviour, what replaced it, and why.
 
 <details>
 <summary><strong>Platform</strong>: Spring Boot 2.2 → 4.1, H2 → PostgreSQL with Flyway, feature packages</summary>
@@ -384,11 +240,13 @@ The original version worked as a demo but had problems that would break a real s
 
 | Before | Now | Why |
 | --- | --- | --- |
-| No automated tests; every change was checked by clicking through the site | 240 tests in four layers, run by `mvn verify` (see [Testing](#testing)) | The payment flow has cases nobody clicks through by hand: duplicate webhooks, stock running out mid-payment, two refunds at once. |
+| No automated tests; every change was checked by clicking through the site | 240 tests in four layers, run by `mvn verify` (see [Testing](docs/README.md#testing) in the developer guide) | The payment flow has cases nobody clicks through by hand: duplicate webhooks, stock running out mid-payment, two refunds at once. |
 | — | Tests run against a real PostgreSQL in Docker (Testcontainers), not an in-memory database | Row locks (`SELECT ... FOR UPDATE`), `CHECK` constraints and the Flyway migrations behave exactly as in the app. An in-memory stand-in would only imitate them. |
 | Two refund clicks at the same moment could both put the stock back | `markRefunded` locks the order row, like `completePayment` | Found while writing the tests. Stripe refunded only once (same idempotency key), but the shelf ended up with stock that didn't exist. |
 | No formatting rules | Spotless (palantir-java-format) fails the build on unformatted code | Style stops being a review topic. The one big formatting commit is listed in `.git-blame-ignore-revs`, so `git blame` skips it. |
 | A migration for every change made along the way | Squashed into V1 (schema), V2 (accounts) and V3 (the DummyJSON catalogue) | Nothing had been deployed, so no database needed the step-by-step history. Three files are easier to read than many that undo each other. |
+
+</details>
 
 </details>
 
