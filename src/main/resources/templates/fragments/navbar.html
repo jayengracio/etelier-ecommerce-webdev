@@ -28,7 +28,8 @@
             </li>
 
             <li sec:authorize="hasRole('ADMIN')">
-                <a class="nav-link" href="/owners" th:aria-current="${currentPath == '/owners'} ? 'page'">
+                <a class="nav-link" href="/owners"
+                    th:aria-current="${currentPath == '/owners'} ? 'page' : (${currentPath != null and (currentPath == '/view/orders' or currentPath.startsWith('/orders/'))} ? 'true')">
                     <span class="sm:hidden"><svg th:replace="~{fragments/icons :: chart-bar}"></svg></span>
                     <span class="max-sm:sr-only">Admin</span>
                 </a>

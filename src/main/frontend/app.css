@@ -236,9 +236,10 @@
         @apply bg-zinc-200 text-zinc-600;
     }
 
-    /* The type filters on the products pages. aria-pressed="true" is the chosen one. */
+    /* Filters: buttons on the products pages (aria-pressed="true" is the chosen one) and links on the
+       orders list (aria-current="page" is the chosen one). Both look the same when chosen. */
     .chip {
-        @apply inline-flex cursor-pointer items-center rounded-full border border-zinc-300 bg-white px-3.5 py-1.5 text-caption whitespace-nowrap text-ink transition ease-out hover:border-ink aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-white;
+        @apply inline-flex cursor-pointer items-center rounded-full border border-zinc-300 bg-white px-3.5 py-1.5 text-caption whitespace-nowrap text-ink transition ease-out hover:border-ink aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-white aria-[current=page]:border-ink aria-[current=page]:bg-ink aria-[current=page]:text-white;
     }
 
     /* A row, so an icon added in front of the text sits beside it */

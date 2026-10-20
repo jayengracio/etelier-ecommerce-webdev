@@ -3,7 +3,9 @@ package app;
 import static app.TestData.product;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.comparesEqualTo;
+import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
@@ -42,6 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.data.domain.Page;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
@@ -468,6 +471,63 @@ class MainControllerTest {
         mvc.perform(get("/view/orders").param("status", "nonsense").with(asAdmin()))
                 .andExpect(status().isBadRequest());
         mvc.perform(get("/view/orders").param("status", "PAID").with(asAdmin())).andExpect(status().isOk());
+    }
+
+    @Test
+    void theOrderListCanBeFilteredByStatus() throws Exception {
+        Order paid = orderIn(OrderStatus.PAID, null);
+        Order shipped = orderIn(OrderStatus.SHIPPED, null);
+
+        MvcResult result = mvc.perform(
+                        get("/view/orders").param("status", "PAID").with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("status", OrderStatus.PAID))
+                .andReturn();
+
+        @SuppressWarnings("unchecked")
+        Page<Order> shown = (Page<Order>) result.getModelAndView().getModel().get("orders");
+        assertThat(shown.getContent()).extracting(Order::getStatus).containsOnly(OrderStatus.PAID);
+        assertThat(shown.getContent())
+                .extracting(Order::getId)
+                .contains(paid.getId())
+                .doesNotContain(shipped.getId());
+    }
+
+    // One order per page: the first page renders a disabled Previous, a later one a disabled Next
+    @ParameterizedTest
+    @ValueSource(ints = {0, 1})
+    void theOrderListRendersItsPages(int page) throws Exception {
+        orderIn(OrderStatus.PAID, null);
+        orderIn(OrderStatus.SHIPPED, null);
+
+        mvc.perform(get("/view/orders")
+                        .param("page", String.valueOf(page))
+                        .param("size", "1")
+                        .with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("orders", hasProperty("number", is(page))));
+    }
+
+    // ---- GET /orders/{id} ----
+
+    // Every status, so each set of actions renders: ship and refund (PAID), or none
+    @ParameterizedTest
+    @EnumSource(OrderStatus.class)
+    void anOrderPageShowsTheOrder(OrderStatus orderStatus) throws Exception {
+        Order order = orderIn(orderStatus, "cs_test_" + orderStatus);
+
+        mvc.perform(get("/orders/{id}", order.getId()).with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute("order", hasProperty("id", is(order.getId()))));
+    }
+
+    @Test
+    void theOrderPagesKnowTheirPathSoTheNavbarCanMarkAdmin() throws Exception {
+        Order order = orderIn(OrderStatus.PAID, null);
+
+        mvc.perform(get("/view/orders").with(asAdmin())).andExpect(model().attribute("currentPath", "/view/orders"));
+        mvc.perform(get("/orders/{id}", order.getId()).with(asAdmin()))
+                .andExpect(model().attribute("currentPath", "/orders/" + order.getId()));
     }
 
     // ---- POST /product/add (JSON) ----
