@@ -114,7 +114,8 @@ class ProductRepositoryTest {
         Product aboveThreshold = save("Test At Six", 6, true);
         Product hiddenAndLow = save("Test Hidden Low", 1, false);
 
-        List<Product> lowStock = products.findByActiveTrueAndStockLessThanEqualOrderByStockAscNameAsc(5);
+        List<Product> lowStock =
+                products.findByActiveTrueAndStockLessThanEqualOrderByStockAscNameAsc(5, Limit.unlimited());
 
         assertThat(lowStock)
                 .extracting(Product::getId)
@@ -132,11 +133,36 @@ class ProductRepositoryTest {
         Product second = save("Test Bbb", 0, true);
         Product first = save("Test Aaa", 0, true);
 
-        List<Integer> ids = products.findByActiveTrueAndStockLessThanEqualOrderByStockAscNameAsc(5).stream()
-                .map(Product::getId)
-                .toList();
+        List<Integer> ids =
+                products.findByActiveTrueAndStockLessThanEqualOrderByStockAscNameAsc(5, Limit.unlimited()).stream()
+                        .map(Product::getId)
+                        .toList();
 
         assertThat(ids.indexOf(first.getId())).isLessThan(ids.indexOf(second.getId()));
+    }
+
+    @Test
+    void lowStockReturnsAtMostTheLimitEmptiestFirst() {
+        save("Test Empty", 0, true);
+        save("Test Low", 1, true);
+
+        List<Product> two = products.findByActiveTrueAndStockLessThanEqualOrderByStockAscNameAsc(5, Limit.of(2));
+
+        assertThat(two).hasSize(2);
+        assertThat(two).first().extracting(Product::getStock).isEqualTo(0);
+    }
+
+    @Test
+    void lowStockCountCountsTheSameProductsAsTheList() {
+        long before = products.countByActiveTrueAndStockLessThanEqual(5);
+        save("Test At Five", 5, true);
+        save("Test At Six", 6, true);
+        save("Test Hidden Low", 1, false);
+
+        assertThat(products.countByActiveTrueAndStockLessThanEqual(5)).isEqualTo(before + 1);
+        assertThat(products.countByActiveTrueAndStockLessThanEqual(5))
+                .isEqualTo(products.findByActiveTrueAndStockLessThanEqualOrderByStockAscNameAsc(5, Limit.unlimited())
+                        .size());
     }
 
     // Home page's Featured row

@@ -1,0 +1,12 @@
+<!--/* An order's status as a coloured pill: PENDING amber (waiting for Stripe), PAID mint (ready to
+       ship), SHIPPED ink (done), CANCELLED grey, REFUNDED red. One place for the colours, used by
+       every page that shows an order. th:switch with a full class name in each case, so Tailwind's
+       scan and a reader both see every class; "*" catches a status added later. */-->
+<th:block th:fragment="badge(status)" th:switch="${status.name()}" xmlns:th="http://www.thymeleaf.org">
+    <span th:case="'PENDING'" class="badge badge-warning" th:text="${status}"></span>
+    <span th:case="'PAID'" class="badge badge-success" th:text="${status}"></span>
+    <span th:case="'SHIPPED'" class="badge badge-dark" th:text="${status}"></span>
+    <span th:case="'CANCELLED'" class="badge badge-secondary" th:text="${status}"></span>
+    <span th:case="'REFUNDED'" class="badge badge-danger" th:text="${status}"></span>
+    <span th:case="*" class="badge badge-secondary" th:text="${status}"></span>
+</th:block>

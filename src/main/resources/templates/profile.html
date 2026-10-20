@@ -6,51 +6,69 @@
 </head>
 
 <body>
-    <main class="grid items-start gap-8 md:grid-cols-[16rem_1fr]">
-        <div class="card text-center">
-            <img alt="Avatar" class="mx-auto mb-4 size-32 rounded-full" src="/images/img_avatar.png">
-            <h3 th:text="'Welcome, ' + ${#authentication.name} + '!'"></h3>
-            <form th:action="@{/logout}" method="post">
-                <button class="btn btn-primary w-full" type="submit">Log Out</button>
+    <main class="grid items-start gap-8 md:grid-cols-[16.25rem_minmax(0,1fr)] md:gap-12">
+        <div class="card flex flex-col items-center gap-4 text-center sm:p-6">
+            <!--/* alt="": the greeting next to it already says whose profile this is */-->
+            <img alt="" class="size-24 rounded-full bg-zinc-100" src="/images/img_avatar.png">
+            <h2 class="mb-0 text-heading-md" th:text="'Welcome, ' + ${#authentication.name} + '!'"></h2>
+            <!--/* An outline pill: logging out shouldn't be the loudest thing on the page */-->
+            <form class="w-full" th:action="@{/logout}" method="post">
+                <button class="btn btn-outline btn-sm w-full" type="submit">Log Out</button>
             </form>
         </div>
 
-        <div>
-            <h1>Your order history</h1>
-            <p class="text-stone-500" th:if="${orders.isEmpty()}">You haven't ordered anything yet.</p>
+        <div class="flex flex-col gap-6">
+            <h1 class="mb-0">Your order history</h1>
+            <p class="text-zinc-500" th:if="${orders.isEmpty()}">Looks like you haven't placed an order yet.</p>
 
-            <div class="card mb-6 overflow-x-auto p-0" th:each="order : ${orders}">
-                <h3 class="px-4 pt-4 text-base">
-                    Order #<span th:text="${order.id}"></span>
-                    · <span th:text="${#temporals.format(order.createdAt, 'dd MM yyyy, HH:mm')}"></span>
-                    · <span th:text="${order.status}"></span>
-                </h3>
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Qty</th>
-                            <th>Price</th>
-                            <th>Subtotal</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr th:each="item : ${order.items}">
-                            <td th:text="${item.product.name}"></td>
-                            <td th:text="${item.quantity}"></td>
-                            <td th:text="'€' + ${#numbers.formatDecimal(item.unitPrice, 1, 'COMMA', 2, 'POINT')}"></td>
-                            <td th:text="'€' + ${#numbers.formatDecimal(item.lineTotal, 1, 'COMMA', 2, 'POINT')}"></td>
-                        </tr>
-                        <tr>
-                            <td class="text-right font-bold" colspan="4"
-                                th:text="'Total: €' + ${#numbers.formatDecimal(order.total, 1, 'COMMA', 2, 'POINT')}"></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+            <!--/* One card per order: number and date on the left, the status badge on the right, then
+                   the lines. Only the table scrolls sideways if it must, not the header above it. */-->
+            <section class="card overflow-hidden p-0" th:each="order : ${orders}">
+                <div class="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-6 py-5">
+                    <div class="flex flex-wrap items-baseline gap-x-3">
+                        <h2 class="mb-0 text-heading-sm" th:text="|Order #${order.id}|"></h2>
+                        <time class="text-caption font-regular text-zinc-500" th:datetime="${order.createdAt}"
+                            th:text="${#temporals.format(order.createdAt, 'dd MMM yyyy, HH:mm')}"></time>
+                    </div>
+                    <span th:replace="~{fragments/status-badge :: badge(${order.status})}"></span>
+                </div>
+
+                <!--/* The unit price hides on phones; its cells hide in every row, the total's too, so the
+                       columns stay lined up (see checkout.html). */-->
+                <div class="overflow-x-auto">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th class="text-right">Qty</th>
+                                <th class="text-right max-sm:hidden">Price</th>
+                                <th class="text-right">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="item : ${order.items}">
+                                <td th:text="${item.product.name}"></td>
+                                <td class="text-right tabular-nums" th:text="${item.quantity}"></td>
+                                <td class="text-right whitespace-nowrap tabular-nums max-sm:hidden"
+                                    th:text="'€' + ${#numbers.formatDecimal(item.unitPrice, 1, 'COMMA', 2, 'POINT')}"></td>
+                                <td class="text-right whitespace-nowrap tabular-nums"
+                                    th:text="'€' + ${#numbers.formatDecimal(item.lineTotal, 1, 'COMMA', 2, 'POINT')}"></td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td>Total</td>
+                                <td></td>
+                                <td class="max-sm:hidden"></td>
+                                <td class="text-right whitespace-nowrap tabular-nums"
+                                    th:text="'€' + ${#numbers.formatDecimal(order.total, 1, 'COMMA', 2, 'POINT')}"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </section>
         </div>
     </main>
-
 </body>
 
 </html>

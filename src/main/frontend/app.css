@@ -190,6 +190,16 @@
         @apply bg-zinc-100 text-ink hover:not-disabled:bg-zinc-200;
     }
 
+    /* Mint is a fill only; the text stays ink (a PAID order) */
+    .badge-success {
+        @apply bg-mint text-ink;
+    }
+
+    /* Ink: finished, nothing left to do (a SHIPPED order) */
+    .badge-dark {
+        @apply bg-ink text-white;
+    }
+
     /* No fill until hovered: small actions repeated on every row (the cart's Details and Remove). */
     .btn-ghost {
         @apply bg-transparent text-ink hover:not-disabled:bg-zinc-100;

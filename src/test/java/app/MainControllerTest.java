@@ -16,6 +16,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
+import app.admin.DashboardService;
 import app.order.Order;
 import app.order.OrderItem;
 import app.order.OrderRepository;
@@ -26,6 +27,9 @@ import app.user.User;
 import app.user.UserRepository;
 import com.stripe.StripeClient;
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,6 +47,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -241,6 +246,60 @@ class MainControllerTest {
         mvc.perform(get("/cart").with(asCustomer()))
                 .andExpect(view().name("empty.html"))
                 .andExpect(model().attributeDoesNotExist("total"));
+    }
+
+    // ---- GET /profile ----
+
+    // One order in every status, so the page renders each status badge, the lines and the dates
+    @Test
+    void theProfileShowsOnlyMyOrdersNewestFirst() throws Exception {
+        Product apple = products.save(product("Test Apple", 10));
+        Instant now = Instant.now();
+        List<Integer> newestFirst = new ArrayList<>();
+        OrderStatus[] statuses = OrderStatus.values();
+        for (int i = 0; i < statuses.length; i++) {
+            Order order = new Order(customer);
+            order.addItem(new OrderItem(apple, 1, apple.getPrice()));
+            order.setTotal(apple.getPrice());
+            order.setStatus(statuses[i]);
+            // Before the first save: created_at is updatable = false, a later save ignores it
+            order.setCreatedAt(now.minus(i, ChronoUnit.HOURS));
+            newestFirst.add(orders.save(order).getId());
+        }
+        Order someoneElses = new Order(users.save(TestData.user("test-someone-else")));
+        someoneElses.setTotal(BigDecimal.ONE);
+        orders.save(someoneElses);
+
+        MvcResult result = mvc.perform(get("/profile").with(asCustomer()))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        @SuppressWarnings("unchecked")
+        List<Order> shown = (List<Order>) result.getModelAndView().getModel().get("orders");
+        assertThat(shown).extracting(Order::getId).containsExactlyElementsOf(newestFirst);
+    }
+
+    // ---- GET /owners ----
+
+    // With an order, so the recent-orders table and its status badge render too
+    @Test
+    void theDashboardListsTheEmptiestProductsAndCountsThemAll() throws Exception {
+        orderIn(OrderStatus.PAID, null);
+        products.save(product("Test Empty", 0));
+
+        MvcResult result = mvc.perform(get("/owners").with(asAdmin()))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        DashboardService.Stats stats =
+                (DashboardService.Stats) result.getModelAndView().getModel().get("stats");
+        long lowInAll = products.countByActiveTrueAndStockLessThanEqual(lowStockThreshold);
+        assertThat(stats.lowStockCount()).isEqualTo(lowInAll);
+        assertThat(stats.lowStock())
+                .hasSize((int) Math.min(DashboardService.LOW_STOCK_SHOWN, lowInAll))
+                .extracting(Product::getStock)
+                .isSorted();
+        assertThat(stats.recentOrders()).isNotEmpty();
     }
 
     // ---- POST /register: register.html shows ?invalid and ?taken ----
