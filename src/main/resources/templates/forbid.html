@@ -2,17 +2,17 @@
 <html th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
 
 <head>
-    <title>Access Denied!</title>
+    <title>Access Denied - Etelier</title>
 </head>
 
 <body>
-    <main class="mx-auto max-w-lg">
-        <div class="card text-center">
-            <h1>You don't have access to this!</h1>
-            <a class="btn btn-primary" href="/login">Log In</a>
-        </div>
+    <!--/* A dead end, like stock.html and error/404.html. The status code is the marker: big but thin
+           (Geist 330), so it reads as a label, not a shout. aria-hidden: the heading says it in words. */-->
+    <main class="flex flex-col items-center gap-6 py-12 text-center">
+        <p class="font-display text-display-xl" aria-hidden="true">403</p>
+        <h1 class="mb-0 text-heading-xl">You do not have access to this.</h1>
+        <a class="btn btn-primary" href="/login">Log In</a>
     </main>
-
 </body>
 
 </html>

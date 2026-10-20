@@ -2,60 +2,67 @@
 <html th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
 
 <head>
-    <title>Products as Owner</title>
+    <title>Edit Products - Etelier</title>
 </head>
 
 <body>
-    <main>
-        <h1>Products</h1>
-        <div th:replace="~{fragments/product-filters :: filters}"></div>
+    <main class="flex flex-col gap-6">
+        <th:block th:replace="~{fragments/product-filters :: filters}"></th:block>
 
         <div class="card overflow-x-auto p-0">
             <table class="data-table">
                 <thead>
                     <tr>
+                        <th>Product</th>
                         <th>Type</th>
-                        <th>Name</th>
-                        <th>Price</th>
+                        <th class="text-right">Price</th>
                         <th>Stock</th>
                         <th><span class="sr-only">Actions</span></th>
                     </tr>
                 </thead>
 
                 <tbody>
-                    <!--/* data-type and data-name are what filterProducts() in code.js searches. */-->
-                    <tr th:each="product : ${products}" th:classappend="${!product.active} ? 'text-stone-500'"
+                    <!--/* data-type and data-name are what filterProducts() in code.js searches. A hidden
+                           product's row is grey; its badges keep their own colours. */-->
+                    <tr th:each="product : ${products}" th:classappend="${!product.active} ? 'text-zinc-500'"
                         th:data-type="${product.type}" th:data-name="${product.name}">
-                        <td th:text="${product.type}"></td>
-
                         <td>
                             <div class="flex items-center gap-3">
-                                <div th:replace="~{fragments/product-picture :: picture(${product}, 'size-10 shrink-0 rounded', 'size-6')}"></div>
-                                <span th:text="${product.name}"></span>
+                                <div class="size-10 shrink-0 overflow-hidden rounded-lg border border-zinc-200">
+                                    <div th:replace="~{fragments/product-picture :: picture(${product}, 'aspect-square w-full', 'size-5')}"></div>
+                                </div>
+                                <span class="font-strong" th:text="${product.name}"></span>
                                 <span th:unless="${product.active}" class="badge badge-secondary">Hidden</span>
                             </div>
                         </td>
 
-                        <td th:text="'€' + ${#numbers.formatDecimal(product.price, 1, 'COMMA', 2, 'POINT')}"></td>
+                        <td class="text-eyebrow text-zinc-500 uppercase" th:text="${product.type}"></td>
 
-                        <td class="whitespace-nowrap">
-                            <span th:text="${product.stock}"></span>
-                            <span th:if="${product.stock == 0}" class="badge badge-danger">Out</span>
-                            <span th:if="${product.active and product.stock > 0 and product.stock <= lowStockThreshold}"
-                                class="badge badge-warning">Low</span>
+                        <td class="text-right whitespace-nowrap tabular-nums"
+                            th:text="'€' + ${#numbers.formatDecimal(product.price, 1, 'COMMA', 2, 'POINT')}"></td>
+
+                        <!--/* min-w-5: one- and two-digit stocks take the same room, so the badges line up */-->
+                        <td>
+                            <div class="flex items-center gap-2">
+                                <span class="min-w-5 tabular-nums" th:text="${product.stock}"></span>
+                                <span th:if="${product.stock == 0}" class="badge badge-danger">Out</span>
+                                <span th:if="${product.active and product.stock > 0 and product.stock <= lowStockThreshold}"
+                                    class="badge badge-warning">Low</span>
+                            </div>
                         </td>
 
                         <td>
-                            <!--/* Add To Cart comes first: hidden rows don't have it, and the buttons after
-                                 it stay lined up because the row is right-aligned. */-->
-                            <div class="flex justify-end gap-2">
+                            <!--/* Graded, so no button shouts: Add To Cart outline, Details ghost, Edit grey, Hide
+                                   outline-danger. Add To Cart comes first: hidden rows don't have it, and the
+                                   buttons after it stay lined up because the row is right-aligned. */-->
+                            <div class="flex justify-end gap-1.5">
                                 <form th:if="${product.active}" th:action="@{/cart/add/{id}(id=${product.id})}"
                                     method="post" data-add-to-cart th:data-name="${product.name}"
                                     th:data-image="${product.image} ? @{${product.image}}">
-                                    <button class="btn btn-primary btn-sm whitespace-nowrap" type="submit"
+                                    <button class="btn btn-outline btn-sm" type="submit"
                                         th:disabled="${product.stock == 0}">Add To Cart</button>
                                 </form>
-                                <a class="btn btn-secondary btn-sm" th:href="@{/details/{id}(id=${product.id})}">Details</a>
+                                <a class="btn btn-ghost btn-sm" th:href="@{/details/{id}(id=${product.id})}">Details</a>
                                 <a class="btn btn-secondary btn-sm" th:href="@{/edit/{id}(id=${product.id})}">Edit</a>
                                 <form th:action="@{/edit/{id}/active(id=${product.id})}" method="post">
                                     <input type="hidden" name="active" th:value="${!product.active}">

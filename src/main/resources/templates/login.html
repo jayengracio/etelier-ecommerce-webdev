@@ -2,27 +2,48 @@
 <html th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
 
 <head>
-    <title>Login</title>
+    <title>Login - Etelier</title>
 </head>
 
 <body>
-    <main class="mx-auto max-w-sm">
-        <div class="card">
-            <h2>Login</h2>
-            <div class="alert alert-danger" th:if="${param.error}">Wrong username or password.</div>
-            <div class="alert alert-info" th:if="${param.logout}">You've been logged out.</div>
-            <div class="alert alert-success" th:if="${param.registered}">Account created, please log in.</div>
-            <form class="space-y-4" th:action="@{/login}" method="POST">
-                <input class="input" id="username" name="username" placeholder="Username" type="text">
-                <input class="input" id="pass" name="password" placeholder="Password" type="password">
-                <div class="space-y-2 pt-2">
+    <main class="flex justify-center py-8">
+        <div class="card flex w-full max-w-100 flex-col gap-5">
+            <h1 class="mb-0 text-heading-xl">Log in</h1>
+
+            <div class="alert alert-danger mb-0" th:if="${param.error}" role="alert">
+                <span class="shrink-0"><svg th:replace="~{fragments/icons :: exclamation-circle}"></svg></span>
+                <p>Wrong username or password.</p>
+            </div>
+            <div class="alert alert-info mb-0" th:if="${param.logout}" role="status">
+                <p>You've been logged out.</p>
+            </div>
+            <div class="alert alert-success mb-0" th:if="${param.registered}" role="status">
+                <span class="shrink-0"><svg th:replace="~{fragments/icons :: check-circle}"></svg></span>
+                <p>Account created, please log in.</p>
+            </div>
+
+            <!--/* Visible labels: a placeholder disappears as soon as you type. The ids stay #username and
+                   #pass (browser tests fill them). autocomplete lets password managers fill the form. */-->
+            <form class="flex flex-col gap-5" th:action="@{/login}" method="POST">
+                <div>
+                    <label class="label" for="username">Username</label>
+                    <input class="input" id="username" name="username" type="text" autocomplete="username" required>
+                </div>
+                <div>
+                    <label class="label" for="pass">Password</label>
+                    <input class="input" id="pass" name="password" type="password" autocomplete="current-password"
+                        required>
+                </div>
+
+                <!--/* Register is an outline pill under a hairline, so it doesn't compete with Log In. */-->
+                <div class="flex flex-col gap-3 pt-1">
                     <button class="btn btn-primary w-full" type="submit">Log In</button>
-                    <a class="btn btn-secondary w-full" href="/register">Register</a>
+                    <hr class="my-1 border-zinc-200">
+                    <a class="btn btn-outline w-full" href="/register">Register</a>
                 </div>
             </form>
         </div>
     </main>
-
 </body>
 
 </html>

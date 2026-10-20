@@ -2,15 +2,15 @@
 <html th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
 
 <head>
-    <title>Out of Stock!</title>
+    <title>Out Of Stock - Etelier</title>
 </head>
 
 <body>
-    <main class="mx-auto max-w-lg">
-        <div class="card text-center">
-            <h1>This product is out of stock</h1>
-            <a class="btn btn-primary" href="/products">Go back to shop</a>
-        </div>
+    <!--/* A dead end, like forbid.html and error/404.html: no card, centred, one marker, one line, one action. */-->
+    <main class="flex flex-col items-center gap-6 py-12 text-center">
+        <span class="badge badge-danger">Out of stock</span>
+        <h1 class="mb-0 text-heading-xl sm:text-display-md">This product is out of stock</h1>
+        <a class="btn btn-primary" href="/products">Go back to shop</a>
     </main>
 </body>
 

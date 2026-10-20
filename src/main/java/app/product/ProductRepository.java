@@ -1,6 +1,7 @@
 package app.product;
 
 import java.util.List;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -18,6 +19,14 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
     // Shop: only products that are for sale, in a stable order
     List<Product> findByActiveTrueOrderById();
 
-    // Dashboard: hidden products don't need restocking
-    List<Product> findByActiveTrueAndStockLessThanEqualOrderByStockAscNameAsc(int threshold);
+    // Dashboard: hidden products don't need restocking. The emptiest first, at most limit of them
+    List<Product> findByActiveTrueAndStockLessThanEqualOrderByStockAscNameAsc(int threshold, Limit limit);
+
+    // Dashboard: how many there are in all, for "10 of 35"
+    long countByActiveTrueAndStockLessThanEqual(int threshold);
+
+    // Home page: the best-rated products you can buy right now. NULLS LAST: products added in the
+    // admin have no rating, and Postgres puts NULL first in a DESC order.
+    @Query("SELECT p FROM Product p WHERE p.active = true AND p.stock > 0 ORDER BY p.rating DESC NULLS LAST, p.id")
+    List<Product> findFeatured(Limit limit);
 }

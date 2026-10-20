@@ -2,54 +2,94 @@
 <html th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
 
 <head>
-    <title>Checkout</title>
+    <title>Checkout - Etelier</title>
 </head>
 
 <body>
-    <main class="grid items-start gap-6 lg:grid-cols-3">
-        <div class="card lg:col-span-2">
-            <div th:if="${param.cancelled}" class="alert alert-warning">
-                Payment cancelled. Your cart is still here
-            </div>
-            <div th:if="${param.paymentError}" class="alert alert-danger">
-                We couldn't reach the payment provider. Please try again
+    <main class="flex flex-col gap-6 md:gap-8">
+        <h1 class="mb-0">Checkout</h1>
+
+        <!--/* Above both columns: what happened to the last attempt to pay */-->
+        <div th:if="${param.cancelled}" class="alert alert-warning mb-0" role="status">
+            <span class="shrink-0"><svg th:replace="~{fragments/icons :: exclamation-circle}"></svg></span>
+            <p>Payment cancelled. Your cart is still here</p>
+        </div>
+        <div th:if="${param.paymentError}" class="alert alert-danger mb-0" role="alert">
+            <span class="shrink-0"><svg th:replace="~{fragments/icons :: exclamation-circle}"></svg></span>
+            <p>We couldn't reach the payment provider. Please try again</p>
+        </div>
+
+        <!--/* The order is the main column; from lg up the payment card sits to its right, so the
+               amount is next to the button. Below md the card is replaced by the bar at the bottom. */-->
+        <div class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_23.75rem] lg:gap-8">
+            <div class="card overflow-x-auto p-0">
+                <!--/* Phones drop two columns: Qty moves under the name (below sm), Remove goes (below md;
+                       the cart page still has it). Each row, the total too, hides the same cells, so
+                       the columns stay lined up; a colspan would shift the total. */-->
+                <table class="data-table" id="cartTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th class="text-right max-sm:hidden">Qty</th>
+                            <th class="text-right">Subtotal</th>
+                            <th class="max-md:hidden"><span class="sr-only">Actions</span></th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <tr th:each="item : ${items}" th:with="product=${item.product}">
+                            <td>
+                                <div class="flex items-center gap-3">
+                                    <div class="size-11 shrink-0 overflow-hidden rounded-lg border border-zinc-200">
+                                        <div th:replace="~{fragments/product-picture :: picture(${product}, 'aspect-square w-full', 'size-5')}"></div>
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span class="font-strong" th:text="${product.name}"></span>
+                                        <span class="text-micro text-zinc-500 sm:hidden" th:text="|Qty ${item.quantity}|"></span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-right tabular-nums max-sm:hidden" th:text="${item.quantity}"></td>
+                            <td class="text-right whitespace-nowrap tabular-nums"
+                                th:text="'€' + ${#numbers.formatDecimal(item.lineTotal, 1, 'COMMA', 2, 'POINT')}"></td>
+                            <td class="text-right max-md:hidden">
+                                <button class="btn btn-ghost btn-sm" th:onclick="|removeProduct(${product.id})|"
+                                    type="button">Remove<span class="sr-only" th:text="|: ${product.name}|"></span></button>
+                            </td>
+                        </tr>
+                    </tbody>
+
+                    <tfoot>
+                        <tr>
+                            <td>Total</td>
+                            <td class="max-sm:hidden"></td>
+                            <td class="text-right whitespace-nowrap tabular-nums"
+                                th:text="'€' + ${#numbers.formatDecimal(total, 1, 'COMMA', 2, 'POINT')}"></td>
+                            <td class="max-md:hidden"></td>
+                        </tr>
+                    </tfoot>
+                </table>
             </div>
 
-            <form th:action="@{/purchase}" method="post">
-                <p class="mb-4">You will be taken to Stripe's secure checkout</p>
-                <button class="btn btn-primary w-full" type="submit">Pay with Stripe</button>
+            <form class="card flex flex-col gap-6 max-md:hidden" th:action="@{/purchase}" method="post">
+                <div class="flex flex-col gap-2">
+                    <p class="text-eyebrow text-zinc-500 uppercase">To pay</p>
+                    <p class="font-display text-display-md tabular-nums"
+                        th:text="'€' + ${#numbers.formatDecimal(total, 1, 'COMMA', 2, 'POINT')}"></p>
+                </div>
+                <button class="btn btn-primary btn-lg w-full" type="submit">Proceed to Checkout</button>
+                <p class="text-center text-micro text-zinc-500">You will be taken to Stripe's secure checkout</p>
             </form>
+
+            <p class="text-center text-micro text-zinc-500 md:hidden">You will be taken to Stripe's secure checkout</p>
         </div>
 
-        <div class="card overflow-x-auto p-0">
-            <table class="data-table" id="cartTable">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Qty</th>
-                        <th>Subtotal</th>
-                        <th><span class="sr-only">Actions</span></th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    <tr th:each="item : ${items}">
-                        <td th:text="${item.product.name}"></td>
-                        <td th:text="${item.quantity}"></td>
-                        <td th:text="'€' + ${#numbers.formatDecimal(item.lineTotal, 1, 'COMMA', 2, 'POINT')}"></td>
-                        <td>
-                            <button class="btn btn-secondary btn-sm" th:onclick="|removeProduct(${item.product.id})|"
-                                type="button">Remove</button>
-                        </td>
-                    </tr>
-
-                    <tr>
-                        <td class="text-right text-lg font-bold" colspan="4"
-                            th:text="'Total: €' + ${#numbers.formatDecimal(total, 1, 'COMMA', 2, 'POINT')}"></td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
+        <!--/* On phones Pay is a bar pinned to the bottom of the screen (the table's last row is the
+               total). data-bottom-bar: the layout makes room for it (fragments/layout.html). */-->
+        <form data-bottom-bar th:action="@{/purchase}" method="post"
+            class="fixed inset-x-0 bottom-0 z-10 flex h-20 items-center border-t border-zinc-200 bg-white px-6 md:hidden">
+            <button class="btn btn-primary btn-lg w-full" type="submit">Proceed to Checkout</button>
+        </form>
     </main>
 </body>
 

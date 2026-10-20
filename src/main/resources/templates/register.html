@@ -2,28 +2,48 @@
 <html th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
 
 <head>
-    <title>Register</title>
+    <title>Register an account - Etelier</title>
 </head>
 
 <body>
-    <main class="mx-auto max-w-sm">
-        <div class="card">
-            <h2>Register an account</h2>
-            <div class="alert alert-danger" th:if="${param.invalid}">Username must be 3+ characters and password 8+.</div>
-            <div class="alert alert-danger" th:if="${param.taken}">That username is already taken.</div>
-            <form class="space-y-4" th:action="@{/register}" method="POST">
-                <div>
-                    <input class="input peer" id="username" name="username" placeholder="Username" required
-                        minlength="3" type="text">
-                    <p class="mt-1 hidden text-sm text-red-700 peer-user-invalid:block">
+    <main class="flex justify-center py-8">
+        <div class="card flex w-full max-w-100 flex-col gap-5">
+            <h1 class="mb-0 text-heading-xl">Register an account</h1>
+
+            <!--/* Only reachable past the browser's own checks (e.g. a username of spaces, which the server trims) */-->
+            <div class="alert alert-danger mb-0" th:if="${param.invalid}" role="alert">
+                <span class="shrink-0"><svg th:replace="~{fragments/icons :: exclamation-circle}"></svg></span>
+                <p>Username must be 3+ characters and password 8+.</p>
+            </div>
+
+            <!--/* Each field: label, input, then a message under it. The red messages appear once you've
+                   left a field that breaks its rule (peer-user-invalid: the input is the "peer"); the
+                   password's rule is shown up front as a grey hint, which the red message replaces.
+                   ?taken comes from the server, so that one marks the field with aria-invalid instead.
+                   th:with first: Thymeleaf 3.1 doesn't allow request parameters (param.*) in attributes
+                   like th:aria-invalid, so the parameter becomes a plain true/false here. */-->
+            <form class="flex flex-col gap-5" th:action="@{/register}" method="POST">
+                <div th:with="taken=${param.taken != null}">
+                    <label class="label" for="username">Username</label>
+                    <input class="input peer" id="username" name="username" type="text" autocomplete="username"
+                        required minlength="3" th:aria-invalid="${taken} ? 'true'"
+                        th:aria-describedby="${taken} ? 'username-taken'">
+                    <p class="mt-1.5 text-micro text-red-700" id="username-taken" th:if="${taken}">
+                        That username is already taken.
+                    </p>
+                    <p class="mt-1.5 hidden text-micro text-red-700 peer-user-invalid:block">
                         Username must be at least 3 characters.
                     </p>
                 </div>
 
                 <div>
-                    <input class="input peer" id="pass" name="password" placeholder="Password" required minlength="8"
-                        type="password">
-                    <p class="mt-1 hidden text-sm text-red-700 peer-user-invalid:block">
+                    <label class="label" for="pass">Password</label>
+                    <input class="input peer" id="pass" name="password" type="password" autocomplete="new-password"
+                        required minlength="8" aria-describedby="password-hint">
+                    <p class="mt-1.5 text-micro text-zinc-500 peer-user-invalid:hidden" id="password-hint">
+                        At least 8 characters.
+                    </p>
+                    <p class="mt-1.5 hidden text-micro text-red-700 peer-user-invalid:block">
                         Password must be at least 8 characters.
                     </p>
                 </div>

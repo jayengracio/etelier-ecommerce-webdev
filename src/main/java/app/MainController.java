@@ -23,6 +23,7 @@ import java.math.BigDecimal;
 import java.security.Principal;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Limit;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -45,6 +46,9 @@ import org.springframework.web.server.ResponseStatusException;
 
 @Controller
 public class MainController {
+
+    public static final int FEATURED_PRODUCTS =
+            4; // how many products the home page's Featured row shows (phones show the first two)
 
     private final DashboardService dashboardService;
     private final OrderRepository orderRepository;
@@ -74,6 +78,11 @@ public class MainController {
         this.dashboardService = dashboardService;
     }
 
+    /** What the cart costs: the cart page and the checkout page show the same sum. */
+    private static BigDecimal totalOf(List<CartItem> items) {
+        return items.stream().map(CartItem::getLineTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
     /**
      * The navbar's cart badge. A @ModelAttribute method runs before every handler in this
      * controller, so every page here can show it. Pages rendered elsewhere (the error pages)
@@ -84,13 +93,24 @@ public class MainController {
         return principal == null ? 0 : cartItemRepository.countItems(principal.getName());
     }
 
+    /**
+     * The path of this request, so the navbar can mark the link to the page you're on
+     * (aria-current). Thymeleaf 3.1 templates can't read the request themselves.
+     */
+    @ModelAttribute("currentPath")
+    public String currentPath(HttpServletRequest request) {
+        return request.getRequestURI();
+    }
+
     // ------ PUBLIC PAGES ------
     /**
      * Spring Boot would serve index.html on its own as the "welcome page", but that skips this
      * controller, so the page would miss cartCount and the navbar badge.
      */
     @GetMapping("/")
-    public String index() {
+    public String index(Model model) {
+        model.addAttribute("featured", productRepository.findFeatured(Limit.of(FEATURED_PRODUCTS)));
+        model.addAttribute("lowStockThreshold", dashboardService.lowStockThreshold());
         return "index.html";
     }
 
@@ -105,6 +125,14 @@ public class MainController {
                 "types",
                 products.stream().map(Product::getType).distinct().sorted().toList());
         model.addAttribute("lowStockThreshold", dashboardService.lowStockThreshold());
+
+        if (admin) {
+            // For the count at the top, "194 products · 1 hidden"
+            model.addAttribute(
+                    "hiddenCount",
+                    products.stream().filter(product -> !product.isActive()).count());
+        }
+
         return admin ? "products_owner.html" : "products.html";
     }
 
@@ -176,6 +204,7 @@ public class MainController {
             return "empty.html";
         }
         model.addAttribute("items", items);
+        model.addAttribute("total", totalOf(items));
         return "cart.html";
     }
 
@@ -221,8 +250,7 @@ public class MainController {
             return "redirect:/cart";
         }
         model.addAttribute("items", items);
-        model.addAttribute(
-                "total", items.stream().map(CartItem::getLineTotal).reduce(BigDecimal.ZERO, BigDecimal::add));
+        model.addAttribute("total", totalOf(items));
         return "checkout.html";
     }
 
@@ -299,8 +327,12 @@ public class MainController {
 
     @GetMapping("/edit/{id}")
     public String edit(@PathVariable int id, Model model) {
+        Product product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
+        model.addAttribute("product", product);
+        // The form starts with the product's current values
         model.addAttribute(
-                "product", productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException(id)));
+                "productEditForm",
+                new ProductEditForm(product.getDetails(), product.getPrice(), product.getStock(), product.getImage()));
         return "edit.html";
     }
 
@@ -313,11 +345,13 @@ public class MainController {
     }
 
     @PostMapping("/edit/product")
-    public String editProduct(@RequestParam int id, @Valid @ModelAttribute ProductEditForm form, BindingResult result) {
+    public String editProduct(
+            @RequestParam int id, @Valid @ModelAttribute ProductEditForm form, BindingResult result, Model model) {
         Product product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
 
         if (result.hasErrors()) {
-            return "redirect:/edit/" + id + "?invalid";
+            model.addAttribute("product", product);
+            return "edit.html";
         }
 
         product.setDetails(form.details());

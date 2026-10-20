@@ -2,104 +2,122 @@
 <html th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
 
 <head>
-    <title>Owner Dashboard</title>
+    <title>Admin Dashboard - Etelier</title>
 </head>
 
 <body>
-    <main class="space-y-8">
-        <div class="flex flex-wrap items-center justify-between gap-4">
+    <main class="flex flex-col gap-10 md:gap-12">
+        <div class="flex flex-wrap items-end justify-between gap-4">
             <h1 class="mb-0" th:text="'Hello, ' + ${#authentication.name}"></h1>
             <div class="flex gap-2">
                 <a class="btn btn-primary" href="/view/orders">View Orders</a>
                 <form th:action="@{/logout}" method="post">
-                    <button class="btn btn-secondary" type="submit">Log Out</button>
+                    <button class="btn btn-outline" type="submit">Log Out</button>
                 </form>
             </div>
         </div>
 
-        <section>
-            <h2>Dashboard</h2>
-            <div class="grid gap-4 text-center md:grid-cols-3">
-                <div class="card">
-                    <h3 class="text-sm font-medium text-stone-500">All time revenue</h3>
-                    <p class="text-2xl font-bold"
-                        th:text="'$' + ${#numbers.formatDecimal(stats.allTime.revenue, 1, 'COMMA', 2, 'POINT')}">$0.00
-                    </p>
-                    <p class="text-sm text-stone-500" th:text="${stats.allTime.orders} + ' paid or shipped orders'"></p>
-                </div>
-
-                <div class="card">
-                    <h3 class="text-sm font-medium text-stone-500">Revenue, last 7 days</h3>
-                    <p class="text-2xl font-bold"
-                        th:text="'€' + ${#numbers.formatDecimal(stats.lastSevenDays.revenue, 1, 'COMMA', 2, 'POINT')}">
-                        $0.00</p>
-                    <p class="text-sm text-stone-500"
-                        th:text="${stats.lastSevenDays.orders} + ' paid or shipped orders'"> </p>
-                </div>
-
-                <div class="card">
-                    <h3 class="text-sm font-medium text-stone-500">Orders by status</h3>
-                    <ul class="space-y-1 text-sm">
-                        <li th:each="entry : ${stats.ordersByStatus}">
-                            <a class="link" th:href="@{/view/orders(status=${entry.key})}" th:text="${entry.key}"></a>
-                            <b th:text="${entry.value}"></b>
-                        </li>
-                    </ul>
-                </div>
+        <!--/* The numbers. All-time revenue is the one mint card: the figure the shop cares about most. */-->
+        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="card card-featured flex flex-col gap-2">
+                <h2 class="mb-0 font-sans text-eyebrow uppercase">Revenue, All Time</h2>
+                <p class="font-display text-display-md tabular-nums"
+                    th:text="'€' + ${#numbers.formatDecimal(stats.allTime.revenue, 1, 'COMMA', 2, 'POINT')}">€0.00</p>
+                <p class="text-caption" th:text="${stats.allTime.orders} + ' paid or shipped orders'"></p>
             </div>
-        </section>
 
-        <section>
-            <h2>Low stock
-                <small class="text-base font-normal text-stone-500"
-                    th:text="|(${stats.lowStockThreshold} or fewer left)|"></small>
-            </h2>
-            <p class="text-stone-500" th:if="${#lists.isEmpty(stats.lowStock)}">Inventory is well stocked.</p>
-            <ul class="card divide-y divide-stone-200 p-0" th:unless="${#lists.isEmpty(stats.lowStock)}">
-                <li class="flex items-center justify-between gap-4 px-4 py-3" th:each="product : ${stats.lowStock}">
-                    <a class="link" th:href="@{/edit/{id}(id=${product.id})}" th:text="${product.name}"></a>
-                    <span class="badge" th:classappend="${product.stock == 0} ? 'badge-danger' : 'badge-warning'"
-                        th:text="${product.stock == 0} ? 'Out of stock' : |${product.stock} left|"></span>
-                </li>
-            </ul>
-        </section>
-
-        <section>
-            <h2>Recent orders</h2>
-            <p class="text-stone-500" th:if="${#lists.isEmpty(stats.recentOrders)}">No orders yet.</p>
-            <div class="card overflow-x-auto p-0" th:unless="${#lists.isEmpty(stats.recentOrders)}">
-                <table class="data-table">
-                    <thead>
-                        <tr>
-                            <th>Order</th>
-                            <th>Customer</th>
-                            <th>Date</th>
-                            <th>Total</th>
-                            <th>Status</th>
-                            <th><span class="sr-only">Actions</span></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr th:each="order : ${stats.recentOrders}">
-                            <td th:text="${order.id}"></td>
-                            <td th:text="${order.user.username}"></td>
-                            <td class="whitespace-nowrap"
-                                th:text="${#temporals.format(order.createdAt, 'dd MMM yyyy, HH:mm')}"></td>
-                            <td th:text="'€' + ${#numbers.formatDecimal(order.total, 1, 'COMMA', 2, 'POINT')}"></td>
-                            <td th:text="${order.status}"></td>
-                            <td class="text-right">
-                                <a class="btn btn-secondary btn-sm" th:href="@{/orders/{id}(id=${order.id})}">View</a>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="card flex flex-col gap-2">
+                <h2 class="mb-0 font-sans text-eyebrow text-zinc-500 uppercase">Revenue, Last 7 Days</h2>
+                <p class="font-display text-display-md tabular-nums"
+                    th:text="'€' + ${#numbers.formatDecimal(stats.lastSevenDays.revenue, 1, 'COMMA', 2, 'POINT')}">€0.00</p>
+                <p class="text-caption text-zinc-500" th:text="${stats.lastSevenDays.orders} + ' paid or shipped orders'"></p>
             </div>
-        </section>
+
+            <!--/* Each row links to the order list filtered by that status */-->
+            <div class="card flex flex-col gap-2.5 sm:py-6">
+                <h2 class="mb-0 font-sans text-eyebrow text-zinc-500 uppercase">Orders by status</h2>
+                <ul class="flex flex-col gap-1">
+                    <li th:each="entry : ${stats.ordersByStatus}">
+                        <a class="-mx-2 flex items-center justify-between rounded-lg px-2 py-0.5 transition ease-out hover:bg-zinc-100"
+                            th:href="@{/view/orders(status=${entry.key})}">
+                            <span th:replace="~{fragments/status-badge :: badge(${entry.key})}"></span>
+                            <span class="font-strong tabular-nums" th:text="${entry.value}"></span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!--/* Recent orders and low stock side by side from xl up (2:1); narrower, the orders table would scroll */-->
+        <div class="grid items-start gap-10 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)] xl:gap-6">
+            <section class="flex min-w-0 flex-col gap-4">
+                <div class="flex items-baseline justify-between gap-4">
+                    <h2 class="mb-0">Recent orders</h2>
+                    <a class="link text-caption" href="/view/orders">All orders</a>
+                </div>
+                <p class="text-zinc-500" th:if="${#lists.isEmpty(stats.recentOrders)}">No orders yet.</p>
+                <div class="card overflow-x-auto p-0" th:unless="${#lists.isEmpty(stats.recentOrders)}">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Order</th>
+                                <th>Customer</th>
+                                <th>Date</th>
+                                <th class="text-right">Total</th>
+                                <th>Status</th>
+                                <th><span class="sr-only">Actions</span></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="order : ${stats.recentOrders}">
+                                <td class="font-strong" th:text="|#${order.id}|"></td>
+                                <td th:text="${order.user.username}"></td>
+                                <td class="whitespace-nowrap text-zinc-500"
+                                    th:text="${#temporals.format(order.createdAt, 'dd MMM yyyy, HH:mm')}"></td>
+                                <td class="text-right whitespace-nowrap tabular-nums"
+                                    th:text="'€' + ${#numbers.formatDecimal(order.total, 1, 'COMMA', 2, 'POINT')}"></td>
+                                <td><span th:replace="~{fragments/status-badge :: badge(${order.status})}"></span></td>
+                                <td class="text-right">
+                                    <a class="btn btn-secondary btn-sm" th:href="@{/orders/{id}(id=${order.id})}">View<span
+                                            class="sr-only" th:text="| order #${order.id}|"></span></a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!--/* The emptiest products first (DashboardService.LOW_STOCK_SHOWN of them); each opens its edit page */-->
+            <section class="flex min-w-0 flex-col gap-4">
+                <div class="flex items-baseline justify-between gap-4">
+                    <h2 class="mb-0">Low stock</h2>
+                    <span class="text-micro text-zinc-500"
+                        th:text="|${stats.lowStockCount} at ${stats.lowStockThreshold} or fewer|"></span>
+                </div>
+                <p class="text-zinc-500" th:if="${#lists.isEmpty(stats.lowStock)}">Inventory is well stocked.</p>
+                <ul class="divide-y-2 divide-zinc-300 overflow-hidden rounded-xl border-2 border-zinc-300 bg-white"
+                    th:unless="${#lists.isEmpty(stats.lowStock)}">
+                    <li th:each="product : ${stats.lowStock}">
+                        <a class="flex items-center gap-3 px-4 py-3 transition ease-out hover:bg-zinc-50"
+                            th:href="@{/edit/{id}(id=${product.id})}">
+                            <div class="size-10 shrink-0 overflow-hidden rounded-lg border border-zinc-200">
+                                <div th:replace="~{fragments/product-picture :: picture(${product}, 'aspect-square w-full', 'size-5')}"></div>
+                            </div>
+                            <span class="min-w-0 flex-1 truncate text-caption" th:text="${product.name}"></span>
+                            <span class="badge" th:classappend="${product.stock == 0} ? 'badge-danger' : 'badge-warning'"
+                                th:text="${product.stock == 0} ? 'Out of stock' : |${product.stock} left|"></span>
+                        </a>
+                    </li>
+                </ul>
+                <p class="text-micro text-zinc-500" th:if="${stats.lowStockCount > stats.lowStock.size()}"
+                    th:text="|Showing the ${stats.lowStock.size()} emptiest.|"></p>
+            </section>
+        </div>
 
         <!--/* code.js's addProduct() reads these ids: type, name, price, details, stock, image. */-->
-        <section class="card max-w-xl">
-            <h2>Add a product</h2>
-            <form class="space-y-4" onsubmit="addProduct(event)">
+        <section class="card grid gap-6 lg:grid-cols-[15rem_minmax(0,1fr)] lg:gap-12">
+            <h2 class="mb-0">Add a product</h2>
+            <form class="grid gap-5 sm:grid-cols-2" onsubmit="addProduct(event)">
                 <div>
                     <label class="label" for="type">Type</label>
                     <input class="input" id="type" name="type" type="text" maxlength="50" required>
@@ -110,37 +128,38 @@
                     <input class="input" id="name" name="name" type="text" maxlength="255" required>
                 </div>
 
-                <div class="grid gap-4 sm:grid-cols-2">
-                    <div>
-                        <label class="label" for="price">Price</label>
-                        <input class="input" id="price" name="price" type="number" step="0.01" min="0" required>
-                    </div>
-
-                    <div>
-                        <label class="label" for="stock">Stock</label>
-                        <input class="input" id="stock" name="stock" type="number" min="0" required>
-                    </div>
+                <div>
+                    <label class="label" for="price">Price</label>
+                    <input class="input" id="price" name="price" type="number" step="0.01" min="0" required>
                 </div>
 
                 <div>
+                    <label class="label" for="stock">Stock</label>
+                    <input class="input" id="stock" name="stock" type="number" min="0" required>
+                </div>
+
+                <div class="sm:col-span-2">
                     <label class="label" for="details">Details</label>
                     <input class="input" id="details" name="details" type="text" maxlength="1000" required>
                 </div>
 
                 <!--/* pattern repeats the server's rule (Product.IMAGE_PATTERN); an empty field passes it. */-->
-                <div>
-                    <label class="label" for="image">Image <span class="font-normal text-stone-500">(optional)</span></label>
+                <div class="sm:col-span-2">
+                    <label class="label" for="image">Image <span class="font-regular text-zinc-500">(optional)</span></label>
                     <input class="input peer" id="image" name="image" type="text" maxlength="1000"
-                        pattern="(/|https?://).*" placeholder="/images/Apple.png or https://…">
-                    <p class="mt-1 text-sm text-stone-500 peer-user-invalid:hidden">
+                        pattern="(/|https?://).*" placeholder="/images/Apple.png or https://…"
+                        aria-describedby="image-hint">
+                    <p class="mt-1.5 text-micro text-zinc-500 peer-user-invalid:hidden" id="image-hint">
                         A path in this app or a full https:// address. Leave it empty for the placeholder.
                     </p>
-                    <p class="mt-1 hidden text-sm text-red-700 peer-user-invalid:block">
+                    <p class="mt-1.5 hidden text-micro text-red-700 peer-user-invalid:block">
                         Start with / (a path in this app) or with http:// or https://.
                     </p>
                 </div>
 
-                <button class="btn btn-primary w-full" type="submit">Add Product</button>
+                <div class="flex justify-end sm:col-span-2">
+                    <button class="btn btn-primary" type="submit">Add Product</button>
+                </div>
             </form>
         </section>
     </main>

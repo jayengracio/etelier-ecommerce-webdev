@@ -5,71 +5,223 @@
 @source "../resources/templates";
 @source "../resources/static/code.js";
 
-/* Element defaults. Tailwind's reset makes headings plain text; this restores a
-   readable baseline, so pages only add classes where they differ. */
+/* Geist (headings) and Inter (text), variable fonts (every weight in one file), self-hosted
+   from Google Fonts (SIL Open Font License). Each family is split into two files by
+   unicode-range, so the browser only downloads latin-ext when a page has such a character.
+   The URLs are relative to /app.css, so they resolve to /fonts/..., which SecurityConfig permits. */
+@font-face {
+    font-family: "Geist";
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url("fonts/geist-latin.woff2") format("woff2");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+    font-family: "Geist";
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url("fonts/geist-latin-ext.woff2") format("woff2");
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+    font-family: "Inter";
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url("fonts/inter-latin.woff2") format("woff2");
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+    font-family: "Inter";
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: url("fonts/inter-latin-ext.woff2") format("woff2");
+    unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+/* The Etelier design tokens. Each variable here becomes utilities (--color-ink → bg-ink,
+   text-ink, border-ink, ...). Only what Tailwind lacks is added: its own zinc greys, red/amber/sky,
+   rounded-lg (8px inputs), rounded-xl (12px cards), rounded-full (pills), shadow-2xl (toasts),
+   ease-out and max-w-6xl (1152px) already match the design system. */
+@theme {
+    --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    --font-sans--font-feature-settings: "ss03";
+    --font-display: "Geist", ui-sans-serif, system-ui, sans-serif;
+    --font-display--font-feature-settings: "ss03";
+
+    --font-weight-regular: 420;
+    --font-weight-strong: 550;
+
+    --color-ink: #000;
+    --color-cream: #fbfbf5;
+    /* Fills only (featured card, success alert, cart count), never text colours */
+    --color-mint: #c1fbd4;
+    --color-meadow: #d4f9e0;
+
+    /* Type roles: size, line height, tracking and weight in one class (text-display-md) */
+    --text-display-xl: 4.375rem;
+    --text-display-xl--line-height: 1;
+    --text-display-xl--font-weight: 330;
+    --text-display-md: 3rem;
+    --text-display-md--line-height: 1.14;
+    --text-display-md--font-weight: 330;
+    --text-heading-xl: 1.75rem;
+    --text-heading-xl--line-height: 1.28;
+    --text-heading-xl--letter-spacing: 0.42px;
+    --text-heading-xl--font-weight: 500;
+    --text-heading-lg: 1.5rem;
+    --text-heading-lg--line-height: 1.14;
+    --text-heading-lg--letter-spacing: 0.36px;
+    --text-heading-lg--font-weight: 400;
+    --text-heading-md: 1.25rem;
+    --text-heading-md--line-height: 1.4;
+    --text-heading-md--letter-spacing: 0.3px;
+    --text-heading-md--font-weight: 500;
+    --text-heading-sm: 1.125rem;
+    --text-heading-sm--line-height: 1.25;
+    --text-heading-sm--letter-spacing: 0.72px;
+    --text-heading-sm--font-weight: 500;
+    --text-eyebrow: 0.75rem;
+    --text-eyebrow--line-height: 1.2;
+    --text-eyebrow--letter-spacing: 0.72px;
+    --text-eyebrow--font-weight: 400;
+    --text-caption: 0.875rem;
+    --text-caption--line-height: 1.49;
+    --text-caption--letter-spacing: 0.28px;
+    --text-caption--font-weight: 500;
+    --text-micro: 0.8125rem;
+    --text-micro--line-height: 1.5;
+    --text-micro--letter-spacing: -0.13px;
+    --text-micro--font-weight: 500;
+
+    /* Photo frames (cards are rounded-xl, inputs rounded-lg) */
+    --radius-frame: 1.25rem;
+
+    /* Level 3: four tiny stacked shadows, the hover lift on cards */
+    --shadow-lift: 0 8px 8px rgb(0 0 0 / 0.1), 0 4px 4px rgb(0 0 0 / 0.1), 0 2px 2px rgb(0 0 0 / 0.1), 0 0 0 1px rgb(0 0 0 / 0.1);
+    /* Level 4: toasts and anything floating above the page */
+    --shadow-float: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+}
+
+/* Element defaults: the cream canvas, black ink, Inter for text and Geist for headings.
+   Pages only add classes where they differ (a utility on the element wins over these). */
 @layer base {
+    html {
+        @apply antialiased;
+    }
+
+    body {
+        @apply bg-cream font-regular text-ink;
+    }
+
+    /* The reset's "bolder" would jump from 420 to 700 */
+    b,
+    strong {
+        @apply font-strong;
+    }
+
     h1 {
-        @apply mb-4 text-3xl font-bold;
+        @apply mb-4 font-display text-display-md;
     }
 
     h2 {
-        @apply mb-3 text-2xl font-semibold;
+        @apply mb-3 font-display text-heading-lg;
     }
 
     h3 {
-        @apply mb-2 text-xl font-semibold;
+        @apply mb-2 font-display text-heading-sm;
+    }
+
+    /* One focus ring for everything reached by keyboard: 2px ink, 2px away from the element */
+    :focus-visible {
+        @apply outline-2 outline-offset-2 outline-ink;
+    }
+
+    ::selection {
+        @apply bg-mint text-ink;
     }
 }
 
 /* Components used on many pages, defined once so a later redesign edits these
    instead of every template. A utility on the same element still wins, because
-   Tailwind's utilities layer comes after components. */
+   Tailwind's utilities layer comes after components. The focus ring comes from the base layer.
+   hover:not-disabled: a disabled button doesn't react to the mouse (and Tailwind's hover:
+   only applies on devices that can hover). */
 @layer components {
+    /* Pills are the only button shape. Pressing shrinks them a little. */
     .btn {
-        @apply inline-flex cursor-pointer items-center justify-center rounded-md border border-transparent px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 disabled:cursor-not-allowed disabled:opacity-50;
+        @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-full border border-transparent px-6 py-3 text-base font-regular whitespace-nowrap transition ease-out active:not-disabled:scale-98 disabled:cursor-not-allowed disabled:opacity-40;
     }
 
     .btn-primary {
-        @apply bg-emerald-600 text-white hover:bg-emerald-700 focus-visible:outline-emerald-600;
+        @apply bg-ink text-white hover:not-disabled:bg-zinc-700 active:not-disabled:bg-zinc-700;
     }
 
     .btn-danger {
-        @apply bg-red-600 text-white hover:bg-red-700 focus-visible:outline-red-600;
+        @apply bg-red-600 text-white hover:not-disabled:bg-red-700;
     }
 
     /* Outline buttons only colour the border that .btn already reserves (transparent),
        so they are exactly as tall as the filled ones next to them. */
     .btn-outline {
-        @apply border-emerald-600 text-emerald-700 hover:bg-emerald-50 focus-visible:outline-emerald-600;
+        @apply border-ink bg-white text-ink hover:not-disabled:bg-ink hover:not-disabled:text-white;
     }
 
     .btn-outline-danger {
-        @apply border-red-600 text-red-700 hover:bg-red-50 focus-visible:outline-red-600;
+        @apply border-red-600 bg-white text-red-700 hover:not-disabled:bg-red-50;
     }
 
     .btn-sm {
-        @apply px-3 py-1.5 text-xs;
+        @apply px-3.5 py-1.5 text-caption;
+    }
+
+    /* The page's main action (the details page's Add To Cart and Buy). After .btn, so its padding wins. */
+    .btn-lg {
+        @apply px-7.5 py-3.5 font-strong;
     }
 
     .btn-secondary {
-        @apply bg-stone-200 text-stone-900 hover:bg-stone-300 focus-visible:outline-stone-500;
+        @apply bg-zinc-100 text-ink hover:not-disabled:bg-zinc-200;
     }
 
+    /* Mint is a fill only; the text stays ink (a PAID order) */
+    .badge-success {
+        @apply bg-mint text-ink;
+    }
+
+    /* Ink: finished, nothing left to do (a SHIPPED order) */
+    .badge-dark {
+        @apply bg-ink text-white;
+    }
+
+    /* No fill until hovered: small actions repeated on every row (the cart's Details and Remove). */
+    .btn-ghost {
+        @apply bg-transparent text-ink hover:not-disabled:bg-zinc-100;
+    }
+
+    /* 44px tall (a comfortable touch target). Focused: ink border and a soft halo instead
+       of the outline ring. aria-invalid: for a field the server rejected. */
     .input {
-        @apply block w-full rounded-md border border-stone-300 bg-white px-3 py-2 focus:border-emerald-600 focus:outline-2 focus:outline-emerald-600/30 user-invalid:border-red-600;
+        @apply block min-h-11 w-full rounded-lg border-2 border-zinc-300 bg-white px-2.75 py-2.25 text-base text-ink transition ease-out placeholder:text-zinc-400 hover:border-zinc-400 focus:border-ink focus:ring-3 focus:ring-black/8 focus:outline-none disabled:cursor-not-allowed disabled:bg-zinc-100 disabled:text-zinc-500 user-invalid:border-red-600 aria-invalid:border-red-600;
     }
 
     .label {
-        @apply mb-1 block text-sm font-medium text-stone-700;
+        @apply mb-1.5 block text-caption text-ink;
     }
 
     /* The reset makes links look like plain text; this is for links inside text. */
     .link {
-        @apply font-medium text-emerald-700 underline underline-offset-2 hover:text-emerald-800;
+        @apply font-strong text-ink underline decoration-1 underline-offset-3 hover:text-zinc-600;
     }
 
     .badge {
-        @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium whitespace-nowrap;
+        @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-micro whitespace-nowrap;
     }
 
     .badge-danger {
@@ -81,20 +233,23 @@
     }
 
     .badge-secondary {
-        @apply bg-stone-200 text-stone-700;
+        @apply bg-zinc-200 text-zinc-600;
     }
 
-    /* The type filters on the products pages. aria-pressed="true" is the chosen one. */
+    /* Filters: buttons on the products pages (aria-pressed="true" is the chosen one) and links on the
+       orders list (aria-current="page" is the chosen one). Both look the same when chosen. */
     .chip {
-        @apply cursor-pointer rounded-full border border-stone-300 bg-white px-3 py-1 text-sm font-medium text-stone-700 transition-colors hover:border-emerald-600 hover:text-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 aria-pressed:border-emerald-600 aria-pressed:bg-emerald-600 aria-pressed:text-white;
+        @apply inline-flex cursor-pointer items-center rounded-full border border-zinc-300 bg-white px-3.5 py-1.5 text-caption whitespace-nowrap text-ink transition ease-out hover:border-ink aria-pressed:border-ink aria-pressed:bg-ink aria-pressed:text-white aria-[current=page]:border-ink aria-[current=page]:bg-ink aria-[current=page]:text-white;
     }
 
+    /* A row, so an icon added in front of the text sits beside it */
     .alert {
-        @apply mb-4 rounded-md border px-4 py-3 text-sm;
+        @apply mb-4 flex items-start gap-2.5 rounded-lg border px-4 py-3 text-caption;
     }
 
+    /* Mint is a fill only; the text stays ink. The border is the system's success line. */
     .alert-success {
-        @apply border-emerald-200 bg-emerald-50 text-emerald-800;
+        @apply border-[#9ae8b4] bg-mint text-ink;
     }
 
     .alert-danger {
@@ -109,36 +264,67 @@
         @apply border-sky-200 bg-sky-50 text-sky-800;
     }
 
+    /* White on the cream page, a 2px zinc outline and no shadow at rest. 32px padding, 24px on phones. */
     .card {
-        @apply rounded-lg border border-stone-200 bg-white p-6 shadow-sm;
+        @apply rounded-xl border-2 border-zinc-300 bg-white p-6 sm:p-8;
+    }
+
+    /* The one card a page wants you to notice (a payment that went through): a mint fill, no
+       outline. The border stays, transparent, so it's exactly as big as a .card. Mint is a fill
+       only; the text stays ink. */
+    .card-featured {
+        @apply border-transparent bg-mint;
     }
 
     /* Tables sit in a card with "overflow-x-auto p-0", so wide ones scroll sideways on
     phones instead of pushing the page wider. "relative" keeps sr-only labels (which are
        position: absolute) inside that scroll area; without it they widen the page. */
     .data-table {
-        @apply relative w-full text-left text-sm;
+        @apply relative w-full text-left text-caption;
     }
 
+    /* Header cells are quiet uppercase eyebrows on the cream band */
     .data-table th {
-        @apply bg-stone-100 px-4 py-3 font-semibold whitespace-nowrap text-stone-700;
+        @apply border-b-2 border-zinc-300 bg-cream px-4 py-3 text-eyebrow whitespace-nowrap text-zinc-500 uppercase;
     }
 
     .data-table td {
-        @apply border-t border-stone-200 px-4 py-3 align-middle;
+        @apply border-t-2 border-zinc-300 px-4 py-3.5 align-middle font-regular;
+    }
+
+    /* The header's bottom line already separates the first row */
+    .data-table tbody tr:first-child td {
+        @apply border-t-0;
+    }
+
+    /* A total under the rows: an ink rule and bold, so it reads as the sum of what's above it */
+    .data-table tfoot td {
+        @apply border-ink text-base font-strong;
     }
 
     /* Navbar links that show only an icon. The link also needs the "group" class in the HTML
        (it marks the element that group-hover: watches; @apply can't add it). */
     .nav-icon {
-        @apply relative flex rounded-md p-2 text-stone-700 transition-colors hover:bg-stone-100 hover:text-emerald-700 focus-visible:outline-2 focus-visible:outline-emerald-600;
+        @apply relative flex rounded-full p-2 text-ink transition ease-out hover:bg-zinc-100;
+    }
+
+    /* The page links in the navbar. From sm up they show their word; on phones only their icon
+       (the word is then sr-only, so it's still the link's name). aria-current="page" is the page
+       you're on, aria-current="true" the list a page belongs to (Products on a details page). */
+    .nav-link {
+        @apply flex items-center rounded-full p-2 transition ease-out hover:bg-zinc-100 aria-[current]:font-strong sm:px-3.5;
+    }
+
+    /* A round outlined button with only an icon (the details page's Back). Hover fills it ink.
+       Like .nav-icon, it needs "group" in the HTML for its .tooltip. */
+    .icon-btn {
+        @apply relative inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-zinc-500 text-ink transition ease-out hover:not-disabled:border-ink hover:not-disabled:bg-ink hover:not-disabled:text-white;
     }
 
     /* The link's name, shown under it on hover or keyboard focus. It stays in the page when
        hidden, so screen readers still read it as the link text. Tailwind's hover: only applies
        on devices that can hover, so phones never get a tooltip stuck open after a tap. */
     .tooltip {
-        @apply pointer-events-none absolute top-full left-1/2 mt-2 -translate-x-1/2 rounded-md bg-stone-900 px-2 py-1 text-xs font-medium whitespace-nowrap text-white opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100;
+        @apply pointer-events-none absolute top-full left-1/2 z-30 mt-2 -translate-x-1/2 rounded-full bg-ink px-2.5 py-1 text-micro whitespace-nowrap text-white opacity-0 transition-opacity ease-out group-hover:opacity-100 group-focus-visible:opacity-100;
     }
-
 }

@@ -2,75 +2,116 @@
 <html th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
 
 <head>
-    <title>Edit Product</title>
+    <title>Edit Product - Etelier</title>
 </head>
 
 <body>
-    <main class="mx-auto max-w-xl">
-        <h1 th:text="'Details for: ' + ${product.name}">Details for: </h1>
-
-        <div th:if="${param.invalid}" class="alert alert-danger">
-            Check the values: details can't be empty (max 1000 characters), price and stock can't be negative, price
-            has at most 2 decimals, and an image starts with / or http(s)://.
+    <main class="flex flex-col gap-8">
+        <div class="flex items-center gap-4">
+            <!--/* Back to the list, as on the details page (left-0 translate-x-0: see details.html) */-->
+            <a class="icon-btn group" th:href="@{/products}">
+                <svg th:replace="~{fragments/icons :: arrow-left(iconSize='size-5')}"></svg>
+                <span class="tooltip left-0 translate-x-0">Back to products</span>
+            </a>
+            <div class="flex min-w-0 flex-col gap-1">
+                <p class="text-eyebrow text-zinc-500 uppercase">Details for</p>
+                <h1 class="mb-0 text-heading-xl" th:text="${product.name}"></h1>
+            </div>
         </div>
 
-        <form class="card space-y-4" th:action="@{/edit/product}" method="POST">
-            <input type="hidden" name="id" th:value="${product.id}">
+        <!--/* The server refused the form (the browser's own checks were bypassed, or a value it can't
+               check). #fields.hasErrors('${productEditForm.*}') is the way to ask outside the form. */-->
+        <div th:if="${#fields.hasErrors('${productEditForm.*}')}" class="alert alert-danger mb-0" role="alert">
+            <span class="shrink-0"><svg th:replace="~{fragments/icons :: exclamation-circle}"></svg></span>
+            <p>Nothing was saved. Check the fields marked in red.</p>
+        </div>
 
-            <dl class="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                    <dt class="font-medium text-stone-500">ID</dt>
-                    <dd th:text="${product.id}"></dd>
+        <!--/* From lg up the preview card sits left of the form; below that it's a strip above it */-->
+        <div class="grid items-start gap-6 lg:grid-cols-[20rem_minmax(0,1fr)] lg:gap-8">
+            <!--/* What the product looks like now, so you can see what the Image field points at */-->
+            <div class="card flex overflow-hidden p-0 lg:flex-col">
+                <div class="w-28 shrink-0 border-r-2 border-zinc-300 lg:w-full lg:border-r-0 lg:border-b-2">
+                    <div th:replace="~{fragments/product-picture :: picture(${product}, 'aspect-square w-full', 'size-12')}"></div>
                 </div>
+                <dl class="grid flex-1 grid-cols-2 content-center gap-4 px-6 py-5">
+                    <div>
+                        <dt class="text-eyebrow text-zinc-500 uppercase">ID</dt>
+                        <dd class="mt-1 font-strong" th:text="${product.id}"></dd>
+                    </div>
+                    <div>
+                        <dt class="text-eyebrow text-zinc-500 uppercase">Type</dt>
+                        <dd class="mt-1 font-strong wrap-break-word" th:text="${product.type}"></dd>
+                    </div>
+                </dl>
+            </div>
+
+            <!--/* th:object + th:field: each input gets its id, name and value from productEditForm (the
+                   product's values, or what was typed if the server refused it). A field the server
+                   refused gets aria-invalid, which turns it red and shows its message (peer-aria-invalid);
+                   the browser's own checks show the same message once you leave the field
+                   (peer-user-invalid). aria-describedby points at the message only when it's shown. */-->
+            <form class="card grid grid-cols-2 gap-5" th:action="@{/edit/product}" method="POST"
+                th:object="${productEditForm}">
+                <input type="hidden" name="id" th:value="${product.id}">
+
                 <div>
-                    <dt class="font-medium text-stone-500">Type</dt>
-                    <dd th:text="${product.type}"></dd>
+                    <label class="label" for="price">Price</label>
+                    <input class="input peer" th:field="*{price}" type="number" step="0.01" min="0" required
+                        th:aria-invalid="${#fields.hasErrors('price')} ? 'true'"
+                        th:aria-describedby="${#fields.hasErrors('price')} ? 'price-error'">
+                    <p class="mt-1.5 hidden text-micro text-red-700 peer-user-invalid:block peer-aria-invalid:block"
+                        id="price-error">
+                        Price can't be negative and has at most 2 decimals.
+                    </p>
                 </div>
-            </dl>
 
-            <div>
-                <label class="label" for="price">Price</label>
-                <input class="input peer" id="price" name="price" placeholder="New price" type="number" step="0.01"
-                    min="0" th:value="${product.price}" required>
-                <p class="mt-1 hidden text-sm text-red-700 peer-user-invalid:block">
-                    Price can't be negative and has at most 2 decimals.
-                </p>
-            </div>
+                <div>
+                    <label class="label" for="stock">Stock</label>
+                    <input class="input peer" th:field="*{stock}" type="number" min="0" required
+                        th:aria-invalid="${#fields.hasErrors('stock')} ? 'true'"
+                        th:aria-describedby="${#fields.hasErrors('stock')} ? 'stock-error'">
+                    <p class="mt-1.5 hidden text-micro text-red-700 peer-user-invalid:block peer-aria-invalid:block"
+                        id="stock-error">
+                        Stock must be a whole number, 0 or more.
+                    </p>
+                </div>
 
-            <div>
-                <label class="label" for="details">Details</label>
-                <input class="input peer" id="details" name="details" placeholder="New details" type="text"
-                    maxlength="1000" th:value="${product.details}" required>
-                <p class="mt-1 hidden text-sm text-red-700 peer-user-invalid:block">Details can't be empty.</p>
-            </div>
+                <div class="col-span-2">
+                    <label class="label" for="details">Details</label>
+                    <input class="input peer" th:field="*{details}" type="text" maxlength="1000" required
+                        th:aria-invalid="${#fields.hasErrors('details')} ? 'true'"
+                        th:aria-describedby="${#fields.hasErrors('details')} ? 'details-error'">
+                    <p class="mt-1.5 hidden text-micro text-red-700 peer-user-invalid:block peer-aria-invalid:block"
+                        id="details-error">
+                        Details can't be empty.
+                    </p>
+                </div>
 
-            <div>
-                <label class="label" for="stock">Stock</label>
-                <input class="input peer" id="stock" name="stock" placeholder="New stock" type="number" min="0"
-                    th:value="${product.stock}" required>
-                <p class="mt-1 hidden text-sm text-red-700 peer-user-invalid:block">
-                    Stock must be a whole number, 0 or more.
-                </p>
-            </div>
+                <!--/* Filled with the current picture; emptying it removes the picture (placeholder). The grey
+                       hint gives way to the red message. */-->
+                <div class="col-span-2">
+                    <label class="label" for="image">Image <span class="font-regular text-zinc-500">(optional)</span></label>
+                    <input class="input peer" th:field="*{image}" type="text" maxlength="1000"
+                        pattern="(/|https?://).*" placeholder="/images/Apple.png or https://…"
+                        th:aria-invalid="${#fields.hasErrors('image')} ? 'true'"
+                        th:aria-describedby="${#fields.hasErrors('image')} ? 'image-error' : 'image-hint'">
+                    <p class="mt-1.5 text-micro text-zinc-500 peer-user-invalid:hidden peer-aria-invalid:hidden"
+                        id="image-hint">
+                        A path in this app or a full https:// address. Leave it empty for the placeholder.
+                    </p>
+                    <p class="mt-1.5 hidden text-micro text-red-700 peer-user-invalid:block peer-aria-invalid:block"
+                        id="image-error">
+                        Start with / (a path in this app) or with http:// or https://.
+                    </p>
+                </div>
 
-            <!--/* Filled with the current picture; emptying it removes the picture (placeholder). */-->
-            <div>
-                <label class="label" for="image">Image <span class="font-normal text-stone-500">(optional)</span></label>
-                <input class="input peer" id="image" name="image" type="text" maxlength="1000"
-                    pattern="(/|https?://).*" placeholder="/images/Apple.png or https://…" th:value="${product.image}">
-                <p class="mt-1 text-sm text-stone-500 peer-user-invalid:hidden">
-                    A path in this app or a full https:// address. Leave it empty for the placeholder.
-                </p>
-                <p class="mt-1 hidden text-sm text-red-700 peer-user-invalid:block">
-                    Start with / (a path in this app) or with http:// or https://.
-                </p>
-            </div>
-
-            <div class="flex gap-2">
-                <button class="btn btn-primary" type="submit">Done</button>
-                <a class="btn btn-secondary" href="/products">Go Back</a>
-            </div>
-        </form>
+                <!--/* Done is the primary, so it goes last (rightmost) */-->
+                <div class="col-span-2 flex justify-end gap-2 pt-2">
+                    <a class="btn btn-outline" th:href="@{/products}">Go Back</a>
+                    <button class="btn btn-primary" type="submit">Done</button>
+                </div>
+            </form>
+        </div>
     </main>
 </body>
 

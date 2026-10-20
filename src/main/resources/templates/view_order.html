@@ -2,55 +2,70 @@
 <html th:replace="~{fragments/layout :: layout(~{::title}, ~{::main})}">
 
 <head>
-    <title>View Orders</title>
+    <title>View Orders - Etelier</title>
 </head>
 
 <body>
-    <main>
-        <h1>Orders</h1>
-
-        <nav th:if="${orders.totalPages > 1}" aria-label="Pages" class="mb-4 flex flex-wrap items-center gap-3 text-sm">
-            <a th:if="${orders.hasPrevious()}" class="btn btn-sm btn-outline"
-                th:href="@{/view/orders(status=${status}, page=${orders.number - 1}, size=${orders.size})}">&laquo;
-                Previous</a>
-            <span th:text="|Page ${orders.number + 1} of ${orders.totalPages} · ${orders.totalElements} orders|"></span>
-            <a th:if="${orders.hasNext()}" class="btn btn-sm btn-outline"
-                th:href="@{/view/orders(status=${status}, page=${orders.number + 1}, size=${orders.size})}">Next
-                &raquo;</a>
-        </nav>
-
-        <!--/* Full class names in both branches, so Tailwind finds them in this file. */-->
-        <div class="mb-4 flex flex-wrap gap-2">
-            <a th:href="@{/view/orders}" class="btn btn-sm"
-                th:classappend="${status == null} ? 'btn-primary' : 'btn-outline'">All</a>
-            <a th:each="s : ${statuses}" th:href="@{/view/orders(status=${s})}" th:text="${s}" class="btn btn-sm"
-                th:classappend="${s == status} ? 'btn-primary' : 'btn-outline'"></a>
+    <main class="flex flex-col gap-6">
+        <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+            <h1 class="mb-0">Orders</h1>
+            <span class="text-caption text-zinc-500"
+                th:text="${orders.totalElements == 1} ? '1 order' : |${orders.totalElements} orders|"></span>
         </div>
 
-        <p class="text-stone-500" th:if="${orders.empty}">No orders here.</p>
+        <!--/* One toolbar row: the status filters on the left, the pages on the right. The filters are
+               links, so the chosen one is aria-current="page" (.chip styles it like a pressed chip). */-->
+        <div class="flex flex-wrap items-center justify-between gap-4">
+            <nav class="flex flex-wrap gap-2" aria-label="Filter by status">
+                <a class="chip" th:href="@{/view/orders}" th:aria-current="${status == null} ? 'page'">All</a>
+                <a class="chip" th:each="s : ${statuses}" th:href="@{/view/orders(status=${s})}" th:text="${s}"
+                    th:aria-current="${s == status} ? 'page'"></a>
+            </nav>
+
+            <!--/* A link can't be disabled, so the end you're at shows a disabled button instead: the
+                   buttons stay in place from page to page. */-->
+            <nav th:if="${orders.totalPages > 1}" class="flex items-center gap-3" aria-label="Pages">
+                <a th:if="${orders.hasPrevious()}" class="btn btn-sm btn-outline"
+                    th:href="@{/view/orders(status=${status}, page=${orders.number - 1}, size=${orders.size})}">&laquo;
+                    Previous</a>
+                <button th:unless="${orders.hasPrevious()}" class="btn btn-sm btn-outline" type="button" disabled>&laquo;
+                    Previous</button>
+                <span class="text-caption text-zinc-500 tabular-nums"
+                    th:text="|Page ${orders.number + 1} of ${orders.totalPages}|"></span>
+                <a th:if="${orders.hasNext()}" class="btn btn-sm btn-outline"
+                    th:href="@{/view/orders(status=${status}, page=${orders.number + 1}, size=${orders.size})}">Next
+                    &raquo;</a>
+                <button th:unless="${orders.hasNext()}" class="btn btn-sm btn-outline" type="button" disabled>Next
+                    &raquo;</button>
+            </nav>
+        </div>
+
+        <p class="text-zinc-500" th:if="${orders.empty}">No orders here.</p>
 
         <div class="card overflow-x-auto p-0" th:unless="${orders.empty}">
-            <table class="data-table" id="userTable">
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>Order</th>
                         <th>Customer</th>
                         <th>Date</th>
-                        <th>Total</th>
+                        <th class="text-right">Total</th>
                         <th>Status</th>
                         <th><span class="sr-only">Actions</span></th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr th:each="order : ${orders}">
-                        <td th:text="${order.id}"></td>
+                        <td class="font-strong" th:text="|#${order.id}|"></td>
                         <td th:text="${order.user.username}"></td>
-                        <td class="whitespace-nowrap"
+                        <td class="whitespace-nowrap text-zinc-500"
                             th:text="${#temporals.format(order.createdAt, 'dd MMM yyyy, HH:mm')}"></td>
-                        <td th:text="'€' + ${#numbers.formatDecimal(order.total, 1, 'COMMA', 2, 'POINT')}"></td>
-                        <td th:text="${order.status}"></td>
+                        <td class="text-right whitespace-nowrap tabular-nums"
+                            th:text="'€' + ${#numbers.formatDecimal(order.total, 1, 'COMMA', 2, 'POINT')}"></td>
+                        <td><span th:replace="~{fragments/status-badge :: badge(${order.status})}"></span></td>
                         <td class="text-right">
-                            <a class="btn btn-secondary btn-sm" th:href="@{/orders/{id}(id=${order.id})}">View</a>
+                            <a class="btn btn-secondary btn-sm" th:href="@{/orders/{id}(id=${order.id})}">View<span
+                                    class="sr-only" th:text="| order #${order.id}|"></span></a>
                         </td>
                     </tr>
                 </tbody>

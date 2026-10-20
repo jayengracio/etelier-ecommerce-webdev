@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Limit;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +28,8 @@ public class DashboardService {
 
     // Money the shop kept. REFUNDED will stay out of this set.
     private static final Set<OrderStatus> REVENUE_STATUSES = EnumSet.of(OrderStatus.PAID, OrderStatus.SHIPPED);
+
+    public static final int LOW_STOCK_SHOWN = 10;
 
     public DashboardService(
             OrderRepository orderRepository,
@@ -47,6 +50,7 @@ public class DashboardService {
             Map<OrderStatus, Long> ordersByStatus,
             List<Order> recentOrders,
             List<Product> lowStock,
+            long lowStockCount,
             int lowStockThreshold) {}
 
     @Transactional(readOnly = true)
@@ -65,7 +69,9 @@ public class DashboardService {
                 orderRepository.salesSince(REVENUE_STATUSES, Instant.now().minus(7, ChronoUnit.DAYS)),
                 byStatus,
                 orderRepository.findTop10ByOrderByCreatedAtDesc(),
-                productRepository.findByActiveTrueAndStockLessThanEqualOrderByStockAscNameAsc(lowStockThreshold),
+                productRepository.findByActiveTrueAndStockLessThanEqualOrderByStockAscNameAsc(
+                        lowStockThreshold, Limit.of(LOW_STOCK_SHOWN)),
+                productRepository.countByActiveTrueAndStockLessThanEqual(lowStockThreshold),
                 lowStockThreshold);
     }
 }
