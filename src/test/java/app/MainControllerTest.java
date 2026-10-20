@@ -216,10 +216,12 @@ class MainControllerTest {
                 .andExpect(redirectedUrl("/stock"));
     }
 
-    // ---- GET /cart ----
+    // ---- GET /cart and /checkout ----
 
-    @Test
-    void theCartAddsUpItsLines() throws Exception {
+    // Both pages show the cart's total: the cart in its summary, the checkout next to Pay
+    @ParameterizedTest
+    @CsvSource({"/cart, cart.html", "/checkout, checkout.html"})
+    void theCartAndTheCheckoutAddUpTheLines(String url, String view) throws Exception {
         Product apple = products.save(product("Test Apple", 10));
         Product pizza = product("Test Pizza", 10);
         pizza.setPrice(new BigDecimal("2.50"));
@@ -229,8 +231,8 @@ class MainControllerTest {
         addFromScript(pizza.getId());
 
         BigDecimal total = apple.getPrice().multiply(BigDecimal.TWO).add(pizza.getPrice());
-        mvc.perform(get("/cart").with(asCustomer()))
-                .andExpect(view().name("cart.html"))
+        mvc.perform(get(url).with(asCustomer()))
+                .andExpect(view().name(view))
                 .andExpect(model().attribute("total", comparesEqualTo(total)));
     }
 
