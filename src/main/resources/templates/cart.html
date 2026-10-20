@@ -6,55 +6,79 @@
 </head>
 
 <body>
-    <main>
-        <h1 th:text="'Checkout Cart: ' + ${#authentication.name}">Cart for: </h1>
-
-        <div th:if="${param.outOfStock}" class="alert alert-danger">
-            Some items in your cart are out of stock or no longer being sold. Remove them from your cart or try again later.
+    <main class="flex flex-col gap-6 md:gap-8">
+        <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+            <h1 class="mb-0">Your cart</h1>
+            <!--/* cartCount (the navbar's badge) counts every piece: 2 apples + 1 pizza = 3 items */-->
+            <span class="text-caption text-zinc-500" th:text="${cartCount == 1} ? '1 item' : |${cartCount} items|"></span>
         </div>
 
-        <div class="card overflow-x-auto p-0">
-            <table class="data-table" id="cartTable">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Name</th>
-                        <th>Price</th>
-                        <th>Qty</th>
-                        <th>Subtotal</th>
-                        <th><span class="sr-only">Actions</span></th>
-                    </tr>
-                </thead>
-
-                <tbody>
-                    <tr th:each="item : ${items}">
-                        <td th:text="${item.product.id}"></td>
-                        <td th:text="${item.product.name}"></td>
-                        <td th:text="'€' + ${#numbers.formatDecimal(item.product.price, 1, 'COMMA', 2, 'POINT')}"></td>
-                        <td>
-                            <span th:text="${item.quantity}"></span>
-                            <small class="block text-red-700" th:if="${item.quantity > item.product.stock}"
-                                th:text="|Only ${item.product.stock} left|"></small>
-                            <small class="block text-red-700" th:unless="${item.product.active}">No longer sold. Please remove from your cart.</small>
-                        </td>
-                        <td th:text="'€' + ${#numbers.formatDecimal(item.lineTotal, 1, 'COMMA', 2, 'POINT')}"></td>
-                        <td>
-                            <div class="flex justify-end gap-2">
-                                <a class="btn btn-secondary btn-sm" th:href="@{/details/{id}(id=${item.product.id})}">Details</a>
-                                <button class="btn btn-secondary btn-sm" th:onclick="|removeProduct(${item.product.id})|"
-                                    type="button">Remove</button>
-                            </div>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
+        <div th:if="${param.outOfStock}" class="alert alert-danger mb-0" role="alert">
+            <span class="shrink-0"><svg th:replace="~{fragments/icons :: exclamation-circle}"></svg></span>
+            <p>Some items in your cart are out of stock or no longer being sold. Remove them from your cart or try again later.</p>
         </div>
 
-        <div class="mt-6 flex justify-end">
+        <!--/* From lg up the lines and the summary sit side by side; below that, the summary goes under the lines. */-->
+        <div class="grid items-start gap-6 lg:grid-cols-[minmax(0,1fr)_21.25rem] lg:gap-8">
+            <ul class="divide-y-2 divide-zinc-300 overflow-hidden rounded-xl border-2 border-zinc-300 bg-white">
+                <!--/* One line, a grid of picture | text | price. On phones the buttons go under the text
+                       (columns 2-3 of the second row); from sm up they go under the price, and the
+                       picture and text span both rows so they stay centred. */-->
+                <li th:each="item : ${items}" th:with="product=${item.product}"
+                    class="grid grid-cols-[4rem_minmax(0,1fr)_auto] gap-x-3.5 gap-y-1.5 p-4 sm:grid-cols-[5.5rem_minmax(0,1fr)_auto] sm:items-center sm:gap-x-5 sm:gap-y-2 sm:px-6 sm:py-5">
+                    <!--/* A second link to the details page for mouse and touch; Tab and screen readers skip it. */-->
+                    <a class="row-span-2 overflow-hidden rounded-lg border border-zinc-200 max-sm:self-start"
+                        th:href="@{/details/{id}(id=${product.id})}" tabindex="-1" aria-hidden="true">
+                        <div th:replace="~{fragments/product-picture :: picture(${product}, 'aspect-square w-full', 'size-6')}"></div>
+                    </a>
+
+                    <div class="flex min-w-0 flex-col gap-0.5 sm:row-span-2 sm:gap-1">
+                        <span class="text-eyebrow text-zinc-500 uppercase max-sm:hidden" th:text="${product.type}"></span>
+                        <a class="hover:underline hover:underline-offset-3 max-sm:truncate max-sm:font-strong sm:font-display sm:text-heading-sm"
+                            th:href="@{/details/{id}(id=${product.id})}" th:text="${product.name}"></a>
+                        <span class="text-caption font-regular text-zinc-500"
+                            th:text="|€${#numbers.formatDecimal(product.price, 1, 'COMMA', 2, 'POINT')} each · Qty ${item.quantity}|"></span>
+                        <span class="text-micro text-red-700" th:if="${item.quantity > product.stock}"
+                            th:text="${product.stock == 0} ? 'Out of stock' : |Only ${product.stock} left|"></span>
+                        <span class="text-micro text-red-700" th:unless="${product.active}">No longer sold. Please remove it from your cart.</span>
+                    </div>
+
+                    <p class="text-right font-strong tabular-nums sm:self-end"
+                        th:text="'€' + ${#numbers.formatDecimal(item.lineTotal, 1, 'COMMA', 2, 'POINT')}"></p>
+
+                    <!--/* -ml-3.5 on phones: the ghost buttons' text lines up with the text above them. The
+                           product's name (sr-only) tells the many Details/Remove buttons apart. */-->
+                    <div class="col-span-2 col-start-2 flex gap-1 max-sm:-ml-3.5 sm:col-span-1 sm:col-start-3 sm:justify-end sm:self-start">
+                        <a class="btn btn-ghost btn-sm" th:href="@{/details/{id}(id=${product.id})}">Details<span
+                                class="sr-only" th:text="|: ${product.name}|"></span></a>
+                        <button class="btn btn-ghost btn-sm" th:onclick="|removeProduct(${product.id})|"
+                            type="button">Remove<span class="sr-only" th:text="|: ${product.name}|"></span></button>
+                    </div>
+                </li>
+            </ul>
+
+            <div class="card flex flex-col gap-6 max-md:hidden">
+                <div class="flex flex-col gap-2">
+                    <p class="text-eyebrow text-zinc-500 uppercase">Total</p>
+                    <p class="font-display text-display-md tabular-nums"
+                        th:text="'€' + ${#numbers.formatDecimal(total, 1, 'COMMA', 2, 'POINT')}"></p>
+                </div>
+                <a class="btn btn-primary btn-lg w-full" href="/checkout">Proceed to Checkout</a>
+            </div>
+        </div>
+
+        <!--/* On phones the summary is this bar pinned to the bottom of the screen instead of the card
+               above. data-bottom-bar: the layout makes room for it (fragments/layout.html). */-->
+        <div data-bottom-bar
+            class="fixed inset-x-0 bottom-0 z-10 flex h-20 items-center justify-between gap-4 border-t border-zinc-200 bg-white px-6 md:hidden">
+            <div class="flex flex-col">
+                <p class="text-eyebrow text-zinc-500 uppercase">Total</p>
+                <p class="font-display text-heading-md tabular-nums"
+                    th:text="'€' + ${#numbers.formatDecimal(total, 1, 'COMMA', 2, 'POINT')}"></p>
+            </div>
             <a class="btn btn-primary" href="/checkout">Proceed to Checkout</a>
         </div>
     </main>
-
 </body>
 
 </html>

@@ -6,11 +6,13 @@
 </head>
 
 <body>
-    <main class="mx-auto max-w-lg">
-        <div class="card text-center">
-            <h1>Your cart is currently empty!</h1>
-            <a class="btn btn-primary" href="/products">Go back to shop</a>
-        </div>
+    <!--/* No card: an icon, one line and the way back, centred on the page. */-->
+    <main class="flex flex-col items-center gap-8 py-8 text-center">
+        <span class="flex size-16 items-center justify-center rounded-full bg-zinc-100 text-zinc-500">
+            <svg th:replace="~{fragments/icons :: shopping-cart(iconSize='size-7')}"></svg>
+        </span>
+        <h1 class="mb-0 max-w-160">Your cart is empty</h1>
+        <a class="btn btn-primary btn-lg" href="/products">Go back to shop</a>
     </main>
 </body>
 

@@ -186,9 +186,13 @@
         @apply px-7.5 py-3.5 font-strong;
     }
 
-
     .btn-secondary {
         @apply bg-zinc-100 text-ink hover:not-disabled:bg-zinc-200;
+    }
+
+    /* No fill until hovered: small actions repeated on every row (the cart's Details and Remove). */
+    .btn-ghost {
+        @apply bg-transparent text-ink hover:not-disabled:bg-zinc-100;
     }
 
     /* 44px tall (a comfortable touch target). Focused: ink border and a soft halo instead

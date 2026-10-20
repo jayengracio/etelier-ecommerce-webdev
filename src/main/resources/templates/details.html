@@ -41,10 +41,10 @@
                 <p class="text-pretty text-zinc-600" th:text="${product.details}"></p>
 
                 <!--/* Below md the buttons are a bar pinned to the bottom of the screen, always in thumb
-                       reach. It is h-20 tall: the layout's <body> gets that much bottom padding when
-                       #product-actions is on the page (so the bar never covers the footer), and the
-                       cart toast moves up above it (cart-toast.html). */-->
-                <div id="product-actions"
+                       reach. It is h-20 tall: data-bottom-bar gives the layout's <body> that much bottom
+                       padding (so the bar never covers the footer) and moves the cart toast up above
+                       it (cart-toast.html). */-->
+                <div data-bottom-bar
                     class="flex gap-2 md:pt-2 max-md:fixed max-md:inset-x-0 max-md:bottom-0 max-md:z-10 max-md:h-20 max-md:items-center max-md:border-t max-md:border-zinc-200 max-md:bg-white max-md:px-6">
                     <form class="flex-1" th:action="@{/cart/add/{id}(id=${product.id})}" method="post" data-add-to-cart
                         th:data-name="${product.name}" th:data-image="${product.image} ? @{${product.image}}">

@@ -2,6 +2,7 @@ package app;
 
 import static app.TestData.product;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.comparesEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.not;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
@@ -13,6 +14,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.view;
 
 import app.order.Order;
 import app.order.OrderItem;
@@ -212,6 +214,31 @@ class MainControllerTest {
                 .andExpect(redirectedUrl("/products"));
         mvc.perform(post("/cart/add/{id}", lastOne.getId()).with(asCustomer()).with(csrf()))
                 .andExpect(redirectedUrl("/stock"));
+    }
+
+    // ---- GET /cart ----
+
+    @Test
+    void theCartAddsUpItsLines() throws Exception {
+        Product apple = products.save(product("Test Apple", 10));
+        Product pizza = product("Test Pizza", 10);
+        pizza.setPrice(new BigDecimal("2.50"));
+        products.save(pizza);
+        addFromScript(apple.getId());
+        addFromScript(apple.getId());
+        addFromScript(pizza.getId());
+
+        BigDecimal total = apple.getPrice().multiply(BigDecimal.TWO).add(pizza.getPrice());
+        mvc.perform(get("/cart").with(asCustomer()))
+                .andExpect(view().name("cart.html"))
+                .andExpect(model().attribute("total", comparesEqualTo(total)));
+    }
+
+    @Test
+    void anEmptyCartGetsItsOwnPage() throws Exception {
+        mvc.perform(get("/cart").with(asCustomer()))
+                .andExpect(view().name("empty.html"))
+                .andExpect(model().attributeDoesNotExist("total"));
     }
 
     // ---- POST /cart/buy/{id} ----

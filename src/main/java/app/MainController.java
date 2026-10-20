@@ -78,6 +78,11 @@ public class MainController {
         this.dashboardService = dashboardService;
     }
 
+    /** What the cart costs: the cart page and the checkout page show the same sum. */
+    private static BigDecimal totalOf(List<CartItem> items) {
+        return items.stream().map(CartItem::getLineTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
     /**
      * The navbar's cart badge. A @ModelAttribute method runs before every handler in this
      * controller, so every page here can show it. Pages rendered elsewhere (the error pages)
@@ -191,6 +196,7 @@ public class MainController {
             return "empty.html";
         }
         model.addAttribute("items", items);
+        model.addAttribute("total", totalOf(items));
         return "cart.html";
     }
 
@@ -236,8 +242,7 @@ public class MainController {
             return "redirect:/cart";
         }
         model.addAttribute("items", items);
-        model.addAttribute(
-                "total", items.stream().map(CartItem::getLineTotal).reduce(BigDecimal.ZERO, BigDecimal::add));
+        model.addAttribute("total", totalOf(items));
         return "checkout.html";
     }
 
