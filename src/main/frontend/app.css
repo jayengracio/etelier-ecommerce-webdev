@@ -181,6 +181,12 @@
         @apply px-3.5 py-1.5 text-caption;
     }
 
+    /* The page's main action (the details page's Add To Cart and Buy). After .btn, so its padding wins. */
+    .btn-lg {
+        @apply px-7.5 py-3.5 font-strong;
+    }
+
+
     .btn-secondary {
         @apply bg-zinc-100 text-ink hover:not-disabled:bg-zinc-200;
     }
@@ -277,9 +283,15 @@
 
     /* The page links in the navbar. From sm up they show their word; on phones only their icon
        (the word is then sr-only, so it's still the link's name). aria-current="page" is the page
-       you're on. */
+       you're on, aria-current="true" the list a page belongs to (Products on a details page). */
     .nav-link {
-        @apply flex items-center rounded-full p-2 transition ease-out hover:bg-zinc-100 aria-[current=page]:font-strong sm:px-3.5;
+        @apply flex items-center rounded-full p-2 transition ease-out hover:bg-zinc-100 aria-[current]:font-strong sm:px-3.5;
+    }
+
+    /* A round outlined button with only an icon (the details page's Back). Hover fills it ink.
+       Like .nav-icon, it needs "group" in the HTML for its .tooltip. */
+    .icon-btn {
+        @apply relative inline-flex size-10 shrink-0 items-center justify-center rounded-full border border-zinc-500 text-ink transition ease-out hover:not-disabled:border-ink hover:not-disabled:bg-ink hover:not-disabled:text-white;
     }
 
     /* The link's name, shown under it on hover or keyboard focus. It stays in the page when

@@ -2,9 +2,10 @@
        the cart, once the server has answered: a check mark, or an error. Logged-in users
        only; without #cart-toast, code.js lets the form post normally, which sends a visitor to
        the login page. The outer div is the live region and is never hidden, so screen readers
-       announce what appears in it; code.js only hides and shows the card inside. */-->
+       announce what appears in it; code.js only hides and shows the card inside.
+       On phones it moves up above the details page's bar of buttons (#product-actions, h-20). */-->
 <div th:fragment="toast" sec:authorize="isAuthenticated()" role="status"
-    class="pointer-events-none fixed inset-x-4 bottom-4 z-20 flex justify-end"
+    class="pointer-events-none fixed inset-x-4 bottom-4 z-20 flex justify-end max-md:in-[body:has(#product-actions)]:bottom-24"
     xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
     <!--/* No border: the L4 shadow (shadow-float) plus a faint ring lifts it off the page. */-->
     <div id="cart-toast" class="pointer-events-auto flex w-full max-w-85 items-center gap-3 rounded-xl bg-white p-3 shadow-float ring-1 ring-black/6" hidden>

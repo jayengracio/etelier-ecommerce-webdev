@@ -155,6 +155,14 @@ class MainControllerTest {
         mvc.perform(get("/details/{id}", hidden.getId()).with(asAdmin())).andExpect(status().isOk());
     }
 
+    @Test
+    void aDetailsPageKnowsItsPathSoTheNavbarCanMarkProducts() throws Exception {
+        Product apple = products.save(product("Test Apple", 10));
+
+        mvc.perform(get("/details/{id}", apple.getId()))
+                .andExpect(model().attribute("currentPath", "/details/" + apple.getId()));
+    }
+
     // ---- POST /cart/add/{id} and the navbar's cart count ----
 
     // What code.js sends; the header is what routes it to the JSON handler

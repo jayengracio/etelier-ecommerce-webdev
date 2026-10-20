@@ -1,7 +1,8 @@
 <!--/* The bar at the top of every page: the Etelier wordmark, the page links, then the account and
        cart icons. The page links are words from sm up; on phones each shows only its icon and keeps
        its word for screen readers (max-sm:sr-only). currentPath (MainController) marks the page
-       you're on; error pages don't have it, so nothing is marked there. */-->
+       you're on, and Products on a product's details page; error pages don't have it, so nothing is
+       marked there. */-->
 <header class="sticky top-0 z-10 border-b border-zinc-200 bg-white" th:fragment="navbar"
     xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
     <nav class="mx-auto flex min-h-16 max-w-6xl items-center gap-2 px-6 py-3 sm:gap-6">
@@ -20,7 +21,7 @@
             </li>
 
             <li>
-                <a class="nav-link" href="/products" th:aria-current="${currentPath == '/products'} ? 'page'">
+                <a class="nav-link" href="/products" th:aria-current="${currentPath == '/products'} ? 'page' : (${currentPath?.startsWith('/details/')} ? 'true')">
                     <span class="sm:hidden"><svg th:replace="~{fragments/icons :: shopping-bag}"></svg></span>
                     <span class="max-sm:sr-only">Products</span>
                 </a>

@@ -18,7 +18,8 @@
     <script th:src="@{/code.js}"></script>
 </head>
 
-<body class="flex min-h-screen flex-col">
+<!--/* pb-20: room for the details page's bar of buttons, which is pinned to the bottom on phones. */-->
+<body class="flex min-h-screen flex-col max-md:has-[#product-actions]:pb-20">
     <header th:replace="~{fragments/navbar :: navbar}"></header>
     <div class="mx-auto w-full max-w-6xl flex-1 px-6 py-16">
         <main th:replace="${content}"></main>
