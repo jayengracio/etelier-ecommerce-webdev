@@ -6,10 +6,12 @@
 </head>
 
 <body>
-    <main class="mx-auto max-w-lg">
-        <div class="card text-center">
-            <h2>Your payment has been received!</h2>
-            <p>Your order will show as <b>PAID</b> once Stripe confirms it, usually within a few seconds</p>
+    <!--/* The mint featured card: the one good-news moment of the shop, centred on the page. */-->
+    <main class="flex justify-center py-8">
+        <div class="card card-featured flex w-full max-w-160 flex-col items-center gap-5 px-6 py-10 text-center sm:px-12 sm:py-14">
+            <svg th:replace="~{fragments/icons :: check-circle(iconSize='size-10')}"></svg>
+            <h1 class="mb-0 text-heading-xl sm:text-display-md">Your payment was successful</h1>
+            <p class="max-w-110 text-pretty">Your order will show as <b>PAID</b> once Stripe confirms it, usually within a few seconds</p>
         </div>
     </main>
 </body>
