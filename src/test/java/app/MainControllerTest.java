@@ -24,6 +24,7 @@ import app.order.OrderItem;
 import app.order.OrderRepository;
 import app.order.OrderStatus;
 import app.product.Product;
+import app.product.ProductEditForm;
 import app.product.ProductRepository;
 import app.user.User;
 import app.user.UserRepository;
@@ -426,6 +427,32 @@ class MainControllerTest {
                 .isSorted();
     }
 
+    private long hiddenCountForAdmin() throws Exception {
+        return (Long) mvc.perform(get("/products").with(asAdmin()))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getModelAndView()
+                .getModel()
+                .get("hiddenCount");
+    }
+
+    // One more hidden product counts once more; a visible one doesn't (checked one at a time, so
+    // counting the visible ones instead would fail). Customers don't see hidden products, so they
+    // don't get the count.
+    @Test
+    void adminsSeeHowManyProductsAreHidden() throws Exception {
+        long before = hiddenCountForAdmin();
+        Product hidden = product("Test Hidden", 10);
+        hidden.setActive(false);
+        products.save(hidden);
+        assertThat(hiddenCountForAdmin()).isEqualTo(before + 1);
+
+        products.save(product("Test Visible", 10));
+        assertThat(hiddenCountForAdmin()).isEqualTo(before + 1);
+
+        mvc.perform(get("/products").with(asCustomer())).andExpect(model().attributeDoesNotExist("hiddenCount"));
+    }
+
     // The "Only 3 left" hints need it. Without it Thymeleaf compares the stock with null, which is
     // false, so the hints would silently never show.
     @ParameterizedTest
@@ -605,18 +632,38 @@ class MainControllerTest {
         assertThat(countTestProducts()).isEqualTo(2);
     }
 
+    // ---- GET /edit/{id} ----
+
+    @Test
+    void theEditFormStartsWithTheProductsValues() throws Exception {
+        Product product = product("Test Edit Me", 10);
+        product.setImage("/images/Apple.png");
+        products.save(product);
+
+        mvc.perform(get("/edit/{id}", product.getId()).with(asAdmin()))
+                .andExpect(status().isOk())
+                .andExpect(model().attribute(
+                                "productEditForm",
+                                new ProductEditForm(
+                                        "Created by a test", new BigDecimal("1.00"), 10, "/images/Apple.png")))
+                .andExpect(model().attribute("currentPath", "/edit/" + product.getId()));
+    }
+
     // ---- POST /edit/product (form) ----
 
+    // The page is shown again (rendered, so the template must cope with every kind of error) with the
+    // failing field marked
     @ParameterizedTest(name = "details=''{0}'' price={1} stock={2}")
     @CsvSource({
-        "'',          2.00,  5", // blank details
-        "New details, -0.01, 5", // negative price
-        "New details, 2.001, 5", // more than 2 decimals
-        "New details, 2.00,  -1", // negative stock
-        "New details, 2.00,  many", // not a number: a binding error, also in BindingResult
-        "New details, ,      5" // no price
+        "'',          2.00,  5,    details", // blank details
+        "New details, -0.01, 5,    price", // negative price
+        "New details, 2.001, 5,    price", // more than 2 decimals
+        "New details, 2.00,  -1,   stock", // negative stock
+        "New details, 2.00,  many, stock", // not a number: a binding error, also in BindingResult
+        "New details, ,      5,    price" // no price
     })
-    void anInvalidEditRedirectsBackAndChangesNothing(String details, String price, String stock) throws Exception {
+    void anInvalidEditShowsTheFormAgainAndChangesNothing(String details, String price, String stock, String field)
+            throws Exception {
         Product product = products.save(product("Test Edit Me", 10));
 
         mvc.perform(post("/edit/product")
@@ -626,7 +673,10 @@ class MainControllerTest {
                         .param("stock", stock)
                         .with(asAdmin())
                         .with(csrf()))
-                .andExpect(redirectedUrl("/edit/" + product.getId() + "?invalid"));
+                .andExpect(status().isOk())
+                .andExpect(view().name("edit.html"))
+                .andExpect(model().attributeHasFieldErrors("productEditForm", field))
+                .andExpect(model().attribute("product", hasProperty("id", is(product.getId()))));
 
         Product unchanged = reload(product);
         assertThat(unchanged.getDetails()).isEqualTo("Created by a test");
@@ -681,7 +731,9 @@ class MainControllerTest {
         product.setImage("/images/Apple.png");
         products.save(product);
 
-        editPicture(product, "Apple.png").andExpect(redirectedUrl("/edit/" + product.getId() + "?invalid"));
+        editPicture(product, "Apple.png")
+                .andExpect(status().isOk())
+                .andExpect(model().attributeHasFieldErrors("productEditForm", "image"));
         assertThat(reload(product).getImage()).isEqualTo("/images/Apple.png");
     }
 

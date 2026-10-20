@@ -125,6 +125,14 @@ public class MainController {
                 "types",
                 products.stream().map(Product::getType).distinct().sorted().toList());
         model.addAttribute("lowStockThreshold", dashboardService.lowStockThreshold());
+
+        if (admin) {
+            // For the count at the top, "194 products · 1 hidden"
+            model.addAttribute(
+                    "hiddenCount",
+                    products.stream().filter(product -> !product.isActive()).count());
+        }
+
         return admin ? "products_owner.html" : "products.html";
     }
 
@@ -319,8 +327,12 @@ public class MainController {
 
     @GetMapping("/edit/{id}")
     public String edit(@PathVariable int id, Model model) {
+        Product product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
+        model.addAttribute("product", product);
+        // The form starts with the product's current values
         model.addAttribute(
-                "product", productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException(id)));
+                "productEditForm",
+                new ProductEditForm(product.getDetails(), product.getPrice(), product.getStock(), product.getImage()));
         return "edit.html";
     }
 
@@ -333,11 +345,13 @@ public class MainController {
     }
 
     @PostMapping("/edit/product")
-    public String editProduct(@RequestParam int id, @Valid @ModelAttribute ProductEditForm form, BindingResult result) {
+    public String editProduct(
+            @RequestParam int id, @Valid @ModelAttribute ProductEditForm form, BindingResult result, Model model) {
         Product product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
 
         if (result.hasErrors()) {
-            return "redirect:/edit/" + id + "?invalid";
+            model.addAttribute("product", product);
+            return "edit.html";
         }
 
         product.setDetails(form.details());

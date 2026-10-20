@@ -7,10 +7,11 @@
     <div class="flex flex-wrap items-end justify-between gap-x-6 gap-y-4">
         <div class="flex items-baseline gap-4">
             <h1 class="mb-0">Products</h1>
-            <!--/* code.js rewrites it while filtering ("12 of 194"); aria-live has screen readers
-                   read the new count. */-->
-            <span id="product-count" class="text-caption text-zinc-500" aria-live="polite"
-                th:text="${#lists.size(products) == 1} ? '1 product' : |${#lists.size(products)} products|"></span>
+            <span class="text-caption text-zinc-500">
+                <span id="product-count" class="whitespace-nowrap" aria-live="polite"
+                    th:text="${#lists.size(products) == 1} ? '1 product' : |${#lists.size(products)} products|"></span>
+                <span th:if="${hiddenCount}" class="whitespace-nowrap" th:text="|· ${hiddenCount} hidden|"></span>
+            </span>
         </div>
         <div class="w-full sm:w-90">
             <label class="sr-only" for="searchName">Search products by name</label>

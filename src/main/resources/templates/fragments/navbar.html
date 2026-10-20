@@ -21,7 +21,7 @@
             </li>
 
             <li>
-                <a class="nav-link" href="/products" th:aria-current="${currentPath == '/products'} ? 'page' : (${currentPath?.startsWith('/details/')} ? 'true')">
+                <a class="nav-link" href="/products" th:aria-current="${currentPath == '/products'} ? 'page' : (${currentPath != null and (currentPath.startsWith('/details/') or currentPath.startsWith('/edit/'))} ? 'true')">
                     <span class="sm:hidden"><svg th:replace="~{fragments/icons :: shopping-bag}"></svg></span>
                     <span class="max-sm:sr-only">Products</span>
                 </a>
