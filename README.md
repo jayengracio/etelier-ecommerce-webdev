@@ -1,12 +1,42 @@
+<!-- markdownlint-disable MD033 MD041 -- a centred header needs HTML -->
+
+<div align="center">
+
 # Etelier Ecommerce Website Demo
+
+![Java 25](https://img.shields.io/badge/Java-25-ED8B00?logo=openjdk&logoColor=white)
+![Spring Boot 4.1](https://img.shields.io/badge/Spring_Boot-4.1-6DB33F?logo=springboot&logoColor=white)
+![Thymeleaf](https://img.shields.io/badge/Thymeleaf-3.1-005F0F?logo=thymeleaf&logoColor=white)
+![Tailwind CSS 4](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
+![PostgreSQL 17](https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white)
+![Stripe Checkout](https://img.shields.io/badge/Stripe-Checkout-635BFF?logo=stripe&logoColor=white)
+
+[Run it locally](#run-it-locally) · [Features](#features) · [Then vs Now](#then-vs-now) · [Developer Guide](docs/README.md)
+
+</div>
+
+<!-- markdownlint-enable MD033 MD041 -->
 
 A small online shop built with Spring Boot and Thymeleaf. Customers can browse and filter products, add them to a cart or buy one straight away, pay through Stripe and see their order history. An admin gets a sales dashboard with low-stock alerts, can filter and page through every order, ship or refund paid orders, and add, edit, hide or set pictures for products.
 
 The project started as a web development group project for University ([report](docs/report.pdf), [wireframe design](docs/wireframe_design.pdf)). I decided to see if I could update, further refine and implement features as practice. The framework was upgraded, the security, database and order model were rebuilt, real payments were added, the Bootstrap pages were rebuilt with Tailwind CSS and then redesigned as **Etelier**, the catalogue was replaced with 194 real-looking products, and the whole thing is now covered by automated tests. The [Then vs now](#then-vs-now) section explains each change.
 
+<!-- markdownlint-disable MD033 -- side-by-side screenshots need HTML -->
+
+<p align="center">
+  <a href="docs/screenshots/02-products.png"><img src="docs/screenshots/02-products.png" alt="The products page on a desktop" width="600"></a>
+  &nbsp;
+  <a href="docs/screenshots/14-products-mobile.png"><img src="docs/screenshots/14-products-mobile.png" alt="The products page on a phone" width="173"></a>
+</p>
+
+<p align="center"><sub>The catalogue on a desktop and on a phone. Every other page is in the <a href="docs/README.md#screenshots">developer guide</a>.</sub></p>
+
+<!-- markdownlint-enable MD033 -->
+
 ## Run it locally
 
-Check out [developer guide](docs/README.md) for when working on the code and/or running the tests
+> [!TIP]
+> Working on the code or running the tests? See the [developer guide](docs/README.md).
 
 ### What you need
 
@@ -28,7 +58,8 @@ $whsec = stripe listen --api-key $sk --print-secret
 [Environment]::SetEnvironmentVariable("STRIPE_WEBHOOK_SECRET", $whsec, "User")
 ```
 
-Close and reopen your terminals (and your editor) so they pick up both variables. The app won't start without them.
+> [!IMPORTANT]
+> Close and reopen your terminals (and your editor) so they pick up both variables. The app won't start without them.
 
 ### 2. Start the shop
 
@@ -61,8 +92,11 @@ Open **<http://localhost:3000>** and log in with one of the demo accounts:
 
 The shop is stocked with DummyJSON's 194 sample products in 24 types. A few are low or out of stock and one is hidden, so every admin view has something to show.
 
-- **As a customer:** browse and filter the catalogue, add a few products to the cart and pay. Use the test card `4242 4242 4242 4242` with any future expiry date and any CVC. The order then appears as PAID on your profile.
+- **As a customer:** browse and filter the catalogue, add a few products to the cart and pay. The order then appears as PAID on your profile.
 - **As `owner`:** see that order on the dashboard, mark it as shipped or refund it, and add, edit or hide products.
+
+> [!NOTE]
+> Stripe is in test mode, so no real money moves. Pay with the test card `4242 4242 4242 4242`, any future expiry date and any CVC.
 
 ### Stop
 
@@ -116,7 +150,7 @@ The tech stack, the 240 automated tests, editing pages without restarting, the s
 
 <!-- markdownlint-enable MD033 -->
 
-## Then vs now
+## Then vs Now
 
 <!-- markdownlint-disable MD033 -- <details> dropdowns need HTML -->
 
