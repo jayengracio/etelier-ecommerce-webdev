@@ -19,6 +19,9 @@
 
 A small online shop built with Spring Boot and Thymeleaf. Customers can browse and filter products, add them to a cart or buy one straight away, pay through Stripe and see their order history. An admin gets a sales dashboard with low-stock alerts, can filter and page through every order, ship or refund paid orders, and add, edit, hide or set pictures for products.
 
+The project started as a web development [group project](https://github.com/jayengracio/webdev-ecommerce-project) for University. It was functional at best, but had a lot of issues in terms of security and general implementation in the backend. With this in mind, I decided this was a good start for further practice, as well as learning of new tech/tools I haven't used before.
+The framework was upgraded, the security, database and order model were rebuilt, real payments were added, the Bootstrap pages were rebuilt with Tailwind CSS and then redesigned as **Etelier**, the catalogue was replaced with 194 real-looking products, and the whole thing is now covered by automated tests. The [Then vs now](#then-vs-now) section explains each change.
+
 <!-- markdownlint-disable MD033 -- side-by-side screenshots need HTML -->
 
 <p align="center">
@@ -27,12 +30,35 @@ A small online shop built with Spring Boot and Thymeleaf. Customers can browse a
   <a href="docs/screenshots/14-products-mobile.png"><img src="docs/screenshots/14-products-mobile.png" alt="The products page on a phone" width="173"></a>
 </p>
 
-<p align="center"><sub>The catalogue on a desktop and on a phone. Check out screen captures of the other page in the <a href="docs/README.md#screenshots">docs</a> folder.</sub></p>
+<p align="center"><sub>The catalogue on a desktop and on a phone</sub></p>
+
+<details>
+<summary><strong>More Screenshots</strong>: Every page of the shop and the admin area</summary>
+
+<br>
+
+Taken with the demo data. Click an image for full size.
+
+<h4>🛍️ Customer pages</h4>
+
+| | |
+| :---: | :---: |
+| [![Home](docs/screenshots/01-home.png)](docs/screenshots/01-home.png)<br>**Home** · `/` | [![Product details](docs/screenshots/03-product-details.png)](docs/screenshots/03-product-details.png)<br>**Product details** · `/details/{id}` |
+| [![Cart](docs/screenshots/04-cart.png)](docs/screenshots/04-cart.png)<br>**Cart** · `/cart` | [![Checkout](docs/screenshots/05-checkout.png)](docs/screenshots/05-checkout.png)<br>**Checkout** · `/checkout` |
+| [![Payment received](docs/screenshots/06-purchase-success.png)](docs/screenshots/06-purchase-success.png)<br>**Payment received** · `/purchase` | [![Log in](docs/screenshots/07-login.png)](docs/screenshots/07-login.png)<br>**Log in** · `/login` |
+| [![Order history](docs/screenshots/08-profile.png)](docs/screenshots/08-profile.png)<br>**Order history** · `/profile` | |
+
+<h4>🛠️ Admin-exclusive pages</h4>
+
+| | |
+| :---: | :---: |
+| [![Dashboard](docs/screenshots/09-admin-dashboard.png)](docs/screenshots/09-admin-dashboard.png)<br>**Dashboard** · `/owners` | [![Orders](docs/screenshots/10-admin-orders.png)](docs/screenshots/10-admin-orders.png)<br>**Orders** · `/view/orders` |
+| [![Order](docs/screenshots/11-admin-order.png)](docs/screenshots/11-admin-order.png)<br>**Order** · `/orders/{id}` | [![Manage products](docs/screenshots/12-admin-products.png)](docs/screenshots/12-admin-products.png)<br>**Manage products** · `/products` |
+| [![Edit product](docs/screenshots/13-admin-edit-product.png)](docs/screenshots/13-admin-edit-product.png)<br>**Edit product** · `/edit/{id}` | |
+
+</details>
 
 <!-- markdownlint-enable MD033 -->
-
-The project started as a web development [group project](https://github.com/jayengracio/webdev-ecommerce-project) for University. It was functional at best, but had a lot of issues in terms of security and general implementation in the backend. With this in mind, I decided this was a good start for further practice, as well as learning of new tech/tools I haven't used before.
-The framework was upgraded, the security, database and order model were rebuilt, real payments were added, the Bootstrap pages were rebuilt with Tailwind CSS and then redesigned as **Etelier**, the catalogue was replaced with 194 real-looking products, and the whole thing is now covered by automated tests. The [Then vs now](#then-vs-now) section explains each change.
 
 ## Run it locally
 
