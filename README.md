@@ -19,8 +19,6 @@
 
 A small online shop built with Spring Boot and Thymeleaf. Customers can browse and filter products, add them to a cart or buy one straight away, pay through Stripe and see their order history. An admin gets a sales dashboard with low-stock alerts, can filter and page through every order, ship or refund paid orders, and add, edit, hide or set pictures for products.
 
-The project started as a web development group project for University ([report](docs/report.pdf), [wireframe design](docs/wireframe_design.pdf)). I decided to see if I could update, further refine and implement features as practice. The framework was upgraded, the security, database and order model were rebuilt, real payments were added, the Bootstrap pages were rebuilt with Tailwind CSS and then redesigned as **Etelier**, the catalogue was replaced with 194 real-looking products, and the whole thing is now covered by automated tests. The [Then vs now](#then-vs-now) section explains each change.
-
 <!-- markdownlint-disable MD033 -- side-by-side screenshots need HTML -->
 
 <p align="center">
@@ -33,10 +31,13 @@ The project started as a web development group project for University ([report](
 
 <!-- markdownlint-enable MD033 -->
 
+The project started as a web development [group project](https://github.com/jayengracio/webdev-ecommerce-project) for University. It was functional at best, but had a lot of issues in terms of security and general implementation in the backend. With this in mind, I decided this was a good start for further practice, as well as learning of new tech/tools I haven't used before.
+The framework was upgraded, the security, database and order model were rebuilt, real payments were added, the Bootstrap pages were rebuilt with Tailwind CSS and then redesigned as **Etelier**, the catalogue was replaced with 194 real-looking products, and the whole thing is now covered by automated tests. The [Then vs now](#then-vs-now) section explains each change.
+
 ## Run it locally
 
 > [!TIP]
-> Working on the code or running the tests? See the [developer guide](docs/README.md).
+> Check the [developer guide](docs/README.md) to get started on working on the code or running the tests.
 
 ### What you need
 
