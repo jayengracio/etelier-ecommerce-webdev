@@ -27,7 +27,7 @@ A small online shop built with Spring Boot and Thymeleaf. Customers can browse a
   <a href="docs/screenshots/14-products-mobile.png"><img src="docs/screenshots/14-products-mobile.png" alt="The products page on a phone" width="173"></a>
 </p>
 
-<p align="center"><sub>The catalogue on a desktop and on a phone. Every other page is in the <a href="docs/README.md#screenshots">developer guide</a>.</sub></p>
+<p align="center"><sub>The catalogue on a desktop and on a phone. Check out screen captures of the other page in the <a href="docs/README.md#screenshots">docs</a> folder.</sub></p>
 
 <!-- markdownlint-enable MD033 -->
 
@@ -135,7 +135,7 @@ java -jar target/johne-0.0.1.jar
 
 ## Development
 
-The tech stack, the 240 automated tests, editing pages without restarting, the seed script, the database and the configuration settings are in the [developer guide](docs/README.md).
+The tech stack, the 240 automated tests, editing pages without restarting, the seed script, the database and the configuration settings are in the [docs](docs/README.md) folder.
 
 ## Features
 
