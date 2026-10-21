@@ -112,13 +112,6 @@ Useful commands inside psql: `\dt` (list tables), `\d orders` (describe a table)
 
 A database created before the migrations were squashed into V1-V3 won't start: Flyway finds migrations it no longer has. Wipe it once with `docker compose down -v`, and run `mvn clean` so old migration files don't linger in `target/classes`. Never edit an applied migration; add a `V4__...` instead, and change the entity with it (`ddl-auto=validate` checks they match).
 
-## Build a runnable jar
-
-```bash
-mvn clean package
-java -jar target/johne-0.0.1.jar
-```
-
 ## Configuration
 
 | Setting | Default | Notes |

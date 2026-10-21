@@ -123,6 +123,16 @@ docker compose down -v    # or: stop and wipe it, for fresh demo data on the nex
 
 <!-- markdownlint-enable MD033 -->
 
+## Build a runnable jar
+>
+> [!IMPORTANT]
+> Requires the PostgreSQL Docker container to be running
+
+```bash
+mvn clean package
+java -jar target/johne-0.0.1.jar
+```
+
 ## Development
 
 The tech stack, the 240 automated tests, editing pages without restarting, the seed script, the database and the configuration settings are in the [developer guide](docs/README.md).
