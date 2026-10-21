@@ -1,6 +1,11 @@
 # Etelier: developer guide
 
-How to work on the code: the tech stack, editing pages live, the tests, the seed data and the database. To just run the shop, follow [Run it locally](../README.md#run-it-locally) in the main README; everything here assumes it already runs.
+How to work on the code: the tech stack, editing pages live, the tests, the seed data and the database.
+
+> [!NOTE]
+> Everything here assumes the shop already runs. If it doesn't yet, follow [Run it locally](../README.md#run-it-locally) in the main README first.
+
+**Contents:** [Tech stack](#tech-stack) · [Live editing](#edit-templates-and-css-without-restarting) · [Testing](#testing) · [Seed data](#the-seed-data) · [Database](#the-database) · [Jar](#build-a-runnable-jar) · [Configuration](#configuration) · [Screenshots](#screenshots)
 
 ## Tech stack
 
@@ -36,7 +41,10 @@ mvn spring-boot:run "-Dspring-boot.run.arguments=--spring.thymeleaf.prefix=file:
 cd src/main/frontend; npm run watch
 ```
 
-Save, then refresh the browser. Java, `code.js`, image and font changes still need a restart. Tailwind only generates classes it finds in saved templates and `code.js`, so always write full class names (never build them from pieces).
+Save, then refresh the browser. Java, `code.js`, image and font changes still need a restart.
+
+> [!WARNING]
+> Tailwind only generates classes it finds in saved templates and `code.js`. Always write full class names; a class built from pieces at runtime never reaches the stylesheet.
 
 ## Testing
 
@@ -49,8 +57,8 @@ mvn spotless:apply                  # reformat the code; run this before verify 
 mvn test "-Dtest=OrderTest,SalesTotalsTest,ProductValidationTest"
 ```
 
-- **Docker must be running:** the tests use a throwaway PostgreSQL 17, never the development database.
-- **No Stripe account is needed:** Stripe is mocked, and the test profile has dummy keys.
+> [!IMPORTANT]
+> **Docker must be running:** the tests use a throwaway PostgreSQL 17, never the development database. **No Stripe account is needed:** Stripe is mocked, and the test profile has dummy keys.
 
 <!-- markdownlint-disable MD033 -- <details> dropdowns need HTML -->
 
@@ -121,3 +129,28 @@ java -jar target/johne-0.0.1.jar
 | `APP_BASE_URL` env var | `http://localhost:3000` | where Stripe sends the customer back after paying or cancelling |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET` env vars | none | required; the app refuses to start unless they start with `sk_` and `whsec_` |
 | `app.low-stock-threshold` | `13` | "Only N left" hints, Low badges and the dashboard's low-stock list |
+
+## Screenshots
+
+Every page with the seed data, logged in as a customer (Kenji) or as `owner`, with the URL and the template that renders it. Click an image for full size. The products page, on a desktop and on a phone, is at the top of the [main README](../README.md).
+
+<!-- markdownlint-disable MD033 -- <br> puts each caption under its image -->
+
+### Shop
+
+| | |
+| :---: | :---: |
+| [![Home](screenshots/01-home.png)](screenshots/01-home.png)<br>**Home** · `/` · `index.html` | [![Product details](screenshots/03-product-details.png)](screenshots/03-product-details.png)<br>**Product details** · `/details/{id}` · `details.html` |
+| [![Cart](screenshots/04-cart.png)](screenshots/04-cart.png)<br>**Cart** · `/cart` · `cart.html` | [![Checkout](screenshots/05-checkout.png)](screenshots/05-checkout.png)<br>**Checkout** · `/checkout` · `checkout.html` |
+| [![Payment received](screenshots/06-purchase-success.png)](screenshots/06-purchase-success.png)<br>**Payment received** · `/purchase` · `purchase.html` | [![Log in](screenshots/07-login.png)](screenshots/07-login.png)<br>**Log in** · `/login` · `login.html` |
+| [![Order history](screenshots/08-profile.png)](screenshots/08-profile.png)<br>**Order history** · `/profile` · `profile.html` | |
+
+### Admin
+
+| | |
+| :---: | :---: |
+| [![Dashboard](screenshots/09-admin-dashboard.png)](screenshots/09-admin-dashboard.png)<br>**Dashboard** · `/owners` · `owners.html` | [![Orders](screenshots/10-admin-orders.png)](screenshots/10-admin-orders.png)<br>**Orders** · `/view/orders` · `view_order.html` |
+| [![Order](screenshots/11-admin-order.png)](screenshots/11-admin-order.png)<br>**Order** · `/orders/{id}` · `orders.html` | [![Manage products](screenshots/12-admin-products.png)](screenshots/12-admin-products.png)<br>**Manage products** · `/products` · `products_owner.html` |
+| [![Edit product](screenshots/13-admin-edit-product.png)](screenshots/13-admin-edit-product.png)<br>**Edit product** · `/edit/{id}` · `edit.html` | |
+
+<!-- markdownlint-enable MD033 -->
