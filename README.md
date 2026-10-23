@@ -7,9 +7,7 @@
 ![Java 25](https://img.shields.io/badge/Java-25-ED8B00?logo=openjdk&logoColor=white)
 ![Spring Boot 4.1](https://img.shields.io/badge/Spring_Boot-4.1-6DB33F?logo=springboot&logoColor=white)
 ![Thymeleaf](https://img.shields.io/badge/Thymeleaf-3.1-005F0F?logo=thymeleaf&logoColor=white)
-![Tailwind CSS 4](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
 ![PostgreSQL 17](https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white)
-![Stripe Checkout](https://img.shields.io/badge/Stripe-Checkout-635BFF?logo=stripe&logoColor=white)
 
 [Run it locally](#run-it-locally) · [Features](#features) · [Then vs Now](#then-vs-now) · [Developer Guide](docs/README.md)
 
