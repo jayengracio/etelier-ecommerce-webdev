@@ -61,14 +61,14 @@ Taken with the demo data. Click an image for full size.
 ## Run it locally
 
 > [!TIP]
-> Check the [developer guide](docs/README.md) to get started on working on the code or running the tests.
+> The [docs](docs/README.md) folder holds more technical information available for reading
 
 ### What you need
 
 - [JDK 25](https://adoptium.net/) and [Maven 3.9+](https://maven.apache.org/download.cgi)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/), running
-- A free [Stripe account](https://dashboard.stripe.com/register) in test mode (no real money moves) and the [Stripe CLI](https://docs.stripe.com/stripe-cli)
-- An internet connection: product pictures load from DummyJSON's CDN
+- A [Stripe](https://dashboard.stripe.com/register) free account in test mode (no real money moves) and the [Stripe CLI](https://docs.stripe.com/stripe-cli)
+- Powershell 7 was used for the commands below:
 
 ### 1. Connect Stripe (once)
 
@@ -150,16 +150,12 @@ docker compose down -v    # or: stop and wipe it, for fresh demo data on the nex
 ## Build a runnable jar
 >
 > [!IMPORTANT]
-> Requires the PostgreSQL Docker container to be running
+> Requires the PostgreSQL db to be running (in a Docker container)
 
 ```bash
 mvn clean package
 java -jar target/johne-0.0.1.jar
 ```
-
-## Development
-
-The tech stack, the 240 automated tests, editing pages without restarting, the seed script, the database and the configuration settings are in the [docs](docs/README.md) folder.
 
 ## Features
 
@@ -352,9 +348,8 @@ The original version worked as a demo but had problems that would break a real s
 
 ## To-Do
 
-- Show the product data that's stored but not on any page yet: brand, rating, discount, the picture gallery, tags and reviews.
-- CI (GitHub Actions running `mvn verify`) and automated dependency updates once the repository is public. Tailwind and `stripe-java` are pinned by hand until then.
-- Content-hashed names for `app.css` and `code.js`, so they can be cached like the fonts.
+- Show the product data that's stored but not on any page yet such as brand, rating, discount, the picture gallery, tags and reviews.
+- CI (GitHub Actions running `mvn verify`) and automated dependency updates.
 
 ## Known limitations
 
