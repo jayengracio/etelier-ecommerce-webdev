@@ -1,7 +1,5 @@
 <!-- markdownlint-disable MD033 MD041 -- a centred header needs HTML -->
 
-<div align="center">
-
 # Etelier Ecommerce Website Demo
 
 ![Java 25](https://img.shields.io/badge/Java-25-ED8B00?logo=openjdk&logoColor=white)
@@ -9,16 +7,11 @@
 ![Thymeleaf](https://img.shields.io/badge/Thymeleaf-3.1-005F0F?logo=thymeleaf&logoColor=white)
 ![PostgreSQL 17](https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white)
 
-[Run it locally](#run-it-locally) · [Features](#features) · [Then vs Now](#then-vs-now) · [Developer Guide](docs/README.md)
-
-</div>
-
 <!-- markdownlint-enable MD033 MD041 -->
 
 A small online shop built with Spring Boot and Thymeleaf. Customers can browse and filter products, add them to a cart or buy one straight away, pay through Stripe and see their order history. An admin gets a sales dashboard with low-stock alerts, can filter and page through every order, ship or refund paid orders, and add, edit, hide or set pictures for products.
 
-The project started as a web development [group project](https://github.com/jayengracio/webdev-ecommerce-project) for University. It was functional at best, but had a lot of issues in terms of security and general implementation in the backend. With this in mind, I decided this was a good start for further practice, as well as learning of new tech/tools I haven't used before.
-The framework was upgraded, the security, database and order model were rebuilt, real payments were added, the Bootstrap pages were rebuilt with Tailwind CSS and then redesigned as **Etelier**, the catalogue was replaced with 194 real-looking products, and the whole thing is now covered by automated tests. The [Then vs now](#then-vs-now) section explains each change.
+This project is an updated version of my web development [group project](https://github.com/jayengracio/webdev-ecommerce-project) for university. It was functional at best, but had a lot of issues in terms of security and general implementation in the backend. With this in mind, I decided this was a good place to start further practice and/or learning of new tech/tools. The framework was upgraded, the security, database and order model were rebuilt, real payments were added, the Bootstrap pages were rebuilt with Tailwind CSS and then redesigned as **Etelier**.
 
 <!-- markdownlint-disable MD033 -- side-by-side screenshots need HTML -->
 
@@ -82,9 +75,6 @@ $sk = "sk_test_..."   # paste your secret key here
 $whsec = stripe listen --api-key $sk --print-secret
 [Environment]::SetEnvironmentVariable("STRIPE_WEBHOOK_SECRET", $whsec, "User")
 ```
-
-> [!IMPORTANT]
-> Close and reopen your terminals (and your editor) so they pick up both variables. The app won't start without them.
 
 ### 2. Start the shop
 
