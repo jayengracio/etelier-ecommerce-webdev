@@ -88,27 +88,20 @@ stripe listen --api-key $env:STRIPE_SECRET_KEY --events checkout.session.complet
 mvn spring-boot:run
 ```
 
-The first start takes a few minutes: Maven downloads its dependencies and a copy of Node to build the stylesheet, and the database is created and filled with the demo data. The shop is ready when the log shows `Started MyApplication`.
-
 ### 3. Try it
 
-Open **<http://localhost:3000>** and log in with one of the demo accounts:
+Open **<http://localhost:3000>**, register or log in with one of the accounts:
 
 | Username | Password | Role |
 | --- | --- | --- |
 | `owner` | `password` | ADMIN |
 | `Phil` | `1234pass` | USER |
-| `Joseph` | `josephw0w` | USER |
-| `Maria` | `maria2026` | USER |
-| `Kenji` | `kenji2026` | USER |
-
-The shop is stocked with DummyJSON's 194 sample products in 24 types. A few are low or out of stock and one is hidden, so every admin view has something to show.
 
 - **As a customer:** browse and filter the catalogue, add a few products to the cart and pay. The order then appears as PAID on your profile.
 - **As `owner`:** see that order on the dashboard, mark it as shipped or refund it, and add, edit or hide products.
 
 > [!NOTE]
-> Stripe is in test mode, so no real money moves. Pay with the test card `4242 4242 4242 4242`, any future expiry date and any CVC.
+> Stripe should be in test mode, so no real money moves. Pay with the test card `4242 4242 4242 4242`, any future expiry date and any CVC.
 
 ### Stop
 
@@ -120,17 +113,6 @@ docker compose down -v    # or: stop and wipe it, for fresh demo data on the nex
 ```
 
 <!-- markdownlint-disable MD033 -- <details> dropdowns need HTML -->
-
-<details>
-<summary><strong>If something goes wrong</strong></summary>
-
-- **"STRIPE_SECRET_KEY is not set" when the app starts:** the terminal was opened before step 1. Open a new one.
-- **A paid order stays PENDING:** `stripe listen` isn't running, or the key and the webhook secret come from different Stripe accounts. Redo step 1 with `--api-key` as shown.
-- **The database won't start, or port 5432 is in use:** another PostgreSQL is running on your machine. Stop it, or stop the other Docker container that uses the port.
-- **Flyway reports migrations it doesn't know:** the database was created by an older version of the project. Wipe it with `docker compose down -v` and run `mvn clean` once.
-- **Port 3000 is in use:** another copy of the app is still running. Stop it first.
-
-</details>
 
 <!-- markdownlint-enable MD033 -->
 
@@ -173,7 +155,7 @@ java -jar target/johne-0.0.1.jar
 <!-- markdownlint-disable MD033 -- <details> dropdowns need HTML -->
 
 <details>
-<summary><strong>Show what changed and why</strong>: platform, security, orders and money, payment, admin, frontend, design, seed data, tests</summary>
+<summary><strong>What changed and why</strong></summary>
 
 The original version worked as a demo but had problems that would break a real shop. Open a category to see each change: the old behaviour, what replaced it, and why.
 
@@ -307,7 +289,7 @@ The original version worked as a demo but had problems that would break a real s
 <!-- markdownlint-disable MD033 -- <details> dropdowns need HTML -->
 
 <details>
-<summary><strong>Design notes</strong>: relations, transactions, locking, Stripe calls, refunds and the frontend</summary>
+<summary><strong>Design Notes</strong></summary>
 
 - **Links run from child to parent only** (`CartItem → User`, `OrderItem → Order`, `Review → Product`). A user's cart and orders, and a product's reviews, are loaded through repositories, not through collections on the parent.
 - **`spring.jpa.open-in-view=false`:** the database session closes before the template renders. Each query states what it needs with `@EntityGraph`, so a template can't trigger extra hidden queries.
@@ -332,11 +314,6 @@ The original version worked as a demo but had problems that would break a real s
 - **Product data and pictures:** [DummyJSON](https://dummyjson.com), a free sample-data API. Pictures are loaded from its CDN.
 - **Fonts:** [Geist](https://vercel.com/font) (Vercel) and [Inter](https://rsms.me/inter/) (Rasmus Andersson), both under the SIL Open Font License 1.1, downloaded from Google Fonts.
 - **Icons:** [Heroicons](https://heroicons.com) v2.2.0 (MIT).
-
-## To-Do
-
-- Show the product data that's stored but not on any page yet such as brand, rating, discount, the picture gallery, tags and reviews.
-- CI (GitHub Actions running `mvn verify`) and automated dependency updates.
 
 ## Known limitations
 
