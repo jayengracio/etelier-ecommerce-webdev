@@ -2,10 +2,7 @@
 
 # Etelier Ecommerce Website Demo
 
-![Java 25](https://img.shields.io/badge/Java-25-ED8B00?logo=openjdk&logoColor=white)
-![Spring Boot 4.1](https://img.shields.io/badge/Spring_Boot-4.1-6DB33F?logo=springboot&logoColor=white)
-![Thymeleaf](https://img.shields.io/badge/Thymeleaf-3.1-005F0F?logo=thymeleaf&logoColor=white)
-![PostgreSQL 17](https://img.shields.io/badge/PostgreSQL-17-4169E1?logo=postgresql&logoColor=white)
+![Java CI with Maven](https://github.com/jayengracio/etelier-ecommerce-webdev/actions/workflows/ci.yml/badge.svg)
 
 <!-- markdownlint-enable MD033 MD041 -->
 
